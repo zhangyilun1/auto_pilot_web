@@ -1,0 +1,84 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            {include file='public/user_nav' /}
+        </div>
+        <form action="{:url('add_company')}" class="right_content add_con">
+            <input type="hidden" name="companyID" value="{$data.companyID|default=-1}" />
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('company_list')}">返回</a>
+                </span>
+                <span class="r">
+                      <?php if($my_permission['modifyUserMgr']<=0):?>
+                      <?php else:?>
+                          <a class="add_btn" href="{:url('add_company',['id'=>$data['companyID']])}">修改</a>
+                      <?php endif;?>
+
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table mt-10">
+
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">单位名称 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="companyName" value="{$data.companyName}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">二级名称：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="second_name" value="{$data.second_name}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">地址 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="address" value="{$data.address}">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">负责人：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="supervisor" value="{$data.supervisor}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">备注：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="comment" value="{$data.comment}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    $(function(){
+        $('input,select').prop('disabled',true).prop('readonly',true);
+    })
+</script>

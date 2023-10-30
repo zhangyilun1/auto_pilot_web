@@ -1,0 +1,151 @@
+{include file='public/header' /}
+<style>
+    .a-1{padding:30px;padding-top:0;}
+    input[type=checkbox]{width:20px;height:20px;}
+    #add_task_form .table-td td{padding-left:10px;}
+    #add_task_form a.btn{
+
+        color: white;
+        background: none !important;
+        border: none !important;
+
+    }
+</style>
+<form action="{:url('index/set_return')}" data-back="{:url('add_task')}" id="task_form" style="display:block;width:100%;height:100%;" >
+    <div class="a-2 a-2-1">
+        <!--            <img class="a-3" src="/static/index/img/top_bg.png" />-->
+        <div class="text-c a-4" style="">{$title}</div>
+        <div class="a-5 text-r top_btn">
+            <div class="a-12">
+                <a href="{:url('index/add_task')}" >返回</a>
+            </div>
+            <div class="a-6-box">
+                <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a>
+            </div>
+        </div>
+    </div>
+    <!-- 内容 -->
+    <div class="a-15" >
+        <div class="big-border">
+            <div id="add_task_form">
+                <input type="hidden" name="submissionID" value="{$data.submissionID|default=-1}" />
+                <table class="table ">
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">任务名称：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="submissionName" value="{$data.submissionName}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">无人机名称：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="snCode" value="{$data.submissionName}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">返航策略：</label>
+                                <div class="formControls col-xs-8" >
+                                    <select class="select" size="1" name="policyID" id="policySelect">
+                                        {foreach name='policys' item='v'}
+                                        <option value="{$v.policyID}" <?php if($v['policyID']==$data['policyID'])echo ' selected';?>>{$v.policyType}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="additionalRow" style="display: none;">
+                        <td colspan="3">
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title" id="additionalLabel"></label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" name="additionalInput" id="additionalInput">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+{include file='public/footer' /}
+<script>
+    // window.onload = function() {
+    //     // 获取URL中的查询字符串部分 
+    //     var queryString = window.location.search; 
+    //     // 创建URLSearchParams对象并传入查询字符串 
+    //     // var params = new URLSearchParams(queryString);
+    //     // // 获取指定参数的值 
+    //     // var submissionID = params.get('submissionID');
+    //     // var snCode = params.get('droneID');
+    //     console.log("submissionID : " ,submissionID);
+    //     $('input[name="submissionName"]').val({$snCode});
+    //     // var submissionID = params.get('submissionName');
+    //     // console.log("submissionName : " ,submissionName);
+    //     console.log("snCode : " ,snCode);
+    //     $('input[name="snCode"]').val({$snCode});
+    //     // $.ajax({
+    //     //     url: 'set_return', // 替换为实际的服务器端接口地址
+    //     //     method: 'get',
+    //     //     data: {submissionID: submissionID},
+    //     //     success: function(response) {
+    //     //         console.log("success");
+    //     //         console.log("response.submissionName : ", response.submissionName);
+    //     //         // 获取到 submissionName
+    //     //         var submissionName = response.submissionName;
+
+    //     //         console.log("submissionName",submissionName);
+    //     //         // 将 submissionName 设置为 input 元素的值
+    //     //         $('input[name="submissionName"]').val(submissionName);
+
+    //     //     },
+    //     //     error: function() {
+    //     //         console.log('Error occurred while fetching submissionName');
+    //     //     }
+    //     // });
+    // }
+    
+    const policySelect = document.getElementById("policySelect");
+    const additionalRow = document.getElementById("additionalRow");
+    const additionalLabel = document.getElementById("additionalLabel");
+    const additionalInput = document.getElementById("additionalInput");
+
+    policySelect.addEventListener("change", function() {
+        const selectedPolicy = policySelect.value;
+        if (selectedPolicy === "1") {
+            additionalLabel.textContent = "返航高度：";
+            additionalInput.placeholder = "请输入返航高度";
+            additionalRow.style.display = "block";
+        } else if (selectedPolicy === "2") {
+            additionalLabel.textContent = "RTK坐标：";
+            additionalInput.placeholder = "请输入RTK坐标";
+            additionalRow.style.display = "block";
+        } else {
+            additionalRow.style.display = "none";
+        }
+    });
+    policySelect.value = 0;
+
+    // // 监听 additionalInput 的 input 事件
+    // additionalInput.addEventListener("input", function() {
+    // // 如果填写了高度，隐藏 additionalRow
+    //     if (additionalInput.value.trim() !== "") {
+    //         additionalRow.style.display = "none";
+    //     } else {
+    //         // 如果内容为空，根据当前选项重新显示 additionalRow
+    //         const selectedPolicy = policySelect.value;
+    //         if (selectedPolicy === "1" || selectedPolicy === "2") {
+    //             additionalRow.style.display = "block";
+    //         } else {
+    //             additionalRow.style.display = "none";
+    //         }
+    //     }
+    // });
+</script>

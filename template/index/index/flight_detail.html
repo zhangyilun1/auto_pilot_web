@@ -1,0 +1,169 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<style>
+    .rule-table span{display:inline-block;padding:10px 0;}
+    .rule-table td,.rule-table th,.rule-table{border-color:#4D8CCF}
+</style>
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            {include file='public/setting_nav' /}
+        </div>
+        <form action="{:url('add_flight')}" class="right_content add_con">
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('flight_list')}">返回</a>
+                </span>
+                <span class="r">
+                    <a class="add_btn" href="{:url('flight_list')}">完成</a>
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <div class="controls">
+                    <table class="table">
+                        <tr>
+                            <td><div></div></td>
+                            <td><div class="po0"><img src="/static/index/img/up<?php if($data['po'][0]==1)echo 'select';?>.png" data-dire="up" class="arrow <?php if($data['po'][0]==1)echo ' active';?>" />
+                                <input type="hidden" name="po[0]" value="{$data.po.0+0}" /></div></td>
+                            <td><div></div></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="po2"><img src="/static/index/img/left<?php if($data['po'][2]==1)echo 'select';?>.png" data-dire="left" class="arrow <?php if($data['po'][2]==1)echo ' active';?>" />
+                                    <input type="hidden" name="po[2]" value="{$data.po.2+0}" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <img src="/static/index/img/circlemid.png" />
+                                </div>
+                            </td>
+                            <td><div class="po3"><img src="/static/index/img/right<?php if($data['po'][3]==1)echo 'select';?>.png" data-dire="right" class="arrow <?php if($data['po'][3]==1)echo ' active';?>" />
+                                <input type="hidden" name="po[3]" value="{$data.po.3+0}" />
+                            </div></td>
+                        </tr>
+                        <tr>
+                            <td><div></div></td>
+                            <td>
+                                <div class="po1">
+                                    <img src="/static/index/img/down<?php if($data['po'][1]==1)echo 'select';?>.png" data-dire="down" class="arrow <?php if($data['po'][1]==1)echo ' active';?>" />
+                                    <input type="hidden" name="po[1]" value="{$data.po.1+0}" />
+                                </div>
+                            </td>
+                            <td><div></div></td>
+                        </tr>
+                    </table>
+                </div>
+                <table class="table mt-10">
+
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">航线类型名称 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">航线类型 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <select class="select" size="1" name="demo1">
+                                        <option value="" selected="">耐张</option>
+                                        <option value="1">直线</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">偏心角度 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">左侧夹角度数 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">右侧夹角度数 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">是否通道巡检 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <select class="select" size="1" name="demo1">
+                                        <option value="" selected="">是</option>
+                                        <option value="1">否</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">绝缘子层数：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">高：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="">
+                                </div>
+                            </div>
+                        </td>
+                        <!-- <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">长：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">宽：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="">
+                                </div>
+                            </div>
+                        </td> -->
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">备注：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="">
+                                </div>
+                            </div>
+                        </td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+{include file='public/footer' /}

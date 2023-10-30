@@ -1,0 +1,92 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<style>
+    .rule-table span{display:inline-block;padding:10px 0;}
+    .rule-table td,.rule-table th,.rule-table{border-color:#4D8CCF}
+    input[type="checkbox"]:disabled:checked {background-color:#118acf !important;}
+
+</style>
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            {include file='public/user_nav' /}
+        </div>
+        <div action="{:url('add_permission')}" class="right_content add_con" id="permission_form" data-back="{:url('index/permission_list')}">
+            <input type="hidden" name="permissionID" value="{$data.permissionID|default=-1}" />
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('permission_list')}">返回</a>
+                </span>
+                <span class="r">
+                    <?php if($my_permission['modifyUserMgr']<=0):?>
+                    <?php else:?>
+                        <a class="add_btn" href="{:url('add_permission',['id'=>$data['permissionID']])}">修改</a>
+                    <?php endif;?>
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table mt-10">
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">权限名称 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="permissionName" value="{$data.permissionName}" }">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                           <table class="table table-bg table-border table-bordered rule-table text-c">
+                               <tr>
+                                   <th></th>
+                                   <th>新增</th>
+                                   <th>删除</th>
+                                   <th>修改</th>
+                                   <th>查看</th>
+                               </tr>
+                               <tr>
+                                   <th>任务管理</th>
+                                   <td><span><input type="checkbox" class="checkbox" name="addTask" value="1" <?php if($data['addTask'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="deleteTask" value="1" <?php if($data['deleteTask'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="modifyTask" value="1" <?php if($data['modifyTask'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="findTask" value="1" <?php if($data['findTask'])echo ' checked';?> /></span></td>
+                               </tr>
+                               <tr>
+                                   <th>基础数据</th>
+                                   <td><span><input type="checkbox" class="checkbox" name="addBasicData" value="1"  <?php if($data['addBasicData'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="deleteBasicData" value="1" <?php if($data['deleteBasicData'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="modifyBasicData" value="1" <?php if($data['modifyBasicData'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="findBasicData" value="1" <?php if($data['findBasicData'])echo ' checked';?> /></span></td>
+                               </tr>
+                               <tr>
+                                   <th>用户管理</th>
+                                   <td><span><input type="checkbox" class="checkbox" name="addUserMgr" value="1" <?php if($data['addUserMgr'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="deleteUserMgr" value="1" <?php if($data['deleteUserMgr'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="modifyUserMgr" value="1" <?php if($data['modifyUserMgr'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="findUserMgr" value="1" <?php if($data['findUserMgr'])echo ' checked';?> /></span></td>
+                               </tr>
+                               <tr>
+                                   <th>其它设置</th>
+                                   <td><span><input type="checkbox" class="checkbox" name="addData" value="1" <?php if($data['addData'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="deleteData" value="1" <?php if($data['deleteData'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="modifyData" value="1" <?php if($data['modifyData'])echo ' checked';?> /></span></td>
+                                   <td><span><input type="checkbox" class="checkbox" name="findData" value="1" <?php if($data['findData'])echo ' checked';?> /></span></td>
+                               </tr>
+                           </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    $(function(){
+        $('input,select').prop('disabled',true).prop('readonly',true);
+    })
+</script>

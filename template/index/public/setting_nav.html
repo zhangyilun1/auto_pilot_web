@@ -1,0 +1,8 @@
+<ul class="left_nav_con">
+    <li class="<?php if (in_array(ACTION_NAME, ['log_list', 'log_detail','check_flight'])) echo 'active'; ?>">
+        <a href="{:url('log_list')}">飞行记录</a>
+    </li>
+    <li class="<?php if (in_array(ACTION_NAME, ['flight_list', 'add_flight','check_flight'])) echo 'active'; ?>">
+        <a href="{:url('flight_list')}">航线类型</a>
+    </li>
+</ul>

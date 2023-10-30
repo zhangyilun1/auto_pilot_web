@@ -1,0 +1,118 @@
+{include file='public/header' /}
+<style>
+    .a-1{padding:30px;padding-top:0;}
+    input[type=checkbox]{width:20px;height:20px;}
+    #add_task_form .table-td td{padding-left:10px;}
+    #add_task_form a.btn{
+        color: white;
+        background: none !important;
+        border: none !important;
+
+    }
+</style>
+<form action="{:url('index/set_related_drone')}" data-back="{:url('index')}" id="drone_form" style="display:block;width:100%;height:100%;" >
+    <div class="a-2 a-2-1">
+        <div class="text-c a-4" style="">{$title}</div>
+        <div class="a-5 text-r top_btn">
+            <div class="a-12">
+                <a href="{:url('index/index')}" >返回</a>
+            </div>
+            <div class="a-6-box">
+                <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a>
+            </div>
+        </div>
+    </div>
+    <!-- 内容 -->
+    <div class="a-15" style="overflow: visible;">
+        <div class="big-border">
+            <div id="add_task_form">
+                <input type="hidden" name="submissionID" value="{$data.submissionID|default=-1}" />
+                <table class="table " style="margin-top:10px;">
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <div class="table-td" style="overflow-y:auto;">
+                                <table class="table linelist">
+                                    <tr>
+                                        <th>无人机ID</th>
+                                        <th>无人机名称</th>
+                                        <th>选择</th>
+                                    </tr>
+                                    {foreach name='all_drones' item='v' key='k'}
+                                    <tr>
+                                        <td>{$v.droneID}</td>
+                                        <td>{$v.snCode}</td>
+                                        <td>
+                                            <input type="radio" name="droneID" value="{$v.droneID}" id="drone_{$v.droneID}" <?php if(in_array($v['droneID'], $drone_ids)) echo 'disabled';?> >
+                                        </td>
+                                    </tr>
+                                    {/foreach}
+                                </table>
+                            </div>
+                        </td>
+                    </tr> 
+            </div>
+        </div>  
+    </div> 
+</form>
+
+{include file='public/footer' /}
+<script>
+
+    $(document).ready(function(){
+        var old = null; //用来保存原来的对象
+        $("input[name='droneID']").each(function(){
+            if(this.checked){
+                old = this; 
+            }
+            this.onclick = function(){
+                if(this == old){
+                    this.checked = false;
+                    old = null;
+                } else{
+                    old = this;
+                }
+            }
+        });
+    });
+
+    $(function(){
+        // 动态获取元素高度
+        var h = $('.big-border').height()
+        $('.table-td').css('height',(h - 115) +'px')
+
+        $(window).resize(function () {
+            var h = $('.big-border').height()
+            $('.table-td').css('height',(h - 115) +'px')
+        });
+    })
+
+    $(function() {
+        var droneID = '{$data.droneID}';
+        console.log("droneID ：",droneID);
+        if (droneID !== '') {
+            console.log("droneID not empty");
+            $('.linelist input[type=radio][value="' + droneID + '"]').prop('disabled', false); 
+            $('.linelist input[type=radio][value="' + droneID + '"]').prop('checked', true); 
+        }
+
+    });
+
+    $('.linelist input[type=radio]').on('click',function(){
+        console.log("click radio ::: ");
+        // if (this.checked) {
+        //     console.log("== checked ==");
+        //     // 如果当前按钮被选中，将droneID设置为空
+        //     droneID = '';
+        //     // $(this).prop('checked', false); // 取消选中状态
+        // }
+   
+        var droneID=$(this).attr('value');
+        console.log("droneID ::: ",droneID);
+        var submissionID = $('input[name="submissionID"]').val();
+        console.log("submissionID ::: ", submissionID);
+     
+    })
+
+
+ 
+</script>

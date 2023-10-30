@@ -1,0 +1,726 @@
+{include file='public/header' /}
+<style>
+    .a-1{padding:30px;padding-top:0;}
+    input[type=checkbox]{width:20px;height:20px;}
+    #add_task_form .table-td td{padding-left:10px;}
+    #add_task_form a.btn{
+
+        color: white;
+        background: none !important;
+        border: none !important;
+
+    }
+</style>
+<form action="{:url('index/add_task')}" data-back="{:url('index')}" id="task_form" style="display:block;width:100%;height:100%;" onsubmit="return validateForm()">
+    <div class="a-2 a-2-1">
+        <!--            <img class="a-3" src="/static/index/img/top_bg.png" />-->
+        <div class="text-c a-4" style="">{$title}</div>
+        <div class="a-5 text-r top_btn">
+            <div class="a-12">
+                <a href="{:url('index/index')}" >返回</a>
+            </div>
+            <div class="a-6-box">
+                <!-- <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a> -->
+                <a class="add_btn" href="javascript:void(0);" id=submitAndValidate>完成</a>
+            </div>
+            <div class="a-6-box">
+                {if $data.submissionID !== null}
+                <a class="del_task" href="javascript:void(0);" data-id="{$data.submissionID}" id=delete>删除</a>
+                {/if}
+            </div>
+        
+        </div>
+    </div>
+    <!-- 内容 -->
+    <div class="a-15" >
+        <div class="big-border">
+            <div id="add_task_form">
+                <input type="hidden" name="submissionID" value="{$data.submissionID|default=-1}" />
+                <table class="table ">
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">任务名称：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="submissionName" value="{$data.submissionName}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">任务类型：</label>
+                                <div class="formControls col-xs-8">
+                            
+                                     <select class="select" size="1" name="missionID">
+                                            {foreach $filteredMissionList as $v}
+                                            <option value="{$v.missionID}" <?php if ($v['missionID'] == $data['missionID']) echo 'selected'; ?>>{$v.missionType}</option>
+                                            {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">往返高度：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="flightHeight" value="{$data.flightHeight}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">两端拍照：</label>
+                                <div class="formControls col-xs-8">
+                                    <select class="select" size="1" name="doublePhoto">
+                                        <option value="1" <?php if($data['doublePhoto'])echo ' selected';?>>是</option>
+                                        <option value="0" <?php if(!$data['doublePhoto'])echo ' selected';?>>否</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">无人机码：</label>
+                                <div class="formControls col-xs-8" >
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="snCode" value="{$snCode}" readonly>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">返航策略：</label>
+                                <div class="formControls col-xs-8" >
+                                    <select class="select" size="1" name="policyID" id="policySelect">
+                                        {foreach name='policys' item='v'}
+                                        <option value="{$v.policyID}" <?php if($v['policyID']==$data['policyID'])echo ' selected';?>>{$v.policyType}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                        <td id="additionalRow" style="display: none;">
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title" id="additionalLabel"></label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" name="additionalInput" id="additionalInput">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr id="additionaltr">
+                        <td id="longtitude" style="display: table-cell;">
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title" id="longtitudeLabel"></label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" name="landingLongtitude" id="longtitudeInput">
+                                </div>
+                            </div>
+                        </td>
+                        <td id="latitude" style="display: table-cell;">
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title" id="latitudeLabel"></label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" name="landingLatitude" id="latitudeInput">
+                                </div>
+                            </div>
+                        </td>
+                        <td id="altitude" style="display: table-cell;">
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title" id="altitudeLabel"></label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" name="landingAltitude" id="altitudeInput">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+
+                <table class="table " style="margin-top:10px;">
+                    <tr class="table_title">
+                        <td>选择路线：</td>
+                        <td>选择杆塔：</td>
+                        <td>已选杆塔：</td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <div class="table-td" style="overflow-y:auto;">
+                                <table class="table linelist">
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>路线名称</th>
+                                        <th>选择</th>
+                                    </tr>
+                                    {foreach name='lines' item='v' key='k'}
+                                    <tr>
+                                        <td>{$k+1}</td>
+                                        <td>{$v.lineName}</td>
+                                        <td>
+                                            <input type="checkbox" value="{$v.lineID}" <?php if(in_array($v['lineID'],$line_ids))echo ' checked';?> >
+                                        </td>
+                                    </tr>
+                                    {/foreach}
+                                </table>
+                            </div>
+                        </td>
+                        <td style="vertical-align: top;">
+                            <div class="table-td" style="overflow-y:auto;">
+                                <table class="table towerlist">
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>杆塔名称</th>
+                                        <!-- <th>杆塔形状</th> -->
+                                        <th>&nbsp;&nbsp;&nbsp;操作</th>
+                                    </tr>
+                                    {foreach name='all_towers' item='v' key='k' }
+                                    <tr class="tr{$v['towerID']} line{$v.lineID} tower_con" data-id="{$v['towerID']}" data-line="{$v.lineID}">
+                                        <td>{$k+1}</td>
+                                        <td>{$v['towerName']}</td>
+                                        <!-- <td>{$shapes[$v['towerShapeID']]}</td> -->
+                                        <td>
+                                            <input type="hidden" value="{$v['towerID']}" name="towerID"/>
+                                            <?php if(in_array($v['towerID'],$tower_ids)):?>
+                                               
+                                                <a href="javascript:void(0);" class="btn disabled" onclick="choose_tower(this)">已选</a>
+                                            <?php else:?>
+                                                <a href="javascript:void(0);" class="btn " onclick="choose_tower(this)">选择 +</a>
+                                                <!-- <?php if ($v['mode'] !== null): ?>
+                                                    <select class="select" name="towerMode[]">
+                                                        <option value="null"<?php if ($v['mode'] === 'null') echo 'selected'; ?>>未选择</option>
+                                                        <option value="1"<?php if ($v['mode'] === '1') echo 'selected'; ?>>1</option>
+                                                        <option value="2"<?php if ($v['mode'] === '2') echo 'selected'; ?>>2</option>
+                                                        <option value="3"<?php if ($v['mode'] === '3') echo 'selected'; ?>>3</option>
+                                                    </select>
+                                                    <?php if ($v['mode'] === '3'): ?>
+                                                        <input type="text" name="towerHeight[]" placeholder="填写高度" value="">
+                                                    <?php endif; ?>
+                                                <?php endif;?> -->
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                    {/foreach}
+                                </table>
+                            </div>
+
+                        </td>
+                        <td style="vertical-align: top;">
+                            <div class="table-td" style="overflow-y:auto;">
+                                <table class="table choosed_tower">
+                                    <tr>
+                                        <th>杆塔序号</th>
+                                        <th>杆塔名称</th>
+                                        <!-- <th>杆塔形状</th> -->
+                                        <th>&nbsp;&nbsp;&nbsp;操作</th>
+                                    </tr>
+                                    {foreach name='towers' item='v' key='k' }
+                                    <?php
+                                    $mode = $v['mode'];
+                                    if ($mode == 1) {
+                                    echo '<tr>';
+                                    echo '<td></td>';
+                                    echo '<td>';
+                                    echo '<div class="row cl">';
+                                    echo '<div class="formControls col-xs-8">';
+                                    echo '<select class="select flight_type" id="' . $v['towerID'] . '" size="1" name="mode[]">';
+                                    echo '<option value="1">直飞</option>';
+                                    echo '</select>';
+                                    echo '</div>';
+                                    echo '</div>';
+                                    echo '</td>';
+                                    echo '<td></td>';
+                                    echo '</tr>';
+                                    } elseif ($mode == 2) {
+                                    echo '<tr>';
+                                    echo '<td></td>';
+                                    echo '<td>';
+                                    echo '<div class="row cl">';
+                                    echo '<div class="formControls col-xs-8">';
+                                    echo '<select class="select flight_type" id="' . $v['towerID'] . '" size="1" name="mode[]">';
+                                    echo '<option value="2">按路线飞</option>';
+                                    echo '</select>';
+                                    echo '</div>';
+                                    echo '</div>';
+                                    echo '</td>';
+                                    echo '<td></td>';
+                                    echo '</tr>';
+                                    } elseif ($mode == 3) {
+                                    echo '<tr>';
+                                    echo '<td></td>';
+                                    echo '<td>';
+                                    echo '<div class="row cl">';
+                                    echo '<div class="formControls col-xs-8">';
+                                    echo '<select class="select flight_type" id=" '. $v['towerID'] . '" size="1" name="mode[]">';
+                                    echo '<option value="3">提升高度</option>';
+                                    echo '</select>';
+                                    echo '<td>';
+                                    echo '<div class="row cl">';
+                                    echo '<div class="formControls col-xs-8">';
+                                    echo '<input type="text" class="input-text" value="' . $v['height'] . '" autocomplete="off" placeholder="填写高度" name="height[]">';
+                                    echo '</div>';
+                                    echo '</div>';
+                                    echo '</td>';
+                                    echo '</td>';
+                                    echo '<td></td>';
+                                    echo '</tr>';
+                                    }
+                                    ?>
+                                    <tr class="tr{$v['towerID']} line{$v.lineID} tower_con" data-id="{$v['towerID']}" data-line="{$v.lineID}">
+                                        <td>{$v['towerNumber']}</td>
+                                        <td>{$v['towerName']}</td>
+                                        <td>
+                                            <input type="hidden" value="{$v['towerID']}" name="towerID[]" />
+                                            <a href="javascript:void(0);" class="btn " onclick="del_tower(this)">取消 -</a>
+                                        </td>
+                                    </tr> 
+
+                                    {/foreach}
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+
+{include file='public/footer' /}
+<script>
+    const policySelect = document.getElementById("policySelect");
+    const additionalRow = document.getElementById("additionalRow");
+    const additionalLabel = document.getElementById("additionalLabel");
+    const additionalInput = document.getElementById("additionalInput");
+
+    const longtitude= document.getElementById("longtitude");
+    const longtitudeLabel = document.getElementById("longtitudeLabel");
+    const longtitudeInput = document.getElementById("longtitudeInput");
+
+    const latitude= document.getElementById("latitude");
+    const latitudeLabel = document.getElementById("latitudeLabel");
+    const latitudeInput = document.getElementById("latitudeInput");
+
+    const altitude = document.getElementById("altitude");
+    const altitudeLabel = document.getElementById("altitudeLabel");
+    const altitudeInput = document.getElementById("altitudeInput");
+
+    const additionaltr =  document.getElementById("additionaltr");
+
+    function getStatus() {
+        const selectedPolicy = policySelect.value;
+        console.log('selectedPolicy' , selectedPolicy);
+        if (selectedPolicy === "1") {
+            additionalLabel.textContent = "返航高度：";
+            additionalInput.placeholder = "请输入返航高度";
+            const returnAltitude = "<?php echo $data[returnAltitude]; ?>";
+            additionalInput.value = returnAltitude;
+            additionalRow.style.display = "block";
+            longtitude.style.display = "none";
+            latitude.style.display = "none";
+            altitude.style.display = "none";
+        } else if (selectedPolicy === "2") {
+     
+            longtitudeLabel.textContent = "纬度:";
+            longtitudeInput.placeholder ="请输入返航坐标纬度";
+            const landingLongtitude = "<?php echo $data[landingLongtitude]; ?>";
+            longtitudeInput.value = landingLongtitude;
+
+            latitudeLabel.textContent = "经度:";
+            latitudeInput.placeholder ="请输入返航坐标经度";
+            const landingLatitude = "<?php echo $data[landingLatitude]; ?>";
+            latitudeInput.value = landingLatitude;
+            
+            altitudeLabel.textContent = "提升高度:";
+            altitudeInput.placeholder ="请输入提升高度";
+            const landingAltitude = "<?php echo $data[landingAltitude]; ?>";
+            altitudeInput.value = landingAltitude;
+
+            longtitude.style.display = "table-cell";
+            latitude.style.display = "table-cell";
+            altitude.style.display = "table-cell";
+            additionalRow.style.display = "none";
+        } else {
+            additionalRow.style.display = "none";
+            longtitude.style.display = "none";
+            latitude.style.display = "none";
+            altitude.style.display = "none";
+        }
+    }
+
+    getStatus();
+    policySelect.addEventListener("change", function() {
+        getStatus();
+    });
+
+    $(function(){
+        // 动态获取元素高度
+        var h = $('.big-border').height()
+        $('.table-td').css('height',(h - 115) +'px')
+
+        $(window).resize(function () {
+            var h = $('.big-border').height()
+            $('.table-td').css('height',(h - 115) +'px')
+        });
+    })
+    
+    flight_type();
+
+    function flight_type(){
+        console.log("flight_type");
+        $('select.flight_type').each(function(){
+            var flight_type=generate_rand_num(1,3);
+            //var mode = generate_rand_num(1,3);
+            $(this).val(flight_type);
+            //$(this).val(mode);
+            show_height($(this));
+        })
+    }
+
+    $('select.flight_type').on('change',function(){
+        console.log("select.flight_type on change ");
+        show_height($(this));
+    })
+
+    // var flightTypeValues = [];
+    function show_height(obj,tower_id){
+        console.log("show_height");
+
+        var flight_type = obj.val();
+        console.log("obj:" , obj);
+        console.log("flight_type in show_height:" , flight_type);
+      
+        if(flight_type==3){
+            console.log("==== height info ====");
+            obj.closest('td').next('td').find('.row').show();
+            // var hiddenInput = document.getElementById('height_input_' + tower_id);
+            // var height = hiddenInput.value;
+        }else{
+            obj.closest('td').next('td').find('.row').hide();
+        }
+        var hiddenInput = document.getElementById('hidden_input_' + tower_id);
+        //var hiddenInput = obj.closest('tr').find('input[name="mode[]"]');
+        console.log("hiddenInput:" , hiddenInput);
+        if(hiddenInput != null)
+        {
+            hiddenInput.value = flight_type;
+        }
+        // hiddenInput.value()
+      
+    }
+
+    //生成min_v到max_v之间的随机数
+    function generate_rand_num(min_v, max_v) {
+        //min_v下限，max_v上限
+        var rand_num = parseInt(Math.random() * (max_v - min_v + 1) + min_v);
+        console.log(rand_num);
+        return rand_num
+    }
+
+    $('.linelist input[type=checkbox]').on('click',function(){
+        var lineID=$(this).attr('value');
+        var count=$('.towerlist').find('tr').length - 1;
+        console.log("lineID ::: ", lineID);
+        console.log("count ::: ", count)
+        console.log("=== checkbox ===")
+        var submissionID = $('input[name="submissionID"]').val(); 
+        console.log("submissionID ::: ", submissionID);
+        if($(this).is(':checked')){
+            $.ajax({
+                type: "POST",
+                url: "{:url('get_tower')}",
+                data: {lineID:lineID,count:count},
+                dataType: "json",
+                error: function () {
+                    layer.closeAll();
+                    layer.alert("网络错误，请刷新重试!");
+                },
+                success: function (data) {
+                    layer.closeAll();
+                    if(data.status==1 && data.data.length>0){
+                        $('.towerlist').append(data.data.html);
+                    }
+                }
+            });
+        }else{
+            $('.towerlist .line'+lineID).remove();
+            $('.choosed_tower .line'+lineID).remove();
+        }
+    })
+
+
+    function del_tower(_this) {
+        var towerRow = $(_this).closest('tr');
+        console.log("towerRow " , towerRow);
+        var towerID = towerRow.data('id');
+        console.log("towerID " , towerID);
+        var deletedTowerNumber = parseInt(towerRow.find('td:first').text(), 10);
+        console.log("deletedTowerNumber " , deletedTowerNumber);
+        var selectElementToDelete =  document.getElementById(towerID);
+        console.log("selectElementToDelete " , selectElementToDelete);
+        if(selectElementToDelete)
+        {
+            selectElementToDelete.parentNode.removeChild(selectElementToDelete);
+        }
+    
+        var allRowsWithSameID = $('.towerlist .tr' + towerID);
+        var flightTypeRows = $('.flight_type');
+            flightTypeRows.each(function () {
+            if ($(this).hasClass(towerID)) {
+                $(this).remove();
+            }
+        });
+        // 删除当前杆塔行
+        towerRow.remove();
+        //恢复被取消选择的杆塔的按钮状态
+        var allTowerRows = $('.choosed_tower').find('.tower_con');
+        allTowerRows.each(function() {
+            var towerNumber = parseInt($(this).find('td:first').text(), 10);
+            console.log("towerNumber " , towerNumber);
+            if (towerNumber > deletedTowerNumber) {
+            // 递减序号
+                $(this).find('td:first').text(towerNumber - 1);
+            }
+        });
+
+        allRowsWithSameID.find('a.btn').removeClass('disabled').text('选择 +');
+        layer.closeAll();
+    }
+ 
+    function choose_tower(_this){
+        if($(_this).hasClass('disabled')){
+            return false;
+        }
+        var tr=$(_this).closest('tr');
+        var lineID = tr.data('line');
+        var tower_id = tr.data('id');
+        console.log("tower_id :" ,tower_id);
+
+        var length=$('.choosed_tower').find('tr').length - 1;
+
+        var tower_number = parseInt(tr.find('td').eq(0).text()); 
+        var chosenTowers = $('.choosed_tower').find('.tower_con');
+        var numberOftowers = chosenTowers.length;
+        console.log("numberOftowers :" , chosenTowers);
+        console.log("xxxx :" , tr.find('td').eq(1).text());
+        console.log("length+1 :" , length+1);
+        console.log("chosenTowers :" , chosenTowers);
+        console.log("tower_number :" , tower_number);
+        // var flight_type = 0;
+        // var hiddenInput = '<input type="hidden" name="mode[]" value="' + flight_type + '" />';
+        // $('.choosed_tower').append(hiddenInput);
+
+        var html= '<tr class="tr'+tower_id+' line'+lineID+ ' tower_number' + tower_number+' tower_con" data-id='+tower_id+' ><td>'+(numberOftowers + 1)+'</td><td>'+(tr.find('td').eq(1).text())+'</td><td><input type="hidden" value="'+tower_id+'" name="towerID[]" /><a href="javascript:void(0);" class="btn" onclick="del_tower(this)">取消 -</a></td></tr>';
+        tr.find('a.btn').addClass('disabled').text('已选');
+
+        var flight_type = tr.find('select.flight_type').val();
+        console.log("flight_type :" , flight_type);
+        console.log("chosenTowers.length > 0 " , chosenTowers.length);
+        if (chosenTowers.length > 0) {
+            console.log("chosenTowers.length > 0 " );
+            var prevTower = chosenTowers.last(); // 获取最后一个已选择的塔
+            console.log("prevTower" , prevTower);
+            var prevTowerElement = prevTower[0];
+            console.log("prevTowerElement" , prevTowerElement);
+            var prevLineClass = prevTowerElement.getAttribute('class');
+            var match = prevLineClass.match(/tr(\d+).line(\d+).tower_number(\d+).tower_con/);
+            if (match) {
+                var prevLineID = match[2]; 
+                var prevTowerNumber = match[3]; 
+            } else {
+                console.log('未找到匹配的数字');
+            }
+           // var prevTowerNumber = prevTower.find('td').eq(0).text();
+            console.log("tower_number" , tower_number);
+            console.log("prevTowerNumber" , prevTowerNumber);
+            console.log("lineID" , lineID);
+            console.log("prevLineID" , prevLineID);
+            console.log("diff1 : " , Math.abs(tower_number - prevTowerNumber));
+            console.log("diff2 : " , lineID !== prevLineID);
+            // 如果塔的序号不相邻且不属于同一线路，执行add_flight_type
+            if ((Math.abs(tower_number - prevTowerNumber) > 1) || (parseInt(lineID) !== parseInt(prevLineID))) {
+                console.log("diff");
+                // add_flight_type(mode);
+                add_flight_type(tower_id,flight_type);
+            }
+        }
+        // html += '';
+        $('.choosed_tower').append(html);
+
+    }
+
+
+    function add_flight_type(tower_id,flight_type){
+        console.log("==== add flight ==== ")
+        var html='<tr class="flight_type '+ tower_id + '"> <td></td> <td> <div class="row cl"> <div class="formControls col-xs-8"> <select class="select flight_type" size="1" name="" onchange="show_height($(this) , '+ tower_id +')"> <option value="1" '+ (flight_type==1?'selected':'') +'>直飞</option> <option value="2" '+ (flight_type==2?'selected':'') +'>按线路飞</option> <option value="3" '+ (flight_type==3?'selected':'') +'>提升高度</option> </select> </div> </div> </td> <td> <div class="row cl '+ (flight_type!=3?'hide':'') +'"> <div class="formControls col-xs-8"> <input type="text" class="input-text" autocomplete="off" placeholder="填写高度" name="height[]" value=""> </div> </div> </td> <td></td> </tr>';
+        //var html='<tr class="flight_type '+ tower_id + '"> <td></td> <td> <div class="row cl"> <div class="formControls col-xs-8"><select class="select flight_type" size="1" name="mode" onchange="show_height($(this))"><option value="1" selected>直飞</option><option value="2">按线路飞</option><option value="3">提升高度</option></select>  </div> </div> </td> <td> <div class="row cl '+ (flight_type!=3?'hide':'') +'"> <div class="formControls col-xs-8"> <input type="text" class="input-text" autocomplete="off" placeholder="填写高度" name="" value=""> </div> </div> </td> <td></td> </tr>';
+        flight_type = 1;
+        console.log("flight_type in add_flight_type:" , flight_type);
+        height = 0;
+        console.log("height in add_flight_type:" , height);
+        // var flight_type = this.tr.find('select.flight_type').val();
+        // console.log("flight_type :" , flight_type);
+        var hiddenInput = '<input type="hidden" name="mode[]" id= "hidden_input_'+tower_id+'" value="'+ flight_type + '" />';
+        //var heightInput = '<input type="hidden" name="height[]" id= "height_input_'+tower_id+'" value="'+ height + '" />';
+        $('.choosed_tower').append(html + hiddenInput );
+    }
+
+    function redirectToSetReturn() {
+        var curr_url = window.location.href;
+        var regex = /\/id\/(\d+)/;
+        var match = curr_url.match(regex);
+        var id = '';
+        if(match) {
+            id = match[1];
+        }else {
+            id = '';
+        }
+        var data = {
+            submissionID: id,
+            droneID: ''
+        };
+
+
+        // 构建 URL
+        var url = "{:url('index/set_return')}?submissionID=" + id + "&droneID=" +1;
+
+        // 跳转至 set_return 页面
+        window.location.href = url;
+
+        // $.ajax({
+        //     url: 'set_return', // 替换为实际的服务器端接口地址
+        //     method: 'POST',
+        //     data: data,
+        //     success: function(response) {
+        //         console.log("success");
+        //         // console.log("response.submissionName : ", response.data.submissionName);
+        //         // 获取到 submissionName
+        //         var submissionName = response.submissionName;
+
+        //         console.log("submissionName",submissionName);
+        //         // 将 submissionName 设置为 input 元素的值
+        //         $('input[name="submissionName"]').val(submissionName);
+        //         window.location.href = 'set_return';
+        //     },
+        //     error: function() {
+        //         console.log('Error occurred while fetching submissionName');
+        //     }
+        // });
+
+    }
+
+</script>
+<script>
+    function validateForm() {
+        console.log("validateForm");
+        var altitudeInput = document.getElementById("altitudeInput").value;
+        var latitudeInput = document.getElementById("latitudeInput").value;
+        var longtitudeInput = document.getElementById("longtitudeInput").value;
+
+
+        var additionalInput = document.getElementById("additionalInput").value;
+
+        console.log("altitudeInput:",altitudeInput);
+        console.log("latitudeInput:",latitudeInput);
+        console.log("longtitudeInput:",longtitudeInput);
+        console.log("additionalInput:",additionalInput);
+
+     
+        if((altitudeInput == "" && latitudeInput == "" && longtitudeInput == "") && (additionalInput == ""))
+        {
+            console.log("is null ");
+        } else if (additionalInput != ""){
+            console.log("validate additionalInput ");
+            var additionalPattern = /^\d+$/;
+            if (!additionalPattern.test(additionalInput) || additionalInput < 0 || additionalInput > 250) {
+                alert("返航高度必须为整数，范围在 0 到 250 之间。");
+                return false;
+            }
+        } else {
+            console.log("validate altitudePattern,latitudePattern,longitudePattern ");
+            var altitudePattern = /^\d+$/;
+            //var latitudePattern = /^-?\d{1,3}(?:\.\d{10})?$/;
+            //var longitudePattern = /^-?\d{1,3}(?:\.\d{10})?$/;
+            //var latitudePattern = /^-?\d{1,3}(?:\.\d{0,10}[1-9])?$/;
+            //var longitudePattern = /^-?\d{1,3}(?:\.\d{0,10}[1-9])?$/;
+            var latitudePattern = /^-?\d{1,3}(?:\.\d{0,10}[1-9]\d*)$/;
+            var longitudePattern = /^-?\d{1,3}(?:\.\d{0,10}[1-9]\d*)$/;
+                // 验证 landingLongitude 是否为小数点后 10 位的数，范围在 3.86 到 53.56 之间
+            if (!longitudePattern.test(longtitudeInput) || longtitudeInput < 3.86 || longtitudeInput > 53.56) {
+                alert("纬度必须为小数点后 10 位的数，范围在 3.86 到 53.56 之间。");
+                return false;
+            }
+            // 验证 landingLatitude 是否为小数点后 10 位的数，范围在 73.66 到 135.05 之间
+            if (!latitudePattern.test(latitudeInput) || latitudeInput < 73.66 || latitudeInput > 135.05) {
+                alert("经度必须为小数点后 10 位的数，范围在 73.66 到 135.05 之间。");
+                return false;
+            }
+            // 验证 landingAltitude 是否为整数，范围在 0 到 250 之间
+            if (!altitudePattern.test(altitudeInput) || altitudeInput < 0 || altitudeInput > 250) {
+                alert("提升高度必须为整数，范围在 0 到 250 之间。");
+                return false;
+            }
+        }
+
+        return true;
+    }
+</script>
+
+<script>
+    var submitButton = document.getElementById("submitAndValidate");
+
+    if(submitButton){
+        submitButton.addEventListener("click",function(event){
+            console.log("click submitButton");
+            if(validateForm(this)){
+                console.log("validate");
+                submit_form(this);
+            }else{
+                console.log("not validate");
+            }
+            event.preventDefault();
+        });
+    }
+</script>
+
+
+
+<script>
+    $('.del_task').on('click',function(e){
+        var back_url=$(this).closest('form').data('back');
+        console.log("back_url :" ,back_url);
+        e.preventDefault();
+        e.stopPropagation();
+        var obj=$(this);
+        layer.confirm('确认删除该任务？',function(){
+            var id=obj.data('id');
+            console.log("id :" , id);
+            $.ajax({
+                type: "POST",
+                url: "{:url('del_task')}",
+                data: {id:id},
+                dataType: "json",
+                error: function () {
+                    layer.closeAll();
+                    layer.alert("网络错误，请刷新重试!");
+                },
+                success: function (data) {
+                    layer.closeAll();
+                    layer.msg(data.msg,{time:1500},function(){
+                        if(data.status===1){
+                            location.href=back_url;
+                            console.log(back_url);
+                        }
+                    });
+                }
+            });
+
+        })
+    })
+</script>
+<script>
+    <?php if($my_permission['addTask']<=0 && $my_permission['modifyTask']<=0):?>
+    $(function(){
+        $('input,select').prop('disabled',true).prop('readonly',true);
+    })
+    <?php endif;?>
+</script>

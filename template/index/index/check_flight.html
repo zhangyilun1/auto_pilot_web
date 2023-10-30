@@ -1,0 +1,290 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<style>
+    .rule-table span{display:inline-block;padding:10px 0;}
+    .rule-table td,.rule-table th,.rule-table{border-color:#4D8CCF}
+    .left-sider{
+        width: 30%;
+        /* height: 30%; */
+        float: left;
+        padding: 5%;
+        box-sizing: border-box;
+    }
+    .right-sider{
+        width: 60%;
+        /* height: 30%; */
+        float: right;
+        padding: 5%;
+        box-sizing: border-box;
+    }
+
+    .controls{
+        display:block;
+        width: 200px;;
+        height:200px;
+        background:url(/static/index/img/circle.png) no-repeat center;
+        background-size:100% 100%;
+        position:absolute;
+        padding:30px;
+    }
+
+    .controls .table td div{width:95%;height:95%;}
+    .controls .table td div img{ width:100%;height:100%;background:none !important;}
+    .controls .table td div .arrow:hover{cursor:pointer;} 
+    .controls .table td{padding:0;}
+</style>
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            {include file='public/setting_nav' /}
+        </div>
+        <div action="{:url('add_flight')}" class="right_content add_con" id="flight_form" data-back="{:url('index/flight_list')}">
+            <input type="hidden" name="towerShapeNameID" value="{$data.towerShapeNameID|default=-1}" />
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('flight_list')}">返回</a>
+                </span>
+                <span class="r">
+                     <?php if($my_permission['modifyData']<=0):?>
+                     <?php else:?>
+                         <a class="add_btn" href="{:url('add_flight',['id'=>$data['towerShapeNameID']])}">修改</a>
+                     <?php endif;?>
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">  
+                <?php if($data['towerShapeNameID']==34):?>
+                <?php else:?>
+                <div class="left-sider">
+                    <table class="table mt-10">
+                        <tr>
+                            <td>
+                                <div class="controls">
+                                    <table class="table">
+                                        <tr>
+                                            <td><div></div></td>
+                                            <td><div class="po0"><img src="/static/index/img/up<?php if($data['shapeInCompass'][0]==1)echo 'select';?>.png" data-dire="up" class="arrow <?php if($data['shapeInCompass'][0]==1)echo ' active';?>" />
+                                                <input type="hidden" name="po[0]" value="{$data.shapeInCompass.0+0}" /></div></td>
+                                            <td><div></div></td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="po2"><img src="/static/index/img/left<?php if($data['shapeInCompass'][1]==1)echo 'select';?>.png" data-dire="left" class="arrow <?php if($data['shapeInCompass'][1]==1)echo ' active';?>" />
+                                                    <input type="hidden" name="po[2]" value="{$data.shapeInCompass.2+0}" />
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <img src="/static/index/img/circlemid.png" />
+                                                </div>
+                                            </td>
+                                            <td><div class="po3"><img src="/static/index/img/right<?php if($data['shapeInCompass'][2]==1)echo 'select';?>.png" data-dire="right" class="arrow <?php if($data['shapeInCompass'][2]==1)echo ' active';?>" />
+                                                <input type="hidden" name="po[3]" value="{$data.shapeInCompass.3+0}" />
+                                            </div></td>
+                                        </tr>
+                                        <tr>
+                                            <td><div></div></td>
+                                            <td>
+                                                <div class="po1">
+                                                    <img src="/static/index/img/down<?php if($data['shapeInCompass'][3]==1)echo 'select';?>.png" data-dire="down" class="arrow <?php if($data['shapeInCompass'][3]==1)echo ' active';?>" />
+                                                    <input type="hidden" name="po[1]" value="{$data.shapeInCompass.1+0}" />
+                                                </div>
+                                            </td>
+                                            <td><div></div></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <?php endif;?>
+                <div class="right-sider">
+                    <table class="table mt-10">
+                        <tr>
+                            <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">航线类型名称 *：</label>
+                                    <div class="formControls col-xs-8">
+                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="towerShapeName" value="{$data.towerShapeName}" required>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- <tr>
+                            <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">航线类型 *：</label>
+                                    <div class="formControls col-xs-8">
+                                        <select class="select" size="1" name="lineTypeID">
+                                            {foreach name='lts' item='v'}
+                                            <option value="{$v.lineTypeID}" <?php if($data['lineTypeID']==$v['lineTypeID'])echo ' selected';?>>{$v.lineTypeName}</option>
+                                            {/foreach}
+                                        </select>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr> -->
+                        <!-- <tr>
+                            <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">偏心角度 *：</label>
+                                    <div class="formControls col-xs-8">
+                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="towerTypeOffCenterAngle" value="{$data.towerTypeOffCenterAngle}" required>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr> -->
+                        <tr>
+                            <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">正拍角度 *：</label>
+                                    <div class="formControls col-xs-8">
+                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="towerTypeLeftAngle" value="{$data.towerTypeLeftAngle}" required>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>   
+                            <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">侧拍角度 *：</label>
+                                    <div class="formControls col-xs-8">
+                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="towerTypeRightAngle" value="{$data.towerTypeRightAngle}" required>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">是否通道巡检 *：</label>
+                                    <div class="formControls col-xs-8">
+                                        <select class="select" size="1" name="ChannelInspection">
+                                            <option value="1" <?php if($data['ChannelInspection'])echo ' selected';?>>是</option>
+                                            <option value="0" <?php if(!$data['ChannelInspection'])echo ' selected';?>>否</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <!-- <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">绝缘子层数 *：</label>
+                                    <div class="formControls col-xs-8">
+                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="insulatorLayer" value="{$data.insulatorLayer}" required>
+                                    </div>
+                                </div>
+                            </td> -->
+                            <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">拍摄高度 *：</label>
+                                    <div class="formControls col-xs-8">
+                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="tower_height" value="{$data.tower_height}" required>
+                                    </div>
+                                </div>
+                            </td>
+                            <!-- <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">长：</label>
+                                    <div class="formControls col-xs-8">
+                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="tower_length" value="{$data.tower_length}">
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">宽：</label>
+                                    <div class="formControls col-xs-8">
+                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="tower_width" value="{$data.tower_width}">
+                                    </div>
+                                </div>
+                            </td> -->
+                            <!-- <td>
+                                <div class="row cl">
+                                    <label class="form-label col-xs-4 table_title">备注：</label>
+                                    <div class="formControls col-xs-8">
+                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="comment" value="{$data.comment}">
+                                    </div>
+                                </div>
+                            </td> -->
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    $(function(){
+        $('input,select').prop('disabled',true).prop('readonly',true);
+    })
+    
+    $(function(){
+       var po=$(this).find('option:selected').data('po');
+    //     console.log("po: " , po);
+    //    var po=$(this).find('option:selected').data('shapeInCompass');
+    //    console.log("po: " , po);
+    //    var towerShapeNameID = parseInt(document.getElementsByName("towerShapeNameID")[0].value);
+    //     //console.log("po: " , po);
+    //    console.log("towerShapeNameID: " , towerShapeNameID);
+    //    if(towerShapeNameID == 1){
+    //         po = "0001";
+    //     } else if(towerShapeNameID == 2){
+    //         po = "0101";
+    //     }else if (towerShapeNameID == 3){
+    //         po = "1111";
+    //     }
+    //     console.log("po: " , po);
+        // $('input[name=po_arr][type=hidden]').val(po);
+        // po=po.toString();
+        if(po!='' && po !=undefined){
+            po_arr=po.split('');
+            for(var i=0;i<=3;i++){
+                var po_con=$('.po'+i);
+                var img=po_con.find('.arrow');
+                var dire=img.data('dire');
+                if(po_arr[i]==1){
+                    img.addClass('active').attr('src','/static/index/img/'+dire+'select.png');
+                    po_con.find('input').val(1);
+                }else{
+                    img.removeClass('active').attr('src','/static/index/img/'+dire+'.png');
+                    po_con.find('input').val(0);
+                }
+            }
+        } 
+    })
+
+    $('.controls .arrow').on('click',function(){
+        var dire=$(this).data('dire');
+        if($(this).hasClass('active')){
+            $(this).attr('src','/static/index/img/'+dire+'.png');
+            $(this).removeClass('active');
+            $(this).parent().find('input').val(0);
+        }else{
+            $(this).attr('src','/static/index/img/'+dire+'select.png');
+            $(this).addClass('active');
+            $(this).parent().find('input').val(1);
+        }
+        var po_arr=[];
+        for(var i=0;i<=3;i++){
+            var po_con=$('.po'+i);
+            po_arr.push(po_con.find('input').val());
+        }
+        po_arr=po_arr.join('');
+        $('input[name=po_arr][type=hidden]').val(po_arr);
+        var po_arr1={$po_arr|json_encode|raw};
+        var shape_id=po_arr1[po_arr];
+        if(shape_id>0){
+            $('select[name=towerShapeID]').val(shape_id);
+        }else{
+            $('select[name=towerShapeID]').val(-1);
+        }
+    })
+</script>

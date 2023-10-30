@@ -1,0 +1,43 @@
+{include file='public/header' /}
+<style>
+    .a-1{padding:30px;padding-top:0;}
+    #set_tower_type_form .input-text,#set_tower_type_form .select{width:250px}
+    #set_tower_type_form{display:block;width:100%;height:100%;text-align:center;position:relative;}
+    #set_tower_type_form .input-con{display:inline-block;width:330px;height:100px;vertical-align: middle;position:relative;top:calc(50% - 50px);}
+    .row label,.row select{font-size:16px;}
+</style>
+<form id="towertype_form"  action="{:url('index/set_tower_type')}" style="display:block;width:70%;height:70%;">
+    <!-- 内容 -->
+
+        <!-- <div class="big-border" style="background:url(/static/index/img/electric.png) no-repeat center;background-size:80% 100%;"> -->
+            <div class="a-2 a-2-1">
+                <div class="text-c a-4" style="">{$title}
+                </div>
+            </div>
+            
+            <div class="a-15" >
+                <div id="set_tower_type_form" style="text-align:left;">
+                    <input type="hidden" name="lineID" value="{$data.lineID|default=-1}" />
+                    <div class="input-con">
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">杆塔类型：</label>
+                            <select class="select" size="1" name="towerShapeNameID" id="towerType">
+                                {foreach name='towerType' item='v'}
+                                <option value="{$v.towerShapeNameID}" <?php if($v['towerShapeNameID']==$data['towerShapeNameID'])echo ' selected';?>>{$v.towerShapeName}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">放大倍率：</label>
+                            <div class="formControls col-xs-8">
+                                <input type="text" class="input-text" id="zoomFactor" autocomplete="off" placeholder="" name="insulatorNum" value="{$data.insulatorNum}">
+                            </div>
+                        </div>
+                    </div>
+                <!-- </div> -->
+            
+        </div>
+    </div>
+</form>
+
+{include file='public/footer' /}

@@ -1,0 +1,229 @@
+{include file='public/header' /}
+<style>
+    .a-1{padding:30px;padding-top:0;}
+    input[type=checkbox]{width:20px;height:20px;}
+    #add_task_form .table-td td{padding-left:10px;}
+    #add_task_form a.btn{
+
+        color: white;
+        background: none !important;
+        border: none !important;
+
+    }
+</style>
+<form action="{:url('index/get_drone')}" data-back="{:url('index')}" id="drone_form" style="display:block;width:100%;height:100%;" >
+    <div class="a-2 a-2-1">
+        <!--            <img class="a-3" src="/static/index/img/top_bg.png" />-->
+        <div class="text-c a-4" style="">{$title}</div>
+        <div class="a-5 text-r top_btn">
+            <div class="a-12">
+                <a href="{:url('index/index')}" >返回</a>
+            </div>
+            <div class="a-6-box">
+                <a class="add_btn" href="javascript:void(0);" onclick="syncInfo(this)">同步至盒子</a>
+            </div>
+        </div>
+    </div>
+    <!-- 内容 -->
+    <div class="a-15" >
+        <div class="big-border">
+            <div id="add_task_form">
+                <!-- <input type="hidden" name="doneID" value="{$data.submissionID|default=-1}" /> -->
+                <input type="hidden" name="droneSncode" value="{$data.snCode}" />
+                <table class="table ">
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">无人机类型：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="droneType" value="{$data.droneType}" readonly>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">镜头类型：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="lensType" value="{$data.lensType}" readonly>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">最大航速：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="maxSpeed" value="{$data.maxSpeed}" readonly>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">当前版本号：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="systemVersion" value="{$data.systemVersion}" readonly>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+
+{include file='public/footer' /}
+<script>
+    $(function(){
+        // 动态获取元素高度
+        var h = $('.big-border').height()
+        $('.table-td').css('height',(h - 115) +'px')
+
+        $(window).resize(function () {
+            var h = $('.big-border').height()
+            $('.table-td').css('height',(h - 115) +'px')
+        });
+    })
+
+    flight_type();
+
+    function flight_type(){
+        $('select.flight_type').each(function(){
+            var flight_type=generate_rand_num(1,3);
+            $(this).val(flight_type);
+            show_height($(this));
+        })
+    }
+
+    $('select.flight_type').on('change',function(){
+        show_height($(this));
+    })
+
+    function show_height(obj){
+        var flight_type=obj.val();
+        if(flight_type==3){
+            obj.closest('td').next('td').find('.row').show();
+        }else{
+            obj.closest('td').next('td').find('.row').hide();
+        }
+    }
+
+    //生成min_v到max_v之间的随机数
+    function generate_rand_num(min_v, max_v) {
+        //min_v下限，max_v上限
+        var rand_num = parseInt(Math.random() * (max_v - min_v + 1) + min_v);
+        return rand_num
+    }
+
+    $('.linelist input[type=checkbox]').on('click',function(){
+        var lineID=$(this).attr('value');
+        var count=$('.towerlist').find('tr').length - 1;
+        if($(this).is(':checked')){
+            $.ajax({
+                type: "POST",
+                url: "{:url('get_tower')}",
+                data: {lineID:lineID,count:count},
+                dataType: "json",
+                error: function () {
+                    layer.closeAll();
+                    layer.alert("网络错误，请刷新重试!");
+                },
+                success: function (data) {
+                    layer.closeAll();
+                    if(data.status==1 && data.data.length>0){
+                        $('.towerlist').append(data.data.html);
+                    }
+                }
+            });
+        }else{
+            $('.towerlist .line'+lineID).remove();
+            $('.choosed_tower .line'+lineID).remove();
+        }
+    })
+
+    function del_tower(_this){
+        // layer.confirm('确认取消该杆塔？',function(){
+        //
+        // })
+        if($(_this).closest('tr').next('tr').find('select').length>0){
+            $(_this).closest('tr').next('tr').remove();
+        }
+        var tower_id=$(_this).closest('tr').data('id');
+        $(_this).closest('tr').remove();
+        $('.towerlist .tr'+tower_id).find('a.btn').removeClass('disabled').text('选择 +');
+        layer.closeAll();
+    }
+
+    function choose_tower(_this){
+        if($(_this).hasClass('disabled')){
+            return false;
+        }
+        var tr=$(_this).closest('tr');
+        var lineID=tr.data('line');
+        var tower_id=tr.data('id');
+        var length=$('.choosed_tower').find('tr').length - 1;
+
+        var html='<tr class="tr'+tower_id+' line'+lineID+' tower_con" data-id='+tower_id+'><td>'+(length+1)+'</td><td>'+(tr.find('td').eq(1).text())+'</td><td>'+(tr.find('td').eq(2).text())+'</td><td><input type="hidden" value="'+tower_id+'" name="towerID[]" /><a href="javascript:void(0);" class="btn" onclick="del_tower(this)">取消 -</a></td></tr>';
+        $('.choosed_tower').append(html);
+        tr.find('a.btn').addClass('disabled').text('已选');
+        add_flight_type();
+    }
+
+
+    function add_flight_type(){
+        var flight_type_length=$('.choosed_tower').find('.tower_con').length;
+        if(flight_type_length>=4 && flight_type_length%2===0){
+            var flight_type=generate_rand_num(1,3);
+            var html='<tr> <td></td> <td> <div class="row cl"> <div class="formControls col-xs-8"> <select class="select flight_type" size="1" name="" onchange="show_height($(this))"> <option value="1" '+ (flight_type==1?'selected':'') +'>直飞</option> <option value="2" '+ (flight_type==2?'selected':'') +'>按线路飞</option> <option value="3" '+ (flight_type==3?'selected':'') +'>提升高度</option> </select> </div> </div> </td> <td> <div class="row cl '+ (flight_type!=3?'hide':'') +'"> <div class="formControls col-xs-8"> <input type="text" class="input-text" autocomplete="off" placeholder="填写高度" name="" value=""> </div> </div> </td> <td></td> </tr>';
+            $('.choosed_tower').append(html);
+
+        }
+    }
+
+
+
+    function syncInfo(_this) {
+        console.log("submit_form");
+        var id=$(_this).closest('form').attr('id');
+        console.log("id:" ,id);
+        var url=$(_this).closest('form').attr('action');
+        console.log("url:" ,url);
+        var back_url=$(_this).closest('form').data('back');
+        console.log("back_url:" ,back_url);
+        var form=document.getElementById(id);
+        console.log("form:" ,form);
+        var form_data=new FormData(form);
+        console.log("form_data:" ,form_data);
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: form_data,
+            dataType: "json",
+            processData: false,
+            contentType: false,
+            error: function (xhr,status,error) {
+                console.log(error);  
+                // console.log("url: ", url);
+                // console.log("data: ", data);
+                layer.closeAll();
+                layer.alert("失败");
+            },
+            success: function (data) {
+                console.log("成功");
+                layer.closeAll();
+                console.log("url: ", url);
+                console.log("data: ", data);
+                layer.alert("已上传至服务器");
+   
+            }
+        });
+}
+</script>
+</script>
+
+<script>
+    <?php if($my_permission['addTask']<=0 && $my_permission['modifyTask']<=0):?>
+    $(function(){
+        $('input,select').prop('disabled',true).prop('readonly',true);
+    })
+    <?php endif;?>
+</script>

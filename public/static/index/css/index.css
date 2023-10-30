@@ -1,0 +1,641 @@
+/* 信息公开 */
+html {
+	height: 100%;
+	min-width: 1200px;
+	overflow: hidden;
+}
+
+body {
+	height: 100%;
+	min-width: 1200px;
+}
+
+*::-webkit-scrollbar {
+	width: 3px;
+}
+
+*::-webkit-scrollbar-track {
+	background: #305B9B;
+	border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+	background: #5995E7;
+	border-radius: 10px;
+}
+
+a:hover {
+	text-decoration: none;
+}
+
+.a-1 {
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 70px;
+	padding-top: 0;
+	padding-bottom: 20px;
+	background: url(../img/bg.png) repeat left top;
+	background-size: auto;
+	position: relative;
+}
+
+@media (max-width:1300px) {
+	.a-1 {
+		padding: 20px;
+	}
+}
+
+.a-3 {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translate(-50%, 0);
+	-webkit-transform: translate(-50%, 0);
+	-ms-transform: translate(-50%, 0);
+	-moz-transform: translate(-50%, 0);
+}
+
+.a-4 {
+	font-size: 30px;
+	color: white;
+}
+
+.a-4 .logo {
+	height: 60px;
+	width: 60px;
+	border-radius: 50%;
+	display: inline-block;
+	vertical-align: middle;
+	margin-top: -5px;
+}
+
+.a-5 {
+	position: relative;
+	z-index: 10;
+	margin-top: 4px;
+}
+
+.a-6-box {
+	display: inline-block;
+	font-size: 0;
+}
+
+.a-6 {
+	display: inline-block;
+	vertical-align: middle;
+	font-size: 14px;
+	border: 1px solid #3668B9;
+	font-size: 0;
+	border-radius: 30px;
+	width: calc(100% - 32px);
+	box-sizing: border-box;
+}
+
+.a-7 {
+	height: 35px;
+	font-size: 14px;
+	border: none;
+	width: calc(100% - 80px);
+	box-sizing: border-box;
+	padding: 0 10px;
+	background-color: transparent;
+	color: #4498DB;
+}
+
+.a-7::-webkit-input-placeholder {
+	color: #4498DB;
+}
+
+.a-7::-moz-placeholder {
+	color: #4498DB;
+}
+
+.a-7::-ms-input-placeholder {
+	color: #4498D;
+}
+
+.a-8 {
+	font-size: 14px;
+	background-color: transparent;
+	border: none;
+	background-color: #3668B9;
+	height: 35px;
+	width: 80px;
+	border-radius: 30px;
+	color: white;
+	cursor: pointer;
+}
+
+.a-9 {
+	display: inline-block;
+	vertical-align: middle;
+	position: relative;
+	margin-left: 10px;
+	cursor: pointer;
+}
+
+.a-10 {
+	color: #507EC7;
+	font-size: 22px;
+}
+
+.a-11 {
+	background-color: #F5222D;
+	color: white;
+	font-size: 12px;
+	height: 15px;
+	line-height: 15px;
+	text-align: center;
+	position: absolute;
+	top: -10px;
+	left: 10px;
+	min-width: 20px;
+	border-radius: 20px;
+	box-sizing: border-box;
+	padding: 0 7px;
+}
+
+.a-12 {
+	float: left;
+}
+
+.top_menu a {
+	display: inline-block;
+	width: 166px;
+	height: 75px;
+	background: url(../img/button_bg.png) no-repeat center center;
+	background-size: 100% 100%;
+	color: white;
+	line-height: 75px;
+	text-align: center;
+	font-size: 30px;
+}
+
+.top_menu a:hover {
+	color: white;
+	text-decoration: none;
+}
+
+.top_menu a:nth-child(2n+1) {
+	margin-right: 40px;
+}
+
+.top_menu a.active {
+	background-image: url(../img/button_bg_on.png)
+}
+
+.a-13 {
+	font-size: 18px;
+}
+
+/* 内容 */
+.a-15 {
+	margin-top: 30px;
+	height: calc(100% - 157px);
+	overflow: hidden;
+}
+
+table td,
+table th {
+	border: none;
+	color: white;
+}
+
+.table .table {
+	background: none;
+}
+
+.form-label {
+	display: inline-block;
+	height: 31px;
+	line-height: 31px;
+	color: white;
+	text-align: right;
+	padding-right: 0;
+	width: auto;
+}
+
+.input-text {
+	background: none;
+	color: white;
+	border: 1px solid #2163CA;
+	/* border: 1px solid #ca2121; */
+	max-width: 250px;
+}
+
+.select {
+	height: 31px;
+	line-height: 31px;
+	color: white;
+	background: none;
+	border: 1px solid #2163CA !important;
+	padding: 0;
+	max-width: 250px;
+}
+
+.select option {
+	height: 31px;
+	line-height: 31px;
+	background-color: #2163CA;
+	padding: 10px 0;
+}
+
+/*任务管理*/
+.task_con {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	height: calc(100% + 120px);
+}
+
+.task_con #container {
+	position: absolute;
+	z-index: 1;
+	margin-top: -115px;
+	width: 100%;
+	height: 100%;
+	background-color: white;
+	box-shadow: 0px 0px 100px 130px #042141 inset;
+}
+
+.task_con #container>div {
+	box-shadow: 0px 0px 100px 130px #042141 inset
+}
+
+.table_title td {
+	white-space: nowrap
+}
+
+.task_con .left {
+	width: 26%;
+	height: calc(100% - 120px);
+	background: url('../img/leftlistbg.png') no-repeat center;
+	background-size: 100% 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 11;
+	padding: 30px 20px;
+	min-width: 380px;
+	box-sizing: border-box
+}
+
+.task_con .right {
+    width: 26%;
+    height: calc(100% - 120px);
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 11;
+    min-width: 380px;
+    box-sizing: border-box;
+}
+/* .task_con .right {
+	width: 26%;
+	height: calc(100% - 120px);
+	background: url('../img/leftlistbg.png') no-repeat center;
+	background-size: 100% 100%;
+	position: absolute;
+	right: 0;
+	top: 0;
+	z-index: 11;
+	padding: 30px 20px;
+	min-width: 380px;
+	box-sizing: border-box
+} */
+
+.task_con .right .device_con {
+	width: 100%;
+	height: calc(100% - 95px);
+	background: url(../img/rightlistbg.png) no-repeat center;
+	background-size: 100% 100%;
+	padding: 30px 20px;
+	box-sizing: border-box
+}
+
+
+
+.task_con .right .gt_con {
+	height: calc(100%)
+}
+
+.task_con #container>div>div:last-child {
+	display: none !important;
+}
+
+.task_con .title {
+	background: url(../img/titlebg.png) no-repeat center;
+	color: white;
+	text-align: center;
+	background-size: auto;
+	font-size: 28px;
+}
+
+.task_con .list .table_list * {
+	color: white;
+}
+
+/* .task_con .list .table_list .play_video {
+	background: url(../img/index.png) no-repeat center;
+	background-size: 100% 100%;
+	width: 30px;
+	height: 30px;
+	font-size: 16px;
+	display: inline-block;
+	text-align: center;
+	line-height: 30px;
+} */
+
+.task_con .list .table_list .del_task {
+	background: url(../img/index.png) no-repeat center;
+	background-size: 100% 100%;
+	width: 30px;
+	height: 30px;
+	font-size: 16px;
+	display: inline-block;
+	text-align: center;
+	line-height: 30px;
+}
+
+.task_con .list .table_list .get_task_related_drone {
+	background: url(../img/index.png) no-repeat center;
+	background-size: 100% 100%;
+	width: 30px;
+	height: 30px;
+	font-size: 16px;
+	display: inline-block;
+	text-align: center;
+	line-height: 30px;
+}
+
+
+.task_con .list .table_list td {
+	padding: 2px 5px
+}
+
+.task_con .list .li {
+	background: url(../img/btnWidgetBg.png) no-repeat center;
+	background-size: 100% 100%;
+	padding: 10px;
+	width: 93%;
+	margin: 0 auto;
+	;
+	margin-bottom: 10px;
+	cursor: pointer;
+}
+
+.task_con .list .li.on,
+.task_con .list .li:hover {
+	background: url(../img/btnWidgetBg_on.png) no-repeat center;
+	background-size: 100% 100%;
+}
+
+.task_con .gt_con .list .li {
+	background: url(../img/btnWidgetBg2.png) no-repeat center;
+	background-size: 100% 100%;
+}
+
+.task_con .list {
+	height: calc(100% - 80px);
+	overflow: auto;
+}
+
+.task_con .search_form {
+	display: inline-block;
+	width: 80%;
+	box-sizing: border-box
+}
+
+.task_con .search_form input {
+	border: none;
+	outline: none;
+	background: url(../img/search.png) no-repeat left center;
+	background-size: auto 100%;
+	display: inline-block;
+	height: 35px;
+	line-height: 35px;
+	color: white;
+	padding-left: 75px;
+	font-size: 20px;
+	width: 100%;
+	margin-left: 20px;
+	box-sizing: border-box;
+	border-radius: 18px;
+}
+
+.task_con .add_task {
+	float: right;
+	color: #333;
+	background-color: white;
+	height: 30px;
+	width: 30px;
+	border-radius: 50%;
+	text-align: center;
+	line-height: 30px;
+	margin-top: 3px;
+}
+
+.add_task i {
+	font-size: 26px;
+}
+
+.task_con .search {
+	margin-bottom: 10px;
+}
+
+.right .fly {
+	margin-top: 20px;
+	text-align: center;
+}
+
+.right .fly a {
+	display: inline-block;
+	width: 166px;
+	height: 75px;
+	background: url(../img/button_bg_on.png) no-repeat center center;
+	background-size: 100% 100%;
+	color: white;
+	line-height: 75px;
+	text-align: center;
+	font-size: 28px;
+}
+
+.right .fly a:first-child {
+	margin-right: 10px;
+}
+
+
+.a-2-1 .a-4 {
+	background: url(/static/index/img/top_bg.png)no-repeat center;
+	background-size: auto 100%;
+	height: 75px;
+	line-height: 75px;
+}
+
+.top_btn a {
+	display: inline-block;
+	width: 166px;
+	height: 75px;
+	background: url(../img/taskbtn2.png) no-repeat center center;
+	background-size: 100% 100%;
+	color: white;
+	line-height: 75px;
+	text-align: center;
+	font-size: 30px;
+}
+
+.top_btn a:hover {
+	color: white;
+	text-decoration: none;
+}
+
+.big-border {
+	background: url(../img/bigBorder.png)no-repeat center;
+	background-size: 100% 100%;
+	width: 100%;
+	height: 100%;
+}
+
+#add_task_form .col-xs-8 {
+	width: 200px !important;
+}
+
+#add_task_form .table .table-td {
+	background: url(../img/litTable.png)no-repeat center;
+	background-size: 100% 100%;
+}
+
+#add_task_form .table td {
+	padding-left: 20px;
+}
+
+#add_task_form .table .table_title td,
+#add_task_form .table .table_title {
+	font-size: 22px;
+}
+
+
+.user_con {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.user_con .left_nav {
+	width: 22%;
+	float: left;
+	height: 100%;
+	overflow: auto;
+	display: block;
+	padding-top: 50px;
+	box-sizing: border-box
+}
+
+.user_con .right_content {
+	width: 76%;
+	float: right;
+	height: 100%;
+	overflow: hidden;
+	display: block;
+	background: url(../img/tableborder.png) no-repeat center;
+	background-size: 100% 100%;
+	padding: 3%;
+	box-sizing: border-box
+}
+
+.left_nav_con li {
+	background: url(../img/btnUserSub.png) no-repeat center;
+	background-size: 100% 100%;
+	margin-bottom: 20px;
+	width: 100%;
+	height: 100px;
+	line-height: 100px;
+	text-align: center;
+	font-size: 16px;
+	color: white;
+}
+
+.left_nav_con li a {
+	display: block;
+	width: 100%;
+	height: 100%;
+	color: white;
+	font-size: 26px;
+}
+
+.left_nav_con li.active {
+	background: url(../img/btnUsersubFocus.png) no-repeat center;
+	background-size: 100% 100%;
+}
+
+
+#search_form button.btn {
+	background: none !important;
+	color: white;
+	padding: 0 30px;
+	border: 1px solid #2163CA
+}
+
+.table tr th {
+	font-weight: bold;
+	font-size: 16px;
+}
+
+.table-hover tbody tr:hover td,
+.table-hover tbody tr:hover th {
+	background-color: #254B78;
+}
+
+.right_content .table_con {
+	height: calc(100% - 80px);
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.right_content.add_con .top_con a {
+	width: 100px;
+	height: 40px;
+	line-height: 40px;
+	color: white;
+	text-align: center;
+	background: url(../img/taskbtn2.png) no-repeat center;
+	background-size: 100% 100%;
+	display: block;
+	font-size: 16px;
+}
+
+.right_content .table_con .form-label {
+	width: 120px;
+	white-space: nowrap;
+	text-align: right;
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.checkbox {
+	width: 25px;
+	height: 25px;
+	margin-top: 0 !important;
+}
+
+.table.rule-table th {
+	background-color: #053269
+}
+
+.formControls,
+.form-controls {
+	text-align: left;
+	white-space: nowrap;
+	padding-left: 10px;
+	padding-right: 10px;
+	width: calc(100% - 120px);
+}
+
+.table_con a.btn {
+	color: white;
+	background: none !important;
+	border: none !important;
+}
+
+

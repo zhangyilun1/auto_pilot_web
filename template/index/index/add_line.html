@@ -1,0 +1,251 @@
+{include file='public/header' /}
+<style>
+    .a-1{padding:30px;padding-top:0;}
+    #add_route_form .input-text,#add_route_form .select{width:250px}
+    #add_route_form{display:block;width:100%;height:100%;text-align:center;position:relative;}
+    #add_route_form .input-con{display:inline-block;width:330px;height:100px;vertical-align: middle;position:relative;top:calc(50% - 50px);}
+    .row label,.row select{font-size:16px;}
+    .layui-layer-content {
+        border-bottom: none; /* 移除内容区域底部的边框 */
+    }
+    .layui-layer-btn {
+        border: none; /* 移除按钮区域的边框 */
+    }
+</style>
+<form id="line_form"  action="{:url('index/add_line')}" data-back="{:url('index/basic_list')}" style="display:block;width:100%;height:100%;">
+    <div class="a-2 a-2-1">
+        <!--            <img class="a-3" src="/static/index/img/top_bg.png" />-->
+        <div class="text-c a-4" style="">{$title}</div>
+        <div class="a-5 text-r top_btn">
+            <div class="a-12">
+                <a href="{:url('index/basic_list')}" >返回</a>
+            </div>
+            <div class="a-6-box">
+                {if $data.lineID !== null}
+                    <!-- <a href="javascript:void(0);" class="import_btn">文件导入</a> -->
+                    <a href="javascript:void(0);" class="import_btn" onclick="showInputDialog()">文件导入</a>
+                    <a class="del_line" href="javascript:void(0);" data-id="{$data.lineID}" id=delete>删除</a>
+                {/if}
+            </div>
+            <div class="a-6-box">
+                <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a>
+            </div>
+            <div style="clear:both;"></div>
+        </div>
+    </div>
+    <!-- 内容 -->
+    <div class="a-15" >
+        <div class="big-border" style="background:url(/static/index/img/electric.png) no-repeat center;background-size:100% 100%;">
+            <div id="add_route_form" style="text-align:center;">
+                <input type="hidden" name="lineID" value="{$data.lineID|default=-1}" />
+                <div class="input-con">
+                    <div class="row cl" style="margin-bottom:20px;">
+                        <label class="form-label col-xs-4 table_title">线路名称：</label>
+                        <div class="formControls col-xs-8">
+                            <input type="text" class="input-text" autocomplete="off" placeholder="" name="lineName" value="{$data.lineName}">
+                        </div>
+                    </div>
+
+                    <div class="row cl">
+                        <label class="form-label col-xs-4 table_title">巡检单位：</label>
+                        <div class="formControls col-xs-8">
+                            <select class="select" size="1" name="companyID">
+                                {foreach name='companys' item='v'}
+                                <option value="{$v.companyID}" <?php if($v['companyID']==$data['companyID'])echo ' selected';?>>{$v.companyName}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</form>
+
+{include file='public/footer' /}
+<script>
+    $(function(){
+        // 动态获取元素高度
+        var h = $('.big-border').height()
+        $('.table-td').css('height',(h - 115) +'px')
+
+        $(window).resize(function () {
+            var h = $('.big-border').height()
+            $('.table-td').css('height',(h - 115) +'px')
+        });
+    })
+
+    function showInputDialog() {
+        console.log("showInputDialog1");
+
+        layui.use(['upload'],function(){
+            var selectedTowerType;
+            var zoomFactor;
+            var upload=layui.upload;
+            var layer=layui.layer;
+            layer.open({
+                type: 1,
+                title: false,
+                closeBtn:0,
+                shadeClose:true,
+                content: `
+                    {include file='public/header' /}
+                    <style>
+                        .a-1{padding:0;padding-top:0;}
+                        #set_tower_type_form .input-text,#set_tower_type_form .select{width:250px}
+                        #set_tower_type_form{display:block;width:100%;height:100%;text-align:center;position:relative;}
+                        #set_tower_type_form .input-con{display:inline-block;width:330px;height:100px;vertical-align: middle;position:relative;top:calc(50% - 50px);}
+                        .row label,.row select{font-size:16px;}
+                    </style>
+                    <form id="towertype_form"  style="display:block;width:100%;height:100%;">
+                        <div class="a-2 a-2-1">
+                            <div class="text-c a-4" style="">设置杆塔属性</div>
+                            <input type="file" id="fileInput" name="file" style="display:none;">
+                        </div>
+                        <div class="a-15" >
+                            <div id="set_tower_type_form" style="text-align:left;padding:30px;">
+                                <input type="hidden" name="lineID" value="{$data.lineID|default=-1}" />
+                                <div class="input-con">
+                                    <div class="row cl" style="margin-bottom:40px;">
+                                        <label class="form-label col-xs-4 table_title">杆塔类型：</label>
+                                        <select class="select" size="1" name="towerShapeNameID" id="towerType">
+                                            {foreach name='towerType' item='v'}
+                                                <option value="{$v.towerShapeNameID}" <?php if($v['towerShapeNameID']==$data['towerShapeNameID'])echo ' selected';?>>{$v.towerShapeName}</option>
+                                            {/foreach}
+                                        </select>
+                                    </div>
+                                    <div class="row cl" style="margin-bottom:40px;">
+                                        <label class="form-label col-xs-4 table_title">放大倍率：</label>
+                                            <div class="formControls col-xs-8">
+                                                <input type="text" class="input-text" id="zoomFactor" autocomplete="off" placeholder="" name="insulatorNum" value="{$data.insulatorNum}">
+                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>`,
+                area: ['50%', '60%'],
+                btn: ['确认', '取消'],
+                success: function (layero) {
+                    layero.find('.layui-layer-btn').css({
+                        'position': 'absolute',
+                        'bottom': '10px',
+                        'right': '10px'
+                    });
+                },
+                //success
+                yes: function (index, layero) {
+                    console.log("点击确认后");
+                    selectedTowerType = $('#towerType').val();
+                    zoomFactor = $('#zoomFactor').val();
+                    console.log("selectedTowerType:", selectedTowerType);
+                    console.log("zoomFactor:", zoomFactor);
+                    if(selectedTowerType!='' && zoomFactor!=''&& zoomFactor !=undefined && selectedTowerType!=undefined){
+                        console.log("==== upload ====");
+                        $('#fileInput').click();
+                    }
+                    layer.close(index);
+                },
+                //cancel 
+                cancel: function (index) {
+                }
+            });
+
+
+            layui.use(['upload'],function(){
+                var upload=layui.upload;
+                console.log("showInputDialog2");
+                upload.render({
+                    elem: '#fileInput',
+                    url:"{:url('importLine')}",
+                    accept:'file',
+                    exts: 'csv',
+                    multiple:false,
+                    field:'file',
+                    auto:true,
+                    data :{
+                        lineID:'{$data.lineID}',
+                        towerType: function(){
+                            return selectedTowerType;
+                        },
+                        zoomFactor:function(){
+                            return zoomFactor;
+                        },
+                    },
+                    choose: function(obj){
+                        layer.load(1, {
+                            shade: [0.5,'#000']
+                            });
+                        },
+                    progress: function(n, elem, res, index){
+                        layer.load(1, {
+                            shade: [0.5,'#000']
+                            });
+                        },
+                    done:function(res, index, upload){
+                        layer.closeAll();
+                        if(res.status===1){
+                            layer.msg('导入成功',{time:1500});
+                            $('input[name=location]').val(res.data.loc);
+                        }else{
+                            layer.alert(res.msg);
+                        }
+                    },
+                    error: function(){
+                    layer.closeAll();
+                    layer.alert('上传失败，请重试');
+                }
+                });
+                console.log("showInputDialog4");
+            });
+        })
+    }
+
+
+
+</script>
+
+<script>
+    $('.del_line').on('click',function(e){
+        var back_url=$(this).closest('form').data('back');
+        console.log("back_url :" ,back_url);
+        e.preventDefault();
+        e.stopPropagation();
+        var obj=$(this);
+        layer.confirm('确认删除该任务？',function(){
+            var id=obj.data('id');
+            console.log("id :" , id);
+            $.ajax({
+                type: "POST",
+                url: "{:url('del_line')}",
+                data: {id:id},
+                dataType: "json",
+                error: function () {
+                    layer.closeAll();
+                    layer.alert("网络错误，请刷新重试!");
+                },
+                success: function (data) {
+                    layer.closeAll();
+                    layer.msg(data.msg,{time:1500},function(){
+                        if(data.status===1){
+                            location.href=back_url;
+                            console.log(back_url);
+                        }
+                    });
+                }
+            });
+
+        })
+    })
+</script>
+
+
+
+<script>
+    <?php if($my_permission['addBasicData']<=0 && $my_permission['modifyBasicData']<=0):?>
+    $(function(){
+        $('input,select').prop('disabled',true).prop('readonly',true);
+    })
+    <?php endif;?>
+</script>

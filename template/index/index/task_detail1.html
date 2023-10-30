@@ -1,0 +1,108 @@
+{include file='public/header' /}
+<style>
+    .a-1{padding:30px;padding-top:0;}
+</style>
+<div class="a-2 a-2-1">
+    <!--            <img class="a-3" src="/static/index/img/top_bg.png" />-->
+    <div class="text-c a-4" style="">{$title}</div>
+    <div class="a-5 text-r top_btn">
+        <div class="a-12">
+            <a href="{:url('index/index')}" >返回</a>
+        </div>
+        <div class="a-6-box">
+            <a href="javascript:void(0);" onclick="del_task()">删除</a>
+        </div>
+        <div style="clear:both;"></div>
+    </div>
+</div>
+<!-- 内容 -->
+<div class="a-15" >
+    <div class="big-border">
+        <form id="add_task_form" action="{:url('index/add_task')}" >
+            <table class="table ">
+               <tr>
+                   <td>
+                       <div class="row cl">
+                           <label class="form-label col-xs-4 table_title">任务名称：</label>
+                           <div class="formControls col-xs-8">
+                               <input type="text" class="input-text" autocomplete="off" placeholder="">
+                           </div>
+                       </div>
+                   </td>
+                   <td>
+                       <div class="row cl">
+                           <label class="form-label col-xs-4 table_title">任务类型：</label>
+                           <div class="formControls col-xs-8">
+                               <select class="select" size="1" name="demo1">
+                                   <option value="" selected="">任务类型</option>
+                                   <option value="1">配网飞行任务</option>
+                                   <option value="2">配网打点任务</option>
+                               </select>
+                           </div>
+                       </div>
+                   </td>
+                   <td>
+                       <div class="row cl">
+                           <label class="form-label col-xs-4 table_title">往返高度：</label>
+                           <div class="formControls col-xs-8">
+                               <input type="text" class="input-text" autocomplete="off" placeholder="">
+                           </div>
+                       </div>
+                   </td>
+                   <td>
+                       <div class="row cl">
+                           <label class="form-label col-xs-4 table_title">两端拍照：</label>
+                           <div class="formControls col-xs-8">
+                               <select class="select" size="1" name="demo1">
+                                   <option value="1">是</option>
+                                   <option value="2">否</option>
+                               </select>
+                           </div>
+                       </div>
+                   </td>
+               </tr>
+            </table>
+            <table class="table " style="margin-top:10px;">
+                <tr class="table_title">
+                    <td>已选杆塔：</td>
+                </tr>
+                <tr>
+                    <td style="vertical-align: top;">
+                        <div class="table-td">
+                            <table class="table">
+                                <tr>
+                                    <th>序号</th>
+                                    <th>杆塔名称</th>
+                                    <th>杆塔形状</th>
+                                    <th>操作</th>
+                                </tr>
+                                <tr>
+                                    <td>1</td>
+                                    <td>杆塔1</td>
+                                    <td>耐张</td>
+                                    <td>
+                                        取消 -
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    $(function(){
+        // 动态获取元素高度
+        var h = $('.big-border').height()
+        $('.table-td').css('height',(h - 115) +'px')
+
+        $(window).resize(function () {
+            var h = $('.big-border').height()
+            $('.table-td').css('height',(h - 115) +'px')
+        });
+    })
+</script>

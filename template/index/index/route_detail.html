@@ -1,0 +1,60 @@
+{include file='public/header' /}
+<style>
+    .a-1{padding:30px;padding-top:0;}
+    #add_route_form .input-text,#add_route_form .select{width:250px}
+    #add_route_form{display:block;width:100%;height:100%;text-align:center;position:relative;}
+    #add_route_form .input-con{display:inline-block;width:330px;height:100px;vertical-align: middle;position:relative;top:calc(50% - 50px);}
+    .row label,.row select{font-size:16px;}
+</style>
+<div class="a-2 a-2-1">
+    <!--            <img class="a-3" src="/static/index/img/top_bg.png" />-->
+    <div class="text-c a-4" style="">{$title}</div>
+    <div class="a-5 text-r top_btn">
+        <div class="a-12">
+            <a href="{:url('index/basic_list')}" >返回</a>
+        </div>
+        <div class="a-6-box">
+            <a href="{:url('index/basic_list')}" >完成</a>
+        </div>
+        <div style="clear:both;"></div>
+    </div>
+</div>
+<!-- 内容 -->
+<div class="a-15" >
+    <div class="big-border" style="background:url(/static/index/img/electric.png) no-repeat center;background-size:100% 100%;">
+        <form id="add_route_form" action="{:url('index/add_route')}" style="text-align:center;" >
+            <div class="input-con">
+                <div class="row cl" style="margin-bottom:20px;">
+                    <label class="form-label col-xs-4 table_title">线路名称：</label>
+                    <div class="formControls col-xs-8">
+                        <input type="text" class="input-text" autocomplete="off" placeholder="">
+                    </div>
+                </div>
+
+                <div class="row cl">
+                    <label class="form-label col-xs-4 table_title">巡检单位：</label>
+                    <div class="formControls col-xs-8">
+                        <select class="select" size="1" name="demo1">
+                            <option value="1">单位1</option>
+                            <option value="2">单位2</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    $(function(){
+        // 动态获取元素高度
+        var h = $('.big-border').height()
+        $('.table-td').css('height',(h - 115) +'px')
+
+        $(window).resize(function () {
+            var h = $('.big-border').height()
+            $('.table-td').css('height',(h - 115) +'px')
+        });
+    })
+</script>

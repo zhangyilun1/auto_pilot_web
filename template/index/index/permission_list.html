@@ -1,0 +1,69 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            {include file='public/user_nav' /}
+        </div>
+        <div class="right_content">
+            <div class="top_con mt-20">
+                <span class="l">
+                                   <?php if($my_permission['addUserMgr']<=0):?>
+                                   <?php else:?>
+                    <a class="add_btn" href="{:url('add_permission')}">
+                        <img src="/static/index/img/table_add.png" />
+                    </a>
+                    <?php endif;?>
+                </span>
+                <form class="r" method="get" action="{:url(ACTION_NAME)}" id="search_form" >
+                    <span class="select-box" style="width:120px;padding:0;border:none;">
+                        <select name="" class="select" onchange="this.closest('form').submit();">
+                            <option value="0" >权限名称</option>
+                        </select>
+                    </span>
+                    <input type="text" name="keywords" placeholder="" style="width:200px" value="{$keywords}" class="input-text">
+                    <button name="" id="" class="btn " type="submit">搜索</button>
+                </form>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table table-hover mt-10" data-url="{:url('index/del_permission')}">
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>权限名称</th>
+                        <th>&nbsp;&nbsp;操作</th>
+                    </tr>
+                    </thead>
+                    {foreach name='data' item='v' key='k'}
+                    <tr>
+<!--                        <td>{$v.permissionID}</td>-->
+                        <td>{$k+1}</td>
+                        <td>{$v.permissionName}</td>
+                        <td>
+                            <?php if($my_permission['findUserMgr']<=0):?>
+                            <?php else:?>
+                                <a class="btn" href="{:url('check_permission',['id'=>$v['permissionID']])}">查看</a>
+                            <?php endif;?>
+
+                            <?php if($my_permission['modifyUserMgr']<=0):?>
+                            <?php else:?>
+                                <a class="btn" href="{:url('add_permission',['id'=>$v['permissionID']])}">修改</a>
+                            <?php endif;?>
+
+                            <?php if($my_permission['deleteUserMgr']<=0):?>
+                            <?php else:?>
+                                <a class="btn" onclick="del_tr(this,{$v.permissionID})">删除</a>
+                            <?php endif;?>
+
+
+                        </td>
+                    </tr>
+                    {/foreach}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{include file='public/footer' /}

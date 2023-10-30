@@ -1,0 +1,238 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<style>
+    .data_table *{font-size:12px !important;}
+    #container .BMap_mask{
+        box-shadow: 0px 0px 100px 130px #042141 inset;
+    }
+
+    #container .anchorBL img{
+        display: none;
+    }
+
+    #container .BMap_cpyCtrl span{
+        display: none !important;
+    }
+</style>
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="task_con">
+        <div class="map" id="container"></div>
+        <div class="left">
+            <div class="title">线路</div>
+            <div class="search">
+                <form action="" method="get" class="search_form">
+                    <input type="text" name="lineName" value="{$lineName}" />
+                </form>
+                <?php if($my_permission['addBasicData']<=0):?>
+                <?php else:?>
+                <a class="add_task" href="{:url('add_line')}"><i class="layui-icon layui-icon-addition"></i></a>
+                <?php endif;?>
+            </div>
+
+            <div class="list">
+                <table class="table table_search data_table">
+                    {foreach name='lines' item='v'}
+                    <tr class="item"
+                        <?php if($lineID==$v['lineID']):?>
+                            <?php if($my_permission['modifyBasicData']<=0):?>
+                            <?php else:?>
+                            onclick="location.href='{:url(\'add_line\',[\'id\'=>$v[\'lineID\']])}'"
+                            <?php endif;?>
+                        <?php else:?>
+                            onclick="location.href='{:url(\'basic_list\',[\'lineID\'=>$v[\'lineID\']])}'"
+                        <?php endif;?>
+                    >
+                        <td style="padding:0;">
+                            <div class="li <?php if($lineID==$v['lineID'])echo ' on';?>">
+                                <table class="table_list table">
+                                    <tr><td colspan="2"></td></tr>
+                                    <tr><td colspan="2"></td></tr>
+                                    <tr class="text-c">
+                                        <td style="width:150px !important;">线路</td>
+                                        <td style="width:150px !important;">杆塔</td>
+                                    </tr>
+                                    <tr class="text-c">
+                                        <td>{$v.lineName}</td>
+                                        <td>{$v.lineID|line_tower_count}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    {/foreach}
+                </table>
+            </div>
+        </div>
+        <div class="right">
+            <div class="device_con gt_con">
+                <div class="title">杆塔</div>
+                <div class="search">
+                    <form action="" method="get" class="search_form">
+                        <input type="text" name="towerName" value="{$towerName}" />
+                    </form>
+                    <?php if($lineID>=0):?>
+                    <?php if($my_permission['addBasicData']<=0):?>
+                    <?php else:?>
+                    <a class="add_task" href="{:url('add_tower',['lineID'=>$lineID])}"><i class="layui-icon layui-icon-addition"></i></a>
+                    <?php endif;?>
+                    <?php endif;?>
+                </div>
+                <div class="list">
+                    <table class="table table_search data_table">
+                        {foreach name='towers' item='v'}
+                        <tr class="item"
+                            <?php if($my_permission['modifyBasicData']<=0):?>
+                            <?php else:?>
+                            onclick="location.href='{:url(\'add_tower\',[\'id\'=>$v[\'towerID\'],\'lineID\'=>$v[\'lineID\']])}'"
+                            <?php endif;?>
+                        >
+                            <td style="padding:0;">
+                                <div class="li">
+                                    <table class="table_list table">
+                                        <tr><td colspan="2"></td></tr>
+                                        <tr><td colspan="2"></td></tr>
+                                        <tr class="text-c">
+                                            <td style="width:110px !important;">杆塔名称</td>
+                                            <td style="width:110px !important;">放大倍率</td>
+                                            <td style="width:110px !important;">航线类型</td>
+                                        </tr>
+                                        <tr class="text-c">
+                                            <td>{$v.towerName}</td>
+                                            <td>{$v.insulatorNum}</td>
+                                            <td>{$v.towerShapeName}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        {/foreach}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{include file='public/footer' /}
+<!-- <script charset="utf-8" src="https://map.qq.com/api/gljs?v=1.exp&libraries=service&key=4CLBZ-CDM32-K4WUR-CTYB6-TVFZK-ZIBOS"></script> -->
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=jZco57iywrAVkMm7DfjOcwDXhOZDLE7M"></script>
+<script>
+    setTimeout(function(){
+        
+        console.log("=== display map === ");
+        var map = new BMap.Map('container');
+        //weidu
+        var defaultLat = "{$towers.0.latitude|default=29}";
+        //jingdu
+        var defaultLng = "{$towers.0.longitude|default=105}";
+
+        console.log("defaultLat: ", defaultLat, typeof(defaultLat));
+        console.log("defaultLng: ", defaultLng,typeof(defaultLng));
+        var convertor = new BMap.Convertor();
+        if(parseInt(defaultLat) === 29 && parseInt(defaultLng) === 105)
+        {
+            console.log("=== default ===");
+            var centerPoint = new BMap.Point(defaultLng, defaultLat);
+            map.centerAndZoom(centerPoint, 5);
+        }
+ 
+        // map.setMapType(BMAP_NORMAL_MAP);
+        map.setMapType(BMAP_SATELLITE_MAP);
+
+        var gpsPointArr = [];
+        {foreach name='towers' item='v'}
+            point = new BMap.Point("{$v.longitude}", "{$v.latitude}");
+            gpsPointArr.push(point);
+        {/foreach}
+
+
+        console.log("gpsPointArr :" , gpsPointArr.length);
+        function processBatch(startIndex) {
+            var batchSize = 10; // 每批次发送的请求数量
+            var batch = gpsPointArr.slice(startIndex, startIndex + batchSize);
+            console.log("batch", batch);
+            //1 for WGS-84 convert 5 for GCJ-02
+            convertor.translate(batch, 1, 5, function(data){
+                console.log("===translate===");
+                console.log("data.status :", data.status);
+                console.log("data.points :", data.points);
+                if (data.status === 0) {
+                    var baiduPointArr = data.points;
+                    console.log("baiduPointArr length :", baiduPointArr.length);
+                    for (var i = 0; i < baiduPointArr.length; i++) {
+                        if (i === 1) {
+                             map.centerAndZoom(baiduPointArr[i], defaultLat === 29 ? 4 : 16);
+                           // map.centerAndZoom(gpsPointArr[i], defaultLat === 29 ? 4 : 16);
+                        }
+                        // var marker = new BMap.Marker(gpsPointArr[i]);
+                        var marker = new BMap.Marker(baiduPointArr[i]);
+                        map.addOverlay(marker);
+                        console.log("marker :", marker);
+                    }
+               }
+                if (startIndex + batchSize < gpsPointArr.length) {
+                    setTimeout(function() {
+                        processBatch(startIndex + batchSize);
+                    }, 10); 
+                }
+            });
+        }
+
+        // 开始处理第一批次的请求
+        processBatch(0);
+
+        // 设置地图类型和其他地图属性
+        // map.setMapType(BMAP_NORMAL_MAP);
+        map.setMapType(BMAP_SATELLITE_MAP);
+        map.enableScrollWheelZoom(true);
+
+    }, 1000);
+
+    //     convertor.translate(gpsPointArr, 1, 5, function(data){
+    //         console.log("===translate===");
+    //         console.log("data.status :" , data.status);
+    //         if (data.status === 0) {
+    //             var baiduPointArr = data.points;
+    //             console.log("baiduPointArr length : " , baiduPointArr.length);
+    //             for (var i = 0; i < baiduPointArr.length; i++) {
+    //                 if(i === 1)
+    //                 {
+    //                     map.centerAndZoom(baiduPointArr[i], defaultLat === 29 ? 4 : 17);
+    //                 }
+    //                 var marker = new BMap.Marker(baiduPointArr[i]); 
+    //                 map.addOverlay(marker);
+    //                 console.log("marker :" , marker);
+    //             }
+    //         }
+    //     });
+    //     map.enableScrollWheelZoom(true);  
+    // }, 1000);
+
+    // setTimeout(function(){
+    //     var loc='';
+    //     var default_lat="{$towers.0.latitude|default=29}";
+    //     var default_lng="{$towers.0.longitude|default=105}";
+    //     var map = new TMap.Map('container', {
+    //         zoom: default_lat==29?4:16,
+    //         center: new TMap.LatLng(default_lat,default_lng),
+    //     });
+
+    //     var markers = new TMap.MultiMarker({
+    //         map: map,
+    //         geometries: [
+    //             {foreach name='towers' item='v'}
+    //             {
+    //                 "id": 'main',
+    //                 "styleId": 'marker',
+    //                 "position": new TMap.LatLng("{$v.latitude}","{$v.longitude}")
+    //             },
+    //             {/foreach}
+    //         ],
+    //     });
+
+    //     var geocoder = new TMap.service.Geocoder(); // 新建一个正逆地址解析类
+    //     map.removeControl(TMap.constants.DEFAULT_CONTROL_ID.ZOOM);
+
+    // },1000);
+
+</script>

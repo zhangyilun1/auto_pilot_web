@@ -1,0 +1,57 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            {include file='public/setting_nav' /}
+        </div>
+        <div class="right_content">
+            <div class="top_con mt-20">
+                <span class="l">
+
+                </span>
+                <form class="r" method="get" action="{:url(ACTION_NAME)}" id="search_form" >
+                        <span class="select-box" style="width:120px;padding:0;border:none;">
+                            <select name="type" class="select">
+                                <option value="0" >任务名称</option>
+                            </select>
+                        </span>
+                    <input type="text" name="keywords" placeholder="" style="width:200px" value="{$keywords}" class="input-text">
+                    <button name="" id="" class="btn " type="submit">搜索</button>
+                </form>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table table-hover mt-10">
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>任务名称</th>
+                        <th>起飞时间</th>
+                        <th>降落时间</th>
+                        <th>&nbsp;&nbsp;操作</th>
+                    </tr>
+                    </thead>
+
+                    {foreach name='data' item='v' key='k'}
+                    <tr>
+                        <td>{$k+1}</td>
+                        <td>{$v.submissionName}</td>
+                        <td>{$v.DepartureTime}</td>
+                        <td>{$v.LandingTime}</td>
+                        <td>
+                            <?php if($my_permission['findData']<=0):?>
+                            <?php else:?>
+                                <a href="{:url('log_detail',['id'=>$v['FlightRecordsID']])}" class="btn">查看</a>
+                            <?php endif;?>
+
+                        </td>
+                    </tr>
+                    {/foreach}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{include file='public/footer' /}

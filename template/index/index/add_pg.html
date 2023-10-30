@@ -1,0 +1,57 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            {include file='public/user_nav' /}
+        </div>
+        <form action="{:url('add_pg')}" class="right_content add_con" id="pg_form" data-back="{:url('index/pg_list')}">
+            <input type="hidden" name="groupID" value="{$data.groupID|default=-1}" />
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('pg_list')}">返回</a>
+                </span>
+                <span class="r">
+                    <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a>
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table mt-10">
+
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">权限组名称 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="权限组名称" name="permission_group_name" value="{$data.permission_group_name}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">选择权限：</label>
+                                <div class="formControls col-xs-8">
+                                    <select class="select" size="1" name="permissionID">
+                                        {foreach name='pl' item='v'}
+                                        <option value="{$v.permissionID}" <?php if($data['permissionID']==$v['permissionID'])echo ' selected';?>>{$v.permissionName}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    <?php if($my_permission['addUserMgr']<=0 && $my_permission['modifyUserMgr']<=0):?>
+    $(function(){
+        $('input,select').prop('disabled',true).prop('readonly',true);
+    })
+    <?php endif;?>
+</script>

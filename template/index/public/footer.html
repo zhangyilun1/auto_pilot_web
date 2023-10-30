@@ -1,0 +1,90 @@
+</div>
+</body>
+<script type="text/javascript" src="/static/index/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/index/js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="/static/index/js/H-ui.min.js"></script>
+<script src="/static/plugins/layui2.6.8/layui.js"></script>
+</html>
+<script type="text/javascript">
+    var layer,flow,layui_form,laydate;
+    layui.use(['layer','flow','form','laydate'], function () {
+        layer = layui.layer;
+        flow=layui.flow;
+        layui_form=layui.form;
+        laydate=layui.laydate;
+    })
+
+    $(function(){
+        // 动态获取元素高度
+        var h = $('.a-2').height()+30
+        $('.a-15').css('height','calc(100% - '+ h +'px)')
+        $(window).resize(function () {
+            var h = $('.a-2').height()+30
+            $('.a-15').css('height','calc(100% - '+ h +'px)')
+        });
+    })
+
+    function del_tr(_this,id){
+        layer.confirm('确定删除？',function(){
+            var url=$(_this).closest('table').data('url');
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: {id:id},
+                dataType: "json",
+                error: function () {
+                    layer.closeAll();
+                    layer.alert("网络错误，请刷新重试!");
+                },
+                success: function (data) {
+                    layer.closeAll();
+                    layer.msg(data.msg,{time:1500},function(){
+                        if(data.status===1){
+                            $(_this).closest('tr').remove();
+                        }
+                    });
+                }
+            });
+        })
+    }
+
+    function submit_form(_this){
+        console.log("submit_form");
+        var id=$(_this).closest('form').attr('id');
+        console.log("id:" ,id);
+        var url=$(_this).closest('form').attr('action');
+        console.log("url:" ,url);
+        var back_url=$(_this).closest('form').data('back');
+        console.log("back_url:" ,back_url);
+        var form=document.getElementById(id);
+        console.log("form:" ,form);
+        var form_data=new FormData(form);
+        console.log("form_data:" ,form_data);
+        layer.load(1, {
+            shade: [0.5,'#000']
+        });
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: form_data,
+            dataType: "json",
+            processData: false,
+            contentType: false,
+            error: function () {
+                layer.closeAll();
+                layer.alert("网络错误，请刷新重试!");
+            },
+            success: function (data) {
+                layer.closeAll();
+                console.log("url: ", url);
+                console.log("data: ", data);
+                layer.msg(data.msg,{time:1500},function(){
+                    if(data.status===1){
+                        // location.href=back_url;
+                        // console.log(back_url);
+                    }
+                });
+            }
+        });
+    }
+</script> 

@@ -1,0 +1,87 @@
+{include file='public/header' /}
+<style>
+    .a-1{background:url(/static/index/img/login_bg.jpg) no-repeat center;}
+    #login_form{display:inline-block;width:auto;position:relative;top:45%;}
+    #login_form .row{margin-bottom:20px;font-size:20px;}
+    #login_form .row .input-text{width:250px;font-size:20px;height:40px;line-height:40px;}
+    #login_form .row label{font-size:20px;}
+</style>
+<div style="width:100%;height:100%;position:relative;text-align:center;">
+    <form id="login_form" action="{:url('index/index')}">
+        <div style="float:left;border-right:1px solid #3496FF;padding-right:100px;height:200px;">
+            <div class="row cl">
+                <label class="form-label col-xs-4 table_title">帐号：</label>
+                <div class="formControls col-xs-8">
+                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="username">
+                </div>
+            </div>
+
+            <div class="row cl">
+                <label class="form-label col-xs-4 table_title">密码：</label>
+                <div class="formControls col-xs-8">
+                    <input type="password" class="input-text" autocomplete="off" placeholder="" name="password">
+                </div>
+            </div>
+
+            <div class="row cl">
+                <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
+                    <button class="btn btn-secondary radius submit_btn" type="submit" style="width:150px;height:40px;line-height:40px;font-size:20px;">登录</button>
+                </div>
+            </div>
+
+            <div class="row cl">
+                <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2" >
+                    <label style="color:white;font-size:18px;">
+                        <input type="checkbox" name="remember" value="1" style="width:18px;height:18px;"> 记住密码
+                    </label>
+
+                </div>
+            </div>
+
+        </div>
+        <div style="float:right;color:white;text-align:center;padding-left:90px;font-size:28px;height:200px;line-height:200px;">
+            配网版
+        </div>
+        <div style="clear:both;"></div>
+    </form>
+</div>
+
+{include file='public/footer' /}
+<script>
+    $(function(){
+        // 动态获取元素高度
+        var h = $('.big-border').height()
+        $('.table-td').css('height',(h - 115) +'px')
+
+        $(window).resize(function () {
+            var h = $('.big-border').height()
+            $('.table-td').css('height',(h - 115) +'px')
+        });
+    })
+
+    $('#login_form').on('submit',function(e){
+        e.preventDefault();
+        var form=document.getElementById('login_form');
+        var form_data=new FormData(form);
+        $.ajax({
+            type: "POST",
+            url: "{:url('login')}",
+            data: form_data,
+            dataType: "json",
+            processData: false,
+            contentType: false,
+            error: function () {
+                layer.closeAll();
+                layer.alert("网络错误，请刷新重试!");
+            },
+            success: function (data) {
+                layer.closeAll();
+                layer.msg(data.msg,{time:1500},function(){
+                    if(data.status===1){
+                        location.href="{:url('index')}";
+                    }
+                });
+            }
+        });
+    })
+</script>

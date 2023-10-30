@@ -1,0 +1,155 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<style>
+    .rule-table span{display:inline-block;padding:10px 0;}
+    .rule-table td,.rule-table th,.rule-table{border-color:#4D8CCF}
+</style>
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            {include file='public/setting_nav' /}
+        </div>
+        <form action="{:url('add_log')}" class="right_content add_con">
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('log_list')}">返回</a>
+                </span>
+                <span class="r">
+
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table mt-10">
+
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">子任务名称：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.submissionName}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">所属主任务：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$missions[$data[missionID]]}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">机型名称：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.droneName}">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">起飞时间：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.DepartureTime}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">降落时间：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.LandingTime}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">电压等级：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.voltageLevel}">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">降落点经度：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.Longitude_of_landing_point}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">降落点纬度：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.Latitude_of_landing_point}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">杆塔数量：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.TowerNum}">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">负责人：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl" style="display:none;">
+                                <label class="form-label col-xs-4 table_title">备注：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.comment}">
+                                </div>
+                            </div>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                           <table class="table table-bg text-c table-hover">
+                               <tr>
+                                   <th>序号</th>
+                                   <th>杆塔名称</th>
+                                   <th>所属路线</th>
+                                   <th>杆塔形状</th>
+                                   <th>电压等级</th>
+                               </tr>
+                               {foreach name='towers' item='v' key='k'}
+                               <tr>
+                                   <td>{$k+1}</td>
+                                   <td>{$v.towerName}</td>
+                                   <td>{$v.towerlineName}</td>
+                                   <td>{$v.towerShapeName}</td>
+                                   <td>{$v.towerVoltageLevel}</td>
+                               </tr>
+                               {/foreach}
+                           </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    $(function(){
+        $('input').prop('readonly',true);
+    })
+</script>

@@ -1,0 +1,148 @@
+{include file='public/header' /}
+<style>
+    .a-1{padding:30px;padding-top:0;}
+    input[type=checkbox]{width:20px;height:20px;}
+    #add_task_form .table-td td{padding-left:10px;}
+    #add_task_form a.btn{
+
+        color: white;
+        background: none !important;
+        border: none !important;
+
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-rows: repeat(10, 1fr);
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .video-container{
+        width: 100%;
+        text-align: right;
+    }
+
+    .info-container {
+        width: 100%;
+        text-align: left;
+    } 
+
+    .grid-item {
+        width: 100%;
+        height: 100%;
+        border: 1px solid #ccc;
+        display: flex;
+    } 
+    
+    .grid-item video{
+        flex: 1;
+        height: 100% !important;
+    }
+    .grid-item .info {
+        width: 40%; 
+        text-align: left;
+        padding: 0% 10px;
+    }
+
+    .grid-item.selected {
+        background-color: lightgreen;
+    }
+
+    .play-button {
+        margin-top: 10px;
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .play-button.disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+</style>
+
+<form action="{:url('index/play_video')}" data-back="{:url('index')}" id="play_video" style="display:block;width:100%;height:100%;" >
+    <div class="a-2 a-2-1">
+        <!--            <img class="a-3" src="/static/index/img/top_bg.png" />-->
+        <div class="text-c a-4" style="">{$title}</div>
+        <div class="a-5 text-r top_btn">
+            <div class="a-12">
+                <a href="{:url('index/index')}" >返回</a>
+            </div>
+            <div class="a-6-box">
+                <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a>
+            </div>
+        </div>
+    </div>
+    <div class="a-15">
+        <div class="big-border" style="overflow-y:auto;">
+            <div class="grid-container">
+                {foreach name='all_drones' item='v' key='k'}
+                    <div class="grid-item" onclick="toggleSelect(this)" >
+                        <div class="video-container">
+                            <video id="video-player"  class="video-js vjs-default-skin" style="width:360px;height:240px;" controls src="{$v.liveAddr}"></video>
+                        </div>
+                           
+                        <div class="info-container">
+                            <div class="info">{$v.snCode}</div>
+                            <button id="video-button" class="play-button disabled">播放</button>
+                        </div>
+                    </div>
+                {/foreach}
+            </div>
+        </div>
+    </div>
+    <!-- 内容 -->
+</form>
+
+{include file='public/footer' /}
+<script src="https://cdn.jsdelivr.net/npm/flv.js@1.5.0/dist/flv.min.js"></script>
+<script>
+    var videoElement = document.getElementById('video-player');
+    // var videoButtonElement = document.getElementById('video-button');
+    var videoSrc = "{$v.liveAddr}";
+    var flvPlayer = flvjs.createPlayer({
+        type: 'flv',
+        url: videoSrc,
+    });
+
+    flvPlayer.attachMediaElement(videoElement);
+    
+    document.getElementById('video-button').addEventListener('click', function() {
+        event.preventDefault();
+        flvPlayer.load();
+        flvPlayer.play();
+    });
+
+   videoElement.addEventListener('dblclick', function() {
+        if (videoElement.requestFullscreen) {
+            videoElement.requestFullscreen();
+        } else if (videoElement.mozRequestFullScreen) { // 兼容 Firefox
+            videoElement.mozRequestFullScreen();
+        } else if (videoElement.webkitRequestFullscreen) { // 兼容 Chrome、Safari和Opera
+            videoElement.webkitRequestFullscreen();
+        } else if (videoElement.msRequestFullscreen) { // 兼容IE
+            videoElement.msRequestFullscreen();
+        }
+    });
+
+    function toggleSelect(element) {
+        var allItems = document.querySelectorAll('.grid-item');
+        for (var i = 0; i < allItems.length; i++) {
+            allItems[i].classList.remove('selected');
+            var playButton = allItems[i].querySelector('.play-button');
+            playButton.disabled = true;
+            playButton.classList.add('disabled');
+        }
+        element.classList.add('selected');
+        var selectedPlayButton = element.querySelector('.play-button');
+        selectedPlayButton.disabled = false;
+        selectedPlayButton.classList.remove('disabled');
+    }
+
+
+</script>

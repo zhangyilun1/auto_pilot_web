@@ -1,0 +1,139 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="task_con">
+        <div class="map" id="container"></div>
+        <div class="left">
+            <div class="title">任务</div>
+            <div class="search">
+                <form action="" method="get" class="search_form">
+                    <input type="text" name="task_name" value="{$task_name}" />
+                </form>
+                <a class="add_task" href="{:url('index/task_detail')}"><i class="layui-icon layui-icon-addition"></i></a>
+            </div>
+
+            <div class="list">
+                <table class="table table_search data_table">
+                    <tr class="item" onclick="location.href='{:url(\'task_detail\',[\'id\'=>$v[\'id\']])}'">
+                        <td style="padding:0;">
+                            <div class="li">
+                                <table class="table_list table">
+                                    <tr>
+                                        <td colspan="4">　任务一</td>
+                                    </tr>
+                                    <tr class="text-c">
+                                        <td>飞巡杆塔数</td>
+                                        <td>任务类型</td>
+                                        <td>上次执行时间</td>
+                                        <td rowspan="2" class="text-c">
+                                            <a class="del_task"><i class="layui-icon layui-icon-subtraction"></i></a>
+                                        </td>
+                                    </tr>
+                                    <tr class="text-c">
+                                        <td>2</td>
+                                        <td>配网飞行任务</td>
+                                        <td>2022-09-25 17:29</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="right">
+            <div class="device_con">
+                <div class="title">在线设备</div>
+                <div class="search">
+                    <form action="" method="get" class="search_form">
+                        <input type="text" name="task_name" value="{$task_name}" />
+                    </form>
+                    <a class="add_task" href="javascript:void(0);"><i class="layui-icon layui-icon-addition"></i></a>
+                </div>
+                <div class="list">
+                    <table class="table table_search data_table" style="display:none;">
+                        <tr class="item">
+                            <td style="padding:0;">
+                                <div class="li">
+                                    <table class="table_list table">
+                                        <tr><td colspan="2"></td></tr>
+                                        <tr><td colspan="2"></td></tr>
+                                        <tr class="text-c">
+                                            <td>杆塔名称</td>
+                                            <td>杆塔类型</td>
+                                            <td>航线类型</td>
+                                        </tr>
+                                        <tr class="text-c">
+                                            <td>杆塔1</td>
+                                            <td>耐张</td>
+                                            <td>直线</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="fly">
+                <a href="javascript:void(0);" >上传</a>
+                <a href="javascript:void(0);" >起飞</a>
+            </div>
+        </div>
+    </div>
+</div>
+{include file='public/footer' /}
+<script charset="utf-8" src="https://map.qq.com/api/gljs?v=1.exp&libraries=service&key=4CLBZ-CDM32-K4WUR-CTYB6-TVFZK-ZIBOS"></script>
+<script>
+
+    setTimeout(function(){
+        var loc='';
+        var default_lat="";
+        var default_lng="";
+        var map = new TMap.Map('container', {
+            zoom: 15,
+            center: new TMap.LatLng(default_lat,default_lng),
+        });
+
+        var markers = new TMap.MultiMarker({
+            map: map,
+            geometries: [
+                {
+                    "id": 'main',
+                    "styleId": 'marker1',
+                    "position": new TMap.LatLng("30.509951","114.392297")
+                }
+            ],
+        });
+
+        var geocoder = new TMap.service.Geocoder(); // 新建一个正逆地址解析类
+        map.removeControl(TMap.constants.DEFAULT_CONTROL_ID.ZOOM);
+
+        var ipLocation = new TMap.service.IPLocation(); // 新建一个IP定位类
+        function locate() {
+            ipInput = '<?php echo getIp();?>';
+            var params = ipInput ? { ip: ipInput } : {};
+            ipLocation
+                .locate(params)
+                .then((result2) => {
+                    // 未给定ip地址则默认使用请求端的ip
+                    var { result } = result2;
+
+                    map.setCenter(result.location);
+                    curr_province=result.ad_info.province;
+                    curr_city=result.ad_info.city;
+                })
+                .catch((error) => {
+                    layer.msg(`错误：${error.status}，${error.message}`);
+                });
+        }
+        if(loc==''){
+            setTimeout(function(){
+                locate();
+            },300)
+        }
+
+    },1000);
+
+</script>

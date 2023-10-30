@@ -1,0 +1,32 @@
+<div class="a-2">
+    <!--            <img class="a-3" src="/static/index/img/top_line.png" />-->
+    <div class="text-c a-4" style="background:url(/static/index/img/top_line.png) no-repeat center;background-size:auto 100%;height:90px;line-height:90px;"><img src="/static/index/img/logo.png" class="logo" /> {$seo.title}</div>
+    <div class="a-5 text-r top_menu">
+        <div class="a-12">
+            <?php if($my_permission['findTask']<=0):?>
+                <a href="javascript:void(0);" onclick="layer.alert('无权查看')" class="<?php if(ACTION_NAME==='index')echo 'active';?>">任务管理</a>
+            <?php else:?>
+                <a href="{:url('index/index')}" class="<?php if(ACTION_NAME==='index')echo 'active';?>">任务管理</a>
+            <?php endif;?>
+
+            <?php if($my_permission['findBasicData']<=0):?>
+                <a href="javascript:void(0);" onclick="layer.alert('无权查看')" class="<?php if(ACTION_NAME==='basic_list')echo 'active';?>">基础数据</a>
+            <?php else:?>
+                <a href="{:url('index/basic_list')}" class="<?php if(ACTION_NAME==='basic_list')echo 'active';?>">基础数据</a>
+            <?php endif;?>
+        </div>
+        <div class="a-6-box">
+            <?php if($my_permission['findUserMgr']<=0):?>
+                <a href="javascript:void(0);" onclick="layer.alert('无权查看')" class="<?php if(in_array(ACTION_NAME,['user_list','check_user','add_user','company_list','check_company','add_company','add_group','check_group','group_list','pg_list','check_pg','add_pg','permission_list','add_permission','check_permission']))echo 'active';?>">用户管理</a>
+            <?php else:?>
+                <a href="{:url('index/company_list')}" class="<?php if(in_array(ACTION_NAME,['user_list','check_user','add_user','company_list','check_company','add_company','add_group','check_group','group_list','pg_list','check_pg','add_pg','permission_list','add_permission','check_permission']))echo 'active';?>">用户管理</a>
+            <?php endif;?>
+
+            <?php if($my_permission['findData']<=0):?>
+                <a href="javascript:void(0);" onclick="layer.alert('无权查看')" class="<?php if(in_array(ACTION_NAME,['log_list','log_detail','flight_list','add_flight','check_flight']))echo 'active';?>">其它设置</a>
+            <?php else:?>
+                <a href="{:url('index/log_list')}" class="<?php if(in_array(ACTION_NAME,['log_list','log_detail','flight_list','add_flight','check_flight']))echo 'active';?>">其它设置</a>
+            <?php endif;?>
+        </div>
+    </div>
+</div>

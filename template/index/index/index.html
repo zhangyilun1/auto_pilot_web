@@ -1,0 +1,693 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<style>
+    .play_video{
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .data_table * {
+        font-size: 12px !important;
+    }
+
+    .drone_item {
+	    text-align: center;
+    }
+
+    .video-container {
+        width: 100%;
+        height:100%;
+        position: relative;
+    }
+
+    .video-container video {
+        width: 100%;
+        height: 100%;
+    }
+
+    .video-container.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+    }
+
+    #fullscreen-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 50px;
+        color: white;
+    }
+
+
+    #container .BMap_mask{
+        box-shadow: 0px 0px 100px 130px #042141 inset;
+    }
+
+    #container .anchorBL img{
+        display: none;
+    }
+
+    #container .BMap_cpyCtrl span{
+        display: none !important;
+    }
+
+
+    .layui-btn-transparent {
+        background-color: transparent !important; 
+        padding: 0%;
+    }
+
+</style>
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="task_con">
+        <div class="map" id="container"></div>
+        <div class="left">
+            <div class="title">任务</div>
+            <div class="search">
+                <form action="" method="get" class="search_form">
+                    <input type="text" name="task_name" value="{$task_name}" />
+                </form>
+                <?php if($my_permission['addTask']<=0):?>
+                <?php else:?>
+                <a class="add_task" href="{:url('index/add_task')}" title="新增设备"><i class="layui-icon layui-icon-addition"></i></a>
+                <?php endif;?>
+            </div>
+
+            <div class="list">
+                <table class="table table_search data_table">
+                    {foreach name='tasks' item='v' key='k'}
+                    <tr class="item"
+                         <?php if($submissionID==$v['submissionID']):?>
+                            <?php if($my_permission['modifyTask']<=0):?>
+                            <?php else:?>
+                                onclick="location.href='{:url(\'add_task\',[\'id\' => $v[\'submissionID\']])}'"
+                            <?php endif;?>
+                        <?php else:?>
+                            onclick="location.href='{:url(\'index\',[\'submissionID\' => $v[\'submissionID\'], \'droneID\' => $v[\'droneID\']])}'"
+                        <?php endif;?>>
+                        <td style="padding:0;">
+                            <div class="li <?php if($submissionID==$v['submissionID'])echo ' on';?>">
+                                
+                                <table class="table_list table">
+                                    <tr>
+                                        <input type="hidden" class="submissionID" name="submissionID" value="{$v.submissionID}"/>
+                                        <td colspan="4" style="text-indent:20px;"> {$v.submissionName}</td>
+                                    </tr>
+                                    <tr class="text-c table_title">
+                                        <td style="width:60px !important;">飞巡杆塔数</td>
+                                        <td style="width:100px !important;">任务类型</td>
+                                        <td style="width:76px !important;">上次执行时间</td>
+                                        <td rowspan="2" class="text-c" style="width:40px !important;">
+                                            <?php if($my_permission['deleteTask']<=0):?>
+                                            <?php else:?>
+                                                <a class="del_task" href="javascript:void(0);" title="关联无人机" data-id="{$v.submissionID}" onclick="event.stopPropagation(); location.href='{:url(\'set_related_drone\',[\'id\' => $v[\'submissionID\']])}'">
+                                                <?php if ($v['droneID'] !== null): ?>
+                                                    {$v.droneID}
+                                                <?php else: ?>
+                                                    -
+                                                <?php endif; ?>
+                                                </a>
+                                            <?php endif;?>
+                                        </td>
+                                    </tr>
+                                    <tr class="text-c">
+                                        <td>{$v.tower_num}</td>
+                                        <td>{$v.missionType}</td>
+                                        <td>{$v.submissionID|departure_time}</td>
+                                    </tr>
+
+                                </table>
+
+                                
+                            </div>
+                        </td>
+                    </tr>
+                    {/foreach}
+                </table>
+            </div>
+        </div>
+        <div class="right">
+            <div class="device_con">
+                <div class="title">在线设备</div>
+                <div class="search">
+                    <form action="" method="get" class="search_form">
+                        <input type="text" name="drone_sncode" value="{$drone_sncode}" />
+                    </form>
+                    <a class="layui-btn layui-btn-small layui-btn-transparent" style="line-height:1;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+                        <i class="layui-icon layui-icon-refresh-3" style="font-size: 30px; padding: 0;"></i>
+                    </a>
+                </div>
+                <div class="list">
+                    <table class="table table_search data_table">
+                        {foreach name='all_drones' item='v' key='k'}
+                        <tr class="drone_item" 
+                            <?php if($droneID==$v['droneID']):?>
+                                <?php if($my_permission['modifyTask']<=0):?>
+                                <?php else:?>
+                                    ondblclick="location.href='{:url(\'get_drone\',[\'id\'=>$v[\'droneID\']])}'"
+                                <?php endif;?>
+                                <?php else:?>
+                                    onclick="location.href='{:url(\'index\',[\'droneID\'=>$v[\'droneID\']])}'"
+                                <?php endif;?>>
+                            <td style="padding:0;">
+                                <div class="li <?php if($droneID==$v['droneID'])echo ' on';?>" >
+                                    <table class="table_list table">
+                                        <tr>
+                                            <td colspan="4" style="text-indent:20px;">ID: {$v.droneID}</td>
+                                            <!-- <td colspan="4" style="text-indent:20px;">序号: {$k + 1}</td> -->
+                                        </tr>
+                                        <tr class="text-c table_title">
+                                            <td style="width:60px !important;">SN码</td>
+                                            <td style="width:60px !important;">飞行任务状态</td>
+                                            <td rowspan="2" class="text-c" style="width:100px !important;">
+                                                <button class="play_video" id="play-button"  style="height:60px;width:100px !important;">观看直播</button>
+                                            </td>
+                                        </tr>
+
+                                        <!-- <tr class="text-c"> -->
+                                        <tr class="text-c" id="drone_{$v.snCode}" >
+                                            <td style="width:60px !important;" class="snCode-column">{$v.snCode}</td>
+                                            <td style="width:60px !important;" class="status-column"> {if $v.status == 1}
+                                                准备
+                                            {elseif $v.status == 2}
+                                                起飞中
+                                            {elseif $v.status == 3}
+                                                第{$v.waypointIndex}个航点
+                                            {elseif $v.status == 4}
+                                                返航
+                                            {elseif $v.status == 5}
+                                                下载中<!--  -->
+                                            {else}
+                                                未知状态
+                                            {/if}</td>
+                                        </tr>
+
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        {/foreach}
+                    </table>
+                </div>
+            </div>
+            <div class="fly">
+                <a href="javascript:void(0);" id="uploadLink">上传</a>
+                <a href="javascript:void(0);" id="takeoffLink">起飞</a>
+            </div>
+        </div>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    // 定义一个函数来执行数据接收和更新页面
+    function updateData() {
+        // console.log("updateData");
+        $.ajax({
+            url: "{:url('getHeartbeatInfo')}",
+            type: 'POST', // 或 'POST'，取决于您的服务器端点的要求
+            dataType: 'json', // 根据您的数据类型进行更改
+            // data: JSON.stringify(allData),
+            // dataType: "json",
+            // contentType: "application/json",
+            success: function (data) {
+                var receivedData = data; 
+                console.log("success : " , receivedData);
+               
+                // console.log("length : " , Object.keys(receivedData).length);
+                if (receivedData.data !== undefined && receivedData.data !== null && receivedData.data !== '') 
+                {
+                    var jsonData = JSON.parse(receivedData.data);
+                    $(".drone_item").each(function() {
+                        var droneRow = $(this);
+                        var droneSnCode = droneRow.find(".snCode-column").text();
+                        var snCode = jsonData.snCode;
+                        console.log("snCode : " , snCode);
+                        if (droneSnCode === snCode) {
+                            var altitude = jsonData.altitude;
+                            console.log("altitude : " , altitude);
+                            var latitude = jsonData.latitude;
+                            console.log("latitude : " , latitude);
+                            var longitude = jsonData.longitude;
+                            console.log("longitude : " , longitude);
+                            var count = jsonData.count;
+                            console.log("count : " , count);
+                            var index = jsonData.index;
+                            console.log("index : " , index);
+                            var missionID = jsonData.missionID;
+                            console.log("missionID : " , missionID);
+                            var statusValue = jsonData.status;
+                    
+                            if (statusValue == 0) {
+                                $("#drone_{$v.snCode} .status-column").text("准备");
+                            } else if (statusValue == 1) {
+                                $("#drone_{$v.snCode} .status-column").text("起飞中");
+                            } else if (statusValue == 2) {
+                                $("#drone_{$v.snCode} .status-column").text("第" + index + "个航点");
+                            }else if (statusValue == 3) {
+                                $("#drone_{$v.snCode} .status-column").text("缺点返航");
+                            }else if (statusValue == 4) {
+                                $("#drone_{$v.snCode} .status-column").text("返航");
+                            } else if (statusValue == 5) {
+                                $("#drone_{$v.snCode} .status-column").text("下载中");
+                            } else if (statusValue == -1){
+                                $("#drone_{$v.snCode} .status-column").text("未分配任务");
+                            }
+                            console.log("status : " , status);
+                        }
+                    });
+                }
+
+                // 设置每两秒调用一次该函数
+                setTimeout(updateData, 2000);
+            },
+            error: function () {
+                // 处理错误情况
+                console.log('Error occurred while fetching data.');
+                setTimeout(updateData, 2000);
+            }
+        });
+    }
+    // 初始调用一次函数，然后设置定时调用
+    updateData();
+</script>
+<!-- <script charset="utf-8" src="https://map.qq.com/api/gljs?v=1.exp&libraries=service&key=4CLBZ-CDM32-K4WUR-CTYB6-TVFZK-ZIBOS"></script> -->
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=jZco57iywrAVkMm7DfjOcwDXhOZDLE7M"></script>
+
+<script type="text/javascript">
+    setTimeout(function(){
+        
+        console.log("=== display map === ");
+        var map = new BMap.Map('container');
+        //weidu
+        var defaultLat = "{$towers.0.latitude|default=29}";
+        //jingdu
+        var defaultLng = "{$towers.0.longitude|default=105}";
+
+        console.log("defaultLat: ", defaultLat, typeof(defaultLat));
+        console.log("defaultLng: ", defaultLng,typeof(defaultLng));
+        var convertor = new BMap.Convertor();
+        if(parseInt(defaultLat) === 29 && parseInt(defaultLng) === 105)
+        {
+            console.log("=== default ===");
+            var centerPoint = new BMap.Point(defaultLng, defaultLat);
+            map.centerAndZoom(centerPoint, 5);
+        }
+ 
+        // map.setMapType(BMAP_NORMAL_MAP);
+        map.setMapType(BMAP_SATELLITE_MAP);
+
+        var gpsPointArr = [];
+        {foreach name='towers' item='v'}
+            point = new BMap.Point("{$v.longitude}", "{$v.latitude}");
+            gpsPointArr.push(point);
+        {/foreach}
+
+
+        console.log("gpsPointArr :" , gpsPointArr.length);
+        function processBatch(startIndex) {
+            var batchSize = 10; // 每批次发送的请求数量
+            var batch = gpsPointArr.slice(startIndex, startIndex + batchSize);
+            console.log("batch", batch);
+            //1 for WGS-84 convert 5 for GCJ-02
+            convertor.translate(batch, 1, 5, function(data){
+                console.log("===translate===");
+                console.log("data.status :", data.status);
+                console.log("data.points :", data.points);
+                if (data.status === 0) {
+                    var baiduPointArr = data.points;
+                    console.log("baiduPointArr length :", baiduPointArr.length);
+                    for (var i = 0; i < baiduPointArr.length; i++) {
+                        if (i === 1) {
+                             map.centerAndZoom(baiduPointArr[i], defaultLat === 29 ? 4 : 16);
+                           // map.centerAndZoom(gpsPointArr[i], defaultLat === 29 ? 4 : 16);
+                        }
+                        // var marker = new BMap.Marker(gpsPointArr[i]);
+                        var marker = new BMap.Marker(baiduPointArr[i]);
+                        map.addOverlay(marker);
+                        console.log("marker :", marker);
+                    }
+               }
+                if (startIndex + batchSize < gpsPointArr.length) {
+                    setTimeout(function() {
+                        processBatch(startIndex + batchSize);
+                    }, 10); 
+                }
+            });
+        }
+
+        // 开始处理第一批次的请求
+        processBatch(0);
+
+        // 设置地图类型和其他地图属性
+        // map.setMapType(BMAP_NORMAL_MAP);
+        map.setMapType(BMAP_SATELLITE_MAP);
+        map.enableScrollWheelZoom(true);
+
+    }, 1000);
+
+    //     convertor.translate(gpsPointArr, 1, 5, function(data){
+    //         console.log("===translate===");
+    //         console.log("data.status :" , data.status);
+    //         if (data.status === 0) {
+    //             var baiduPointArr = data.points;
+    //             console.log("baiduPointArr length : " , baiduPointArr.length);
+    //             for (var i = 0; i < baiduPointArr.length; i++) {
+    //                 if(i === 1)
+    //                 {
+    //                     map.centerAndZoom(baiduPointArr[i], defaultLat === 29 ? 4 : 17);
+    //                 }
+    //                 var marker = new BMap.Marker(baiduPointArr[i]); 
+    //                 map.addOverlay(marker);
+    //                 console.log("marker :" , marker);
+    //             }
+    //         }
+    //     });
+    //     map.enableScrollWheelZoom(true);  
+    // }, 1000);
+</script>
+<!-- <script>
+    setTimeout(function(){
+        console.log("settimeout");
+        var loc='';
+        var default_lat="{$towers.0.latitude|default=29}";
+        var default_lng="{$towers.0.longitude|default=105}";
+
+        console.log('default_lat: ',default_lat);
+        console.log('default_lng ', default_lng);
+
+        var map = new TMap.Map('container', {
+            zoom: default_lat==29?4:16,
+            center: new TMap.LatLng(default_lat,default_lng),
+        });
+        var coordinates = [];
+        {foreach $towers as $v}
+            var latLng = new TMap.LatLng("{$v.latitude}", "{$v.longitude}");
+            coordinates.push(latLng);
+        {/foreach}
+
+        console.log('coordinates : ' ,coordinates);
+        // console.log("coordinates : ",  coordinates);
+        // var polylineLayer = new TMap.MultiPolyline({
+        //     id: 'polyline-layer',
+        //     map: map,
+        //     styles: {
+        //         'style_blue': new TMap.PolylineStyle({
+        //             'color': '#3777FF',
+        //             'width': 6,
+        //             'borderWidth': 5,
+        //             'borderColor': '#FFF',
+        //             'lineCap': 'butt'
+        //         }),
+        //     },
+        //     geometries: [
+        //         {
+        //             'id': 'main',
+        //             'styleId': 'style_blue',
+        //             'path': coordinates,
+        //         },
+        //     ]
+        // });
+
+    // 将新样式添加到样式列表中
+    // markers.styles['newStyle'] = newStyle;
+    // var markerStyle1 = new TMap.MarkerStyle({
+    //     "width":10,
+    //     "height":20,
+    //     "anchor":{x:10,y:20},
+    // })
+
+    // var newStyle = new TMap.MarkerStyle({
+    // 'icon': new TMap.Icon('C:\Users\123\Desktop\origin_php\myphp\public\static\index\img\bg.png'), // 设置新的图标
+    // 'anchor': new TMap.Point(16, 32), // 设置锚点位置
+    // });
+
+    var markers = new TMap.MultiMarker({
+        map: map,
+        // styles:{
+        //     marker1:markerStyle1,
+        //     marker2:markerStyle2,
+        // },
+        geometries: [
+        {foreach name='towers' item='v'}
+        {
+            "id": 'main',
+            "styleId": 'marker',
+            "position": new TMap.LatLng("{$v.latitude}","{$v.longitude}")
+        },
+        {/foreach}],
+    });
+
+
+
+
+// 遍历 geometries 数组，找到要修改的标记对象
+// markers.geometries.forEach(function(geometry) {
+//     if (geometry.id === 'marker1') { // 假设要修改的标记的 id 为 'marker1'
+//         // 修改标记的样式
+//         console.log("geometry.id: " , geometry.id);
+//         geometry.styleId = "newStyle"; // 修改为新的样式 ID
+//     }
+// });
+
+
+		// var polylineLayer = new TMap.MultiPolyline({
+		// 	id: 'polyline-layer', //图层唯一标识
+		// 	map: map,//绘制到目标地图
+		// 	//折线样式定义
+		// 	styles: {
+		// 		'style_blue': new TMap.PolylineStyle({
+		// 			'color': '#3777FF', //线填充色
+		// 			'width': 6, //折线宽度
+		// 			'borderWidth': 5, //边线宽度
+		// 			'borderColor': '#FFF', //边线颜色
+		// 			'lineCap': 'butt' //线端头方式
+		// 		}),
+		// 	},
+		// 	//折线数据定义
+		// 	geometries: [
+		// 		{//第1条线
+		// 			'id': 'main',//折线唯一标识，删除时使用
+		// 			'styleId': 'style_blue',//绑定样式名
+        //             'path': coordinates,
+		// 		},
+		// 	]
+		// });
+    
+    
+        // map.addLayer(polylineLayer);
+
+        var geocoder = new TMap.service.Geocoder(); // 新建一个正逆地址解析类
+        map.removeControl(TMap.constants.DEFAULT_CONTROL_ID.ZOOM);
+
+    }
+    ,1000);
+
+
+</script> -->
+<!-- <script src="https://vjs.zencdn.net/7.20.3/video.js"></script> 
+<script>
+    
+    var player = videojs('video-player');
+    var videoSrc = "{$v.liveAddr}"
+    console.log(videoSrc);
+    // var fullscreenMessage = document.getElementById('fullscreen-message');
+
+    player.src({
+        src: videoSrc,
+        type: 'application/x-mpegURL'
+    });
+
+    player.ready(function() {
+        // 默认静音播放
+        player.muted(true);
+        player.play();
+    });
+
+    player.on('dblclick', function () {
+        if (player.requestFullscreen) {
+            player.requestFullscreen();
+        } else if (player.mozRequestFullScreen) {
+            player.mozRequestFullScreen();
+        } else if (player.webkitRequestFullscreen) {
+            player.webkitRequestFullscreen();
+        } else if (player.msRequestFullscreen) {
+            player.msRequestFullscreen();
+        }
+    });
+
+    document.addEventListener('click', function() {
+        player.muted(false);
+    })
+
+</script>  -->
+
+<script src="https://cdn.jsdelivr.net/npm/flv.js@1.5.0/dist/flv.min.js"></script>
+<script>
+    document.getElementById('play-button').addEventListener('click', function() {
+        window.location.href = "{:url('index/play_video')}"; 
+    });
+
+    document.getElementById("uploadLink").addEventListener('click',function(){
+
+        var submissionInfo = document.getElementsByClassName("submissionID");
+        console.log('submissionInfo : ',submissionInfo);
+        var allData = [];
+        for(var i = 0; i < submissionInfo.length; i++)
+        {
+            var submissionID = submissionInfo[i].value;
+            console.log('submissionID : ',submissionID);
+            allData.push(submissionID);
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "{:url('check_router')}",
+            data: JSON.stringify(allData),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (response) {
+                console.log('flightTypeArray : ', response.flightTypeArray); 
+                var flightTypeArray =  response.flightTypeArray;
+                if (flightTypeArray.includes(2)) {
+                    console.log(' == includes 2 =='); 
+                    var confirmRenew = confirm("已存在相关文件，是否续飞？");
+                    if (confirmRenew) {
+                        var alldata = [];
+                        for (var i = 0; i < response.flightTypeArray.length; i++) {
+                            var data = { submissionID: allData[i], flight: flightTypeArray[i] };
+                            alldata.push(data);
+                        }
+                        console.log(' alldata choose continue  ',alldata);  
+                        $.ajax({
+                            type: "POST",
+                            url: "{:url('uploadTask')}",
+                            data: JSON.stringify(alldata),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function(response) {
+                                console.log("上传成功", response);
+                            },
+                            error: function(error) {
+                                console.log("上传失败", error);
+                            }
+                        });
+                    } else {
+                        console.log(' == 未选择续飞=='); 
+                        // var flight = 2;
+                        var alldata = [];
+                        for (var i = 0; i < response.flightTypeArray.length; i++) {
+                            var data = { submissionID: allData[i], flight: 1};
+                            alldata.push(data);
+                        }
+                        console.log(' alldata in not choose continue  ',alldata);  
+                        $.ajax({
+                            type: "POST",
+                            url: "{:url('uploadTask')}",
+                            data: JSON.stringify(alldata),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function(response) {
+                                console.log("上传成功", response);
+                            },
+                            error: function(error) {
+                                console.log("上传失败", error);
+
+                            }
+                        });
+                    }
+                } else {
+                        console.log(' == not includes 2 =='); 
+                        var flight = 1;
+                        var alldata = [];
+                        for (var i = 0; i < response.flightTypeArray.length; i++) {
+                            var data = { submissionID: allData[i], flight: 1 };
+                            alldata.push(data);
+                        }
+                        console.log(' alldata in not include 2  ',alldata); 
+                        $.ajax({
+                            type: "POST",
+                            url: "{:url('uploadTask')}",
+                            data: JSON.stringify(alldata),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function(response) {
+                                console.log("上传成功", response);
+                            },
+                            error: function(error) {
+                                console.log("上传失败", error);
+                            }
+                        });
+                }
+            },
+            error: function (error) {
+            console.log("请求失败", error);
+        },
+        });
+        console.log('submissionInfo2 : ',submissionInfo); 
+    });
+
+    document.getElementById("takeoffLink").addEventListener('click',function(){
+
+        var submissionInfo = document.getElementsByClassName("submissionID");
+        console.log('submissionInfo : ',submissionInfo);
+        var allData = [];
+        for(var i = 0; i < submissionInfo.length; i++)
+        {
+            var submissionID = submissionInfo[i].value;
+            console.log('submissionID : ',submissionID);
+            allData.push(submissionID);
+        }
+        // 发送数据到服务器
+        $.ajax({
+            type: "POST",
+            url: "{:url('takeoffLink')}",
+            data: JSON.stringify(allData),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(response) {
+            console.log("起飞发送成功", response);
+            // 在成功后的操作，例如显示提示信息等
+            },
+            error: function(error) {
+            console.log("起飞命令失败", error);
+            // 在失败后的操作，例如显示错误信息等
+            }
+        });
+    });
+
+
+
+
+    // 在任务列表中的任务项被点击时触发
+
+        // 获取所选任务的标识
+    var selectedSubmissionID = $(this).find(".submissionID").val();
+    console.log("selectedSubmissionID " , selectedSubmissionID);
+        // 存储选中任务的标识到LocalStorage
+    localStorage.setItem("selectedSubmissionID", selectedSubmissionID);
+
+
+    // 检查是否存在选中的任务标识
+    var selectedSubmissionID = localStorage.getItem("selectedSubmissionID");
+
+    if (selectedSubmissionID) {
+        // 找到选中任务的元素
+        var selectedTaskElement = $(".item").filter(function() {
+            return $(this).find(".submissionID").val() === selectedSubmissionID;
+        });
+
+        if (selectedTaskElement.length < 0) {
+            // 滚动到选中任务的位置
+            var scrollPosition = selectedTaskElement.offset().top - $(".list").offset().top;
+            $(".list").scrollTop(scrollPosition);
+            
+            // 高亮选中任务
+            selectedTaskElement.addClass("selected");
+        }
+}
+</script> 

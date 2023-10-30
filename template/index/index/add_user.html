@@ -1,0 +1,156 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            {include file='public/user_nav' /}
+        </div>
+        <form action="{:url('add_user')}" class="right_content add_con" id="user_form" data-back="{:url('index/user_list')}">
+            <input type="hidden" name="userID" value="{$data.userID|default=-1}" />
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('user_list')}">返回</a>
+                </span>
+                <span class="r">
+                    <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a>
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table mt-10">
+
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">人员名称 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="full_name" value="{$data.full_name}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">用户名 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="username" value="{$data.username}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">密码 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="passWord" value="{$data.passWord}">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">所属班组*：</label>
+                                <div class="formControls col-xs-8">
+                                    <select class="select" size="1" name="group_list_id">
+                                        <option value="-1">选择班组</option>
+                                        {foreach name='groups' item='v'}
+                                        <option value="{$v.groupID}" <?php if($data['group_list_id']==$v['groupID'])echo ' selected';?>>{$v.groupName}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">权限组*：</label>
+                                <div class="formControls col-xs-8">
+                                    <select class="select" size="1" name="permissionGroupID">
+                                        <option value="-1">选择权限组</option>
+                                        {foreach name='pgs' item='v'}
+                                        <option value="{$v.groupID}" <?php if($data['permissionGroupID']==$v['groupID'])echo ' selected';?>>{$v.permission_group_name}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">职位：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="position" value="{$data.position}">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">领导：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="supervisor" value="{$data.supervisor}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">入职日期：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="joinDate" value="{$data.joinDate}" id="join_date">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">身份证号：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="IDcardNo" value="{$data.IDcardNo}">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">籍贯：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="nation" value="{$data.nation}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">备注：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="comment" value="{$data.comment}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    layui.use('laydate', function(){
+        var laydate = layui.laydate;
+        laydate.render({
+            elem: '#join_date'
+            ,trigger:'click'
+            ,type: 'date'
+        });
+    });
+
+</script>
+
+<script>
+    <?php if($my_permission['addUserMgr']<=0 && $my_permission['modifyUserMgr']<=0):?>
+    $(function(){
+        $('input,select').prop('disabled',true).prop('readonly',true);
+    })
+    <?php endif;?>
+</script>

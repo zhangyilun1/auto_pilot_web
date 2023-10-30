@@ -1,0 +1,75 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            {include file='public/user_nav' /}
+        </div>
+        <div action="{:url('add_group')}" class="right_content add_con" >
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('group_list')}">返回</a>
+                </span>
+                <span class="r">
+                    <?php if($my_permission['modifyUserMgr']<=0):?>
+                    <?php else:?>
+                        <a class="add_btn" href="{:url('add_group',['id'=>$data['groupID']])}">修改</a>
+                    <?php endif;?>
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table mt-10">
+
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">班组名称 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="groupName" value="{$data.groupName}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">所属单位：</label>
+                                <div class="formControls col-xs-8">
+                                    <select class="select" size="1" name="companyID">
+                                        {foreach name='companys' item='v'}
+                                        <option value="{$v.companyID}" <?php if($v['companyID']==$data['companyID'])echo ' selected';?>>{$v.companyName}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">负责人：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="supervisor" value="{$data.supervisor}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">备注：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="comment" value="{$data.comment}">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    $(function(){
+        $('input,select').prop('disabled',true).prop('readonly',true);
+    })
+</script>
