@@ -388,17 +388,33 @@
         var flight_type = obj.val();
         console.log("obj:" , obj);
         console.log("flight_type in show_height:" , flight_type);
-      
-        if(flight_type==3){
+
+        if (flight_type == 3) {
+            console.log("==== height info ====");
+            obj.closest('td').next('td').find('.row').show();
+            // 设置默认值为 120
+            obj.closest('td').next('td').find('input[name="height[]"]').val(120);
+        } else if (flight_type == 2) {
+            // 显示同一行
+            obj.closest('td').next('td').find('.row').show();
+            // 设置默认值为 60
+            obj.closest('td').next('td').find('input[name="height[]"]').val(60);
+        } else{
+            obj.closest('td').next('td').find('.row').hide();
+        }
+
+        /* orgin code for mode 
+         if(flight_type==3){
             console.log("==== height info ====");
             obj.closest('td').next('td').find('.row').show();
             // var hiddenInput = document.getElementById('height_input_' + tower_id);
             // var height = hiddenInput.value;
         }else{
             obj.closest('td').next('td').find('.row').hide();
-        }
+        }*/
+
         var hiddenInput = document.getElementById('hidden_input_' + tower_id);
-        //var hiddenInput = obj.closest('tr').find('input[name="mode[]"]');
+        ////var hiddenInput = obj.closest('tr').find('input[name="mode[]"]');
         console.log("hiddenInput:" , hiddenInput);
         if(hiddenInput != null)
         {
@@ -516,6 +532,9 @@
         console.log("flight_type :" , flight_type);
         console.log("chosenTowers.length > 0 " , chosenTowers.length);
         if (chosenTowers.length > 0) {
+
+            add_flight_type(tower_id,flight_type);
+            /* orgin code for mode 
             console.log("chosenTowers.length > 0 " );
             var prevTower = chosenTowers.last(); // 获取最后一个已选择的塔
             console.log("prevTower" , prevTower);
@@ -541,7 +560,7 @@
                 console.log("diff");
                 // add_flight_type(mode);
                 add_flight_type(tower_id,flight_type);
-            }
+            }*/
         }
         // html += '';
         $('.choosed_tower').append(html);
@@ -551,8 +570,8 @@
 
     function add_flight_type(tower_id,flight_type){
         console.log("==== add flight ==== ")
-        var html='<tr class="flight_type '+ tower_id + '"> <td></td> <td> <div class="row cl"> <div class="formControls col-xs-8"> <select class="select flight_type" size="1" name="" onchange="show_height($(this) , '+ tower_id +')"> <option value="1" '+ (flight_type==1?'selected':'') +'>直飞</option> <option value="2" '+ (flight_type==2?'selected':'') +'>按线路飞</option> <option value="3" '+ (flight_type==3?'selected':'') +'>提升高度</option> </select> </div> </div> </td> <td> <div class="row cl '+ (flight_type!=3?'hide':'') +'"> <div class="formControls col-xs-8"> <input type="text" class="input-text" autocomplete="off" placeholder="填写高度" name="height[]" value=""> </div> </div> </td> <td></td> </tr>';
-        //var html='<tr class="flight_type '+ tower_id + '"> <td></td> <td> <div class="row cl"> <div class="formControls col-xs-8"><select class="select flight_type" size="1" name="mode" onchange="show_height($(this))"><option value="1" selected>直飞</option><option value="2">按线路飞</option><option value="3">提升高度</option></select>  </div> </div> </td> <td> <div class="row cl '+ (flight_type!=3?'hide':'') +'"> <div class="formControls col-xs-8"> <input type="text" class="input-text" autocomplete="off" placeholder="填写高度" name="" value=""> </div> </div> </td> <td></td> </tr>';
+        // var html='<tr class="flight_type '+ tower_id + '"> <td></td> <td> <div class="row cl"> <div class="formControls col-xs-8"> <select class="select flight_type" size="1" name="" onchange="show_height($(this) , '+ tower_id +')"> <option value="1" '+ (flight_type==1?'selected':'') +'>直飞</option> <option value="2" '+ (flight_type==2?'selected':'') +'>按线路飞</option> <option value="3" '+ (flight_type==3?'selected':'') +'>提升高度</option> </select> </div> </div> </td> <td> <div class="row cl '+ (flight_type!=3?'hide':'') +'"> <div class="formControls col-xs-8"> <input type="text" class="input-text" autocomplete="off" placeholder="填写高度" name="height[]" value=""> </div> </div> </td> <td></td> </tr>';
+        var html='<tr class="flight_type '+ tower_id + '"> <td></td> <td> <div class="row cl"> <div class="formControls col-xs-8"> <select class="select flight_type" size="1" name="" onchange="show_height($(this) , '+ tower_id +')"> <option value="1" '+ (flight_type==1?'selected':'') +'>无交跨</option> <option value="2" '+ (flight_type==2?'selected':'') +'>有交跨</option> <option value="3" '+ (flight_type==3?'selected':'') +'>未知</option> </select> </div> </div> </td> <td> <div class="row cl '+ (flight_type!=3?'hide':'') +'"> <div class="formControls col-xs-8"> <input type="text" class="input-text" autocomplete="off" placeholder="填写高度" name="height[]" value=""> </div> </div> </td> <td></td> </tr>';
         flight_type = 1;
         console.log("flight_type in add_flight_type:" , flight_type);
         height = 0;
