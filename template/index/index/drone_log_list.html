@@ -1,0 +1,124 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+                 <?php if($permission['permissionGroupID']==0):?>
+        {include file='public/setting_nav' /}
+            <?php else:?>
+            {include file='public/setting_not_admin' /}
+            <?php endif;?>
+        </div>
+        <div class="right_content">
+            <div class="top_con mt-20">
+                <span class="l">
+                    <?php if($my_permission['addData']<=0):?>
+                    <?php else:?>
+                    <a class="add_btn" href="{:url('sync_file')}">
+                        <img src="/static/index/img/table_add.png" />
+                    </a>
+                    <?php endif;?>
+                </span>
+                <form class="r" method="get" action="{:url(ACTION_NAME)}" id="search_form" >
+                        <span class="select-box" style="width:120px;padding:0;border:none;">
+                            <select name="type" class="select">
+                                <option value="0" >文件名</option>
+                            </select>
+                        </span>
+                    <input type="text" name="keywords" placeholder="" style="width:200px" value="{$keywords}" class="input-text">
+                    <button name="" id="" class="btn " type="submit">搜索</button>
+                </form>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table table-hover mt-10 text-c" data-url="{:url('index/del_flight')}">
+                    <thead>
+                    <tr class="text-c">
+                        <th>文件名</th>
+                        <th>&nbsp;&nbsp;操作</th>
+                    </tr>
+                    </thead>
+                    {foreach name='data' item='v' key='k'}
+                    <tr class="text-c">
+                        <td>{$v.logName}</td>
+                        <td>
+                            <?php if($my_permission['findData']<=0):?>
+                            <?php else:?>
+                                <a class="btn" onclick = "downLoadLogFile(this, {$v.logID})">下载</a>
+                            <?php endif;?>
+                            <?php if($my_permission['deleteData']<=0):?>
+                            <?php else:?>
+                                <a class="btn" onclick="deleteLogFile(this,{$v.logID})">删除</a>
+                            <?php endif;?>
+                        </td>
+                    </tr>
+                    {/foreach}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{include file='public/footer' /}
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+<script>
+    function downLoadLogFile(_this,logID){
+        layer.confirm('是否将所需日志下载至本地？',function(){
+
+            $.ajax({
+                type: "POST",
+                url: "{:url('downLoadLogFile')}",
+                data: {logID:logID},
+                dataType: "json",
+                error: function () {
+                    layer.closeAll();
+                    layer.msg("网络错误，请刷新重试!",{time:2000});
+                },
+                success: function (data) {
+                    console.log(data.status);
+                    console.log("data fileName : " , data.data.fileName);
+                    console.log("data fileContent : " ,data.data.fileContent);
+                    var binaryData = atob (data.data.fileContent);
+                    var dataArray = new Uint8Array(binaryData.length);
+                    for (var i = 0; i < binaryData.length; i++) {
+                        dataArray[i] = binaryData.charCodeAt(i);
+                    }
+                    var blob = new Blob([dataArray], [type => 'application/zip']);
+                    saveAs(blob, data.data.fileName);
+                    layer.closeAll();
+                    layer.msg("下载完成",{time:2000});
+                }
+            });
+        })
+    }
+
+
+
+    function deleteLogFile(_this,id){
+        layer.confirm('确定删除？',function(){
+            var url=$(_this).closest('table').data('url');
+            $.ajax({
+                type: "POST",
+                url: "{:url('deleteLogFile')}",
+                data: {id:id},
+                dataType: "json",
+                error: function () {
+                    layer.closeAll();
+                    layer.alert("网络错误，请刷新重试!");
+                },
+                success: function (data) {
+                    layer.closeAll();
+                    layer.msg(data.msg,{time:1500},function(){
+                        if(data.status===1){
+                            $(_this).closest('tr').remove();
+                        }
+                    });
+                }
+            });
+        })
+    }
+
+
+
+
+</script>

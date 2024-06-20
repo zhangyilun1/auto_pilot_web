@@ -4,7 +4,11 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
-            {include file='public/setting_nav' /}
+                 <?php if($permission['permissionGroupID']==0):?>
+        {include file='public/setting_nav' /}
+            <?php else:?>
+            {include file='public/setting_not_admin' /}
+            <?php endif;?>
         </div>
         <div class="right_content">
             <div class="top_con mt-20">
@@ -44,12 +48,13 @@
                     </thead>
 
                     {foreach name='data' item='v' key='k'}
-                    <tr class="text-c">
+                    <tr class="text-c" id="{$v.towerShapeNameID}">
                         <td>{$k+1}</td>
                         <td>{$v.towerShapeName}</td>
+                        <td> {$v.tower_height}</td>
                         <!-- <td>{$v.tower_length}</td>
                         <td>{$v.tower_width}</td> -->
-                        <td>{$v.tower_height}</td>
+                        <!-- <td>{$v.tower_height}</td> -->
                         <!-- <td>{$v.insulatorLayer}</td> -->
                         <td>
                             <?php if($my_permission['findData']<=0):?>
@@ -70,7 +75,6 @@
                                     <a class="btn">　　</a>
                                 <?php endif;?>
                             <?php endif;?>
-
                         </td>
                     </tr>
                     {/foreach}
@@ -80,3 +84,9 @@
     </div>
 </div>
 {include file='public/footer' /}
+<script>
+    var towerHeightElement = document.getElementById('36');
+    console.log("towerHeightElement : " , towerHeightElement);
+    $("#36" + " td").eq(2).text("-");
+    $("#36" + " td").eq(3).text("-");
+</script>

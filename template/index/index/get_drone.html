@@ -1,31 +1,73 @@
 {include file='public/header' /}
 <style>
-    .a-1{padding:30px;padding-top:0;}
-    input[type=checkbox]{width:20px;height:20px;}
-    #add_task_form .table-td td{padding-left:10px;}
-    #add_task_form a.btn{
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        /* 行之间的间距 */
+    }
 
-        color: white;
-        background: none !important;
-        border: none !important;
+    .row {
+        display: flex;
+        align-items: center;
+    }
 
+    .form-label {
+        margin: 0;
+    }
+
+    .table_title {
+        text-align: right;
+    }
+
+    .formControls {
+        padding-left: 10px;
+    }
+
+    .input-text {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    td {
+        padding: 10px;
+        vertical-align: middle;
+        /* 垂直居中对齐 */
+    }
+
+    td>.row.cl {
+        display: flex;
+        align-items: center;
     }
 </style>
-<form action="{:url('index/get_drone')}" data-back="{:url('index')}" id="drone_form" style="display:block;width:100%;height:100%;" >
+<form action="{:url('index/get_drone')}" data-back="{:url('index')}" id="drone_form"
+    style="display:block;width:100%;height:100%;">
     <div class="a-2 a-2-1">
         <!--            <img class="a-3" src="/static/index/img/top_bg.png" />-->
         <div class="text-c a-4" style="">{$title}</div>
         <div class="a-5 text-r top_btn">
             <div class="a-12">
-                <a href="{:url('index/index')}" >返回</a>
+                <a href="{:url('index/index')}">返回</a>
+            </div>
+            <?php if($permission['permissionGroupID']!=0):?>
+            <?php else:?>
+            <div class="a-6-box">
+                <a class="add_btn" id="updateVersion" href="javascript:void(0);" onclick="updateVersion(this)">版本升级</a>
             </div>
             <div class="a-6-box">
-                <a class="add_btn" href="javascript:void(0);" onclick="syncInfo(this)">同步至盒子</a>
+                <a class="add_btn" id="killParent" href="javascript:void(0);" onclick="killParent(this)">进程杀手</a>
+            </div>
+            <?php endif;?>
+            <div class="a-6-box">
+                <a class="add_btn" id="syncInfo" href="javascript:void(0);" onclick="syncInfo(this)">同步至盒子</a>
             </div>
         </div>
     </div>
     <!-- 内容 -->
-    <div class="a-15" >
+    <div class="a-15">
         <div class="big-border">
             <div id="add_task_form">
                 <!-- <input type="hidden" name="doneID" value="{$data.submissionID|default=-1}" /> -->
@@ -36,7 +78,8 @@
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">无人机类型：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="droneType" value="{$data.droneType}" readonly>
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        name="droneType" value="{$data.droneType}">
                                 </div>
                             </div>
                         </td>
@@ -44,7 +87,8 @@
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">镜头类型：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="lensType" value="{$data.lensType}" readonly>
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        name="lensType" value="{$data.lensType}">
                                 </div>
                             </div>
                         </td>
@@ -52,7 +96,8 @@
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">最大航速：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="maxSpeed" value="{$data.maxSpeed}" readonly>
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        name="maxSpeed" value="{$data.maxSpeed}">
                                 </div>
                             </div>
                         </td>
@@ -60,12 +105,122 @@
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">当前版本号：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="systemVersion" value="{$data.systemVersion}" readonly>
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        name="systemVersion" value="{$data.systemVersion}">
                                 </div>
                             </div>
                         </td>
                     </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">RTK服务器: </label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="rtkIP"
+                                        value="{$data.rtkIP}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">RTK账号：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        name="rtkCount" value="{$data.rtkCount}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">RTK密码 ：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="password" class="input-text" autocomplete="off" placeholder=""
+                                        name="rtkPassword" value="{$data.rtkPassword}">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">RTK挂载点 ：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        name="rtkMountPoint" value="{$data.rtkMountPoint}">
+                                </div>
+                            </div>
+                        </td>
+
+
+                    </tr>
                 </table>
+                <!-- <table class="table " style="margin-top:10px;">
+                    <tr class="table_title">
+                        <td>识别物占屏幕尺寸设置：</td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <div class="table-td" style="overflow-y:auto;">
+                                <table class="table linelist">
+                                    <tr>
+                                        <td>
+                                            <div class="row cl">
+                                                <label class="form-label col-xs-4 table_title">金具：</label>
+                                                <div class="formControls col-xs-8">
+                                                    <input type="text" class="input-text" autocomplete="off"
+                                                        placeholder="" name="jjPhoto" value="{$data.jjPhoto}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="row cl">
+                                                <label class="form-label col-xs-4 table_title">塔身：</label>
+                                                <div class="formControls col-xs-8">
+                                                    <input type="text" class="input-text" autocomplete="off"
+                                                        placeholder="" name="tsPhoto" value="{$data.tsPhoto}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="row cl">
+                                                <label class="form-label col-xs-4 table_title">塔尖：</label>
+                                                <div class="formControls col-xs-8">
+                                                    <input type="text" class="input-text" autocomplete="off"
+                                                        placeholder="" name="tjPhoto" value="{$data.tjPhoto}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="row cl">
+                                                <label class="form-label col-xs-4 table_title">标牌：</label>
+                                                <div class="formControls col-xs-8">
+                                                    <input type="text" class="input-text" autocomplete="off"
+                                                        placeholder="" name="bpPhoto" value="{$data.bpPhoto}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="row cl">
+                                                <label class="form-label col-xs-4 table_title">绝缘子：</label>
+                                                <div class="formControls col-xs-8">
+                                                    <input type="text" class="input-text" autocomplete="off"
+                                                        placeholder="" name="jyzPhoto" value="{$data.jyzPhoto}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table> -->
             </div>
         </div>
     </div>
@@ -73,36 +228,36 @@
 
 {include file='public/footer' /}
 <script>
-    $(function(){
+    $(function () {
         // 动态获取元素高度
         var h = $('.big-border').height()
-        $('.table-td').css('height',(h - 115) +'px')
+        $('.table-td').css('height', (h - 115) + 'px')
 
         $(window).resize(function () {
             var h = $('.big-border').height()
-            $('.table-td').css('height',(h - 115) +'px')
+            $('.table-td').css('height', (h - 115) + 'px')
         });
     })
 
     flight_type();
 
-    function flight_type(){
-        $('select.flight_type').each(function(){
-            var flight_type=generate_rand_num(1,3);
+    function flight_type() {
+        $('select.flight_type').each(function () {
+            var flight_type = generate_rand_num(1, 3);
             $(this).val(flight_type);
             show_height($(this));
         })
     }
 
-    $('select.flight_type').on('change',function(){
+    $('select.flight_type').on('change', function () {
         show_height($(this));
     })
 
-    function show_height(obj){
-        var flight_type=obj.val();
-        if(flight_type==3){
+    function show_height(obj) {
+        var flight_type = obj.val();
+        if (flight_type == 3) {
             obj.closest('td').next('td').find('.row').show();
-        }else{
+        } else {
             obj.closest('td').next('td').find('.row').hide();
         }
     }
@@ -114,14 +269,14 @@
         return rand_num
     }
 
-    $('.linelist input[type=checkbox]').on('click',function(){
-        var lineID=$(this).attr('value');
-        var count=$('.towerlist').find('tr').length - 1;
-        if($(this).is(':checked')){
+    $('.linelist input[type=checkbox]').on('click', function () {
+        var lineID = $(this).attr('value');
+        var count = $('.towerlist').find('tr').length - 1;
+        if ($(this).is(':checked')) {
             $.ajax({
                 type: "POST",
                 url: "{:url('get_tower')}",
-                data: {lineID:lineID,count:count},
+                data: { lineID: lineID, count: count },
                 dataType: "json",
                 error: function () {
                     layer.closeAll();
@@ -129,70 +284,69 @@
                 },
                 success: function (data) {
                     layer.closeAll();
-                    if(data.status==1 && data.data.length>0){
+                    if (data.status == 1 && data.data.length > 0) {
                         $('.towerlist').append(data.data.html);
                     }
                 }
             });
-        }else{
-            $('.towerlist .line'+lineID).remove();
-            $('.choosed_tower .line'+lineID).remove();
+        } else {
+            $('.towerlist .line' + lineID).remove();
+            $('.choosed_tower .line' + lineID).remove();
         }
     })
 
-    function del_tower(_this){
+    function del_tower(_this) {
         // layer.confirm('确认取消该杆塔？',function(){
         //
         // })
-        if($(_this).closest('tr').next('tr').find('select').length>0){
+        if ($(_this).closest('tr').next('tr').find('select').length > 0) {
             $(_this).closest('tr').next('tr').remove();
         }
-        var tower_id=$(_this).closest('tr').data('id');
+        var tower_id = $(_this).closest('tr').data('id');
         $(_this).closest('tr').remove();
-        $('.towerlist .tr'+tower_id).find('a.btn').removeClass('disabled').text('选择 +');
+        $('.towerlist .tr' + tower_id).find('a.btn').removeClass('disabled').text('选择 +');
         layer.closeAll();
     }
 
-    function choose_tower(_this){
-        if($(_this).hasClass('disabled')){
+    function choose_tower(_this) {
+        if ($(_this).hasClass('disabled')) {
             return false;
         }
-        var tr=$(_this).closest('tr');
-        var lineID=tr.data('line');
-        var tower_id=tr.data('id');
-        var length=$('.choosed_tower').find('tr').length - 1;
+        var tr = $(_this).closest('tr');
+        var lineID = tr.data('line');
+        var tower_id = tr.data('id');
+        var length = $('.choosed_tower').find('tr').length - 1;
 
-        var html='<tr class="tr'+tower_id+' line'+lineID+' tower_con" data-id='+tower_id+'><td>'+(length+1)+'</td><td>'+(tr.find('td').eq(1).text())+'</td><td>'+(tr.find('td').eq(2).text())+'</td><td><input type="hidden" value="'+tower_id+'" name="towerID[]" /><a href="javascript:void(0);" class="btn" onclick="del_tower(this)">取消 -</a></td></tr>';
+        var html = '<tr class="tr' + tower_id + ' line' + lineID + ' tower_con" data-id=' + tower_id + '><td>' + (length + 1) + '</td><td>' + (tr.find('td').eq(1).text()) + '</td><td>' + (tr.find('td').eq(2).text()) + '</td><td><input type="hidden" value="' + tower_id + '" name="towerID[]" /><a href="javascript:void(0);" class="btn" onclick="del_tower(this)">取消 -</a></td></tr>';
         $('.choosed_tower').append(html);
         tr.find('a.btn').addClass('disabled').text('已选');
         add_flight_type();
     }
 
-
-    function add_flight_type(){
-        var flight_type_length=$('.choosed_tower').find('.tower_con').length;
-        if(flight_type_length>=4 && flight_type_length%2===0){
-            var flight_type=generate_rand_num(1,3);
-            var html='<tr> <td></td> <td> <div class="row cl"> <div class="formControls col-xs-8"> <select class="select flight_type" size="1" name="" onchange="show_height($(this))"> <option value="1" '+ (flight_type==1?'selected':'') +'>直飞</option> <option value="2" '+ (flight_type==2?'selected':'') +'>按线路飞</option> <option value="3" '+ (flight_type==3?'selected':'') +'>提升高度</option> </select> </div> </div> </td> <td> <div class="row cl '+ (flight_type!=3?'hide':'') +'"> <div class="formControls col-xs-8"> <input type="text" class="input-text" autocomplete="off" placeholder="填写高度" name="" value=""> </div> </div> </td> <td></td> </tr>';
+    function add_flight_type() {
+        var flight_type_length = $('.choosed_tower').find('.tower_con').length;
+        if (flight_type_length >= 4 && flight_type_length % 2 === 0) {
+            var flight_type = generate_rand_num(1, 3);
+            var html = '<tr> <td></td> <td> <div class="row cl"> <div class="formControls col-xs-8"> <select class="select flight_type" size="1" name="" onchange="show_height($(this))"> <option value="1" ' + (flight_type == 1 ? 'selected' : '') + '>直飞</option> <option value="2" ' + (flight_type == 2 ? 'selected' : '') + '>按线路飞</option> <option value="3" ' + (flight_type == 3 ? 'selected' : '') + '>提升高度</option> </select> </div> </div> </td> <td> <div class="row cl ' + (flight_type != 3 ? 'hide' : '') + '"> <div class="formControls col-xs-8"> <input type="text" class="input-text" autocomplete="off" placeholder="填写高度" name="" value=""> </div> </div> </td> <td></td> </tr>';
             $('.choosed_tower').append(html);
 
         }
     }
 
-
-
     function syncInfo(_this) {
+        document.getElementById("syncInfo").disabled = true;
+        document.getElementById("syncInfo").style.opacity = "0.5";
         console.log("submit_form");
-        var id=$(_this).closest('form').attr('id');
-        console.log("id:" ,id);
-        var url=$(_this).closest('form').attr('action');
-        console.log("url:" ,url);
-        var back_url=$(_this).closest('form').data('back');
-        console.log("back_url:" ,back_url);
-        var form=document.getElementById(id);
-        console.log("form:" ,form);
-        var form_data=new FormData(form);
-        console.log("form_data:" ,form_data);
+        var id = $(_this).closest('form').attr('id');
+        console.log("id:", id);
+        var url = $(_this).closest('form').attr('action');
+        console.log("url:", url);
+        var back_url = $(_this).closest('form').data('back');
+        console.log("back_url:", back_url);
+        var form = document.getElementById(id);
+        console.log("form:", form);
+        var form_data = new FormData(form);
+        console.log("form_data:", form_data);
         $.ajax({
             type: "POST",
             url: url,
@@ -200,30 +354,107 @@
             dataType: "json",
             processData: false,
             contentType: false,
-            error: function (xhr,status,error) {
-                console.log(error);  
+            error: function (status, error) {
+                console.log(error);
                 // console.log("url: ", url);
                 // console.log("data: ", data);
                 layer.closeAll();
-                layer.alert("失败");
+                //layer.alert("失败");
+                layer.msg("同步信息指令发送失败", { time: 2000 });
+                document.getElementById("syncInfo").disabled = false;
+                document.getElementById("syncInfo").style.opacity = "1";
             },
             success: function (data) {
-                console.log("成功");
+                // console.log("成功");
                 layer.closeAll();
-                console.log("url: ", url);
-                console.log("data: ", data);
-                layer.alert("已上传至服务器");
-   
+                // console.log("url: ", url);
+                // console.log("data: ", data);
+                // layer.alert("已上传至服务器");
+                layer.msg("同步信息指令已发送", { time: 2000 });
+                document.getElementById("syncInfo").disabled = false;
+                document.getElementById("syncInfo").style.opacity = "1";
+
             }
         });
-}
-</script>
-</script>
+    }
 
-<script>
-    <?php if($my_permission['addTask']<=0 && $my_permission['modifyTask']<=0):?>
-    $(function(){
-        $('input,select').prop('disabled',true).prop('readonly',true);
-    })
-    <?php endif;?>
+    function updateVersion(_this) {
+        console.log("updateVersion");
+        document.getElementById("updateVersion").disabled = true;
+        document.getElementById("updateVersion").style.opacity = "0.5";
+        var id = $(_this).closest('form').attr('id');
+        console.log("id:", id);
+        var url = $(_this).closest('form').attr('action');
+        console.log("url:", url);
+        var back_url = $(_this).closest('form').data('back');
+        console.log("back_url:", back_url);
+        var form = document.getElementById(id);
+        console.log("form:", form);
+        var form_data = new FormData(form);
+        console.log("form_data:", form_data);
+        $.ajax({
+            type: "POST",
+            url: "{:url('update_version')}",
+            data: form_data,
+            dataType: "json",
+            processData: false,
+            contentType: false,
+            error: function (status, error) {
+                console.log(error);
+                layer.closeAll();
+                layer.msg("升级指令发送失败", { time: 2000 });
+                document.getElementById("updateVersion").disabled = false;
+                document.getElementById("updateVersion").style.opacity = "1";
+            },
+            success: function (data) {
+                layer.closeAll();
+                layer.msg("升级指令已发送", { time: 2000 });
+                document.getElementById("updateVersion").disabled = false;
+                document.getElementById("updateVersion").style.opacity = "1";
+            }
+        });
+    }
+
+
+    function killParent(_this) {
+        console.log("killParent");
+        document.getElementById("killParent").disabled = true;
+        document.getElementById("killParent").style.opacity = "0.5";
+        var id = $(_this).closest('form').attr('id');
+        console.log("id:", id);
+        var url = $(_this).closest('form').attr('action');
+        console.log("url:", url);
+        var back_url = $(_this).closest('form').data('back');
+        console.log("back_url:", back_url);
+        var form = document.getElementById(id);
+        console.log("form:", form);
+        var form_data = new FormData(form);
+        console.log("form_data:", form_data);
+        $.ajax({
+            type: "POST",
+            url: "{:url('kill_parent')}",
+            data: form_data,
+            dataType: "json",
+            processData: false,
+            contentType: false,
+            error: function (status, error) {
+                console.log(error);
+                layer.closeAll();
+                layer.msg("终止升级发送失败", { time: 2000 });
+                document.getElementById("killParent").disabled = false;
+                document.getElementById("killParent").style.opacity = "1";
+            },
+            success: function (data) {
+                layer.closeAll();
+                layer.msg("终止升级已发送", { time: 2000 });
+                document.getElementById("killParent").disabled = false;
+                document.getElementById("killParent").style.opacity = "1";
+            }
+        });
+    }
+
+
+
+
+
 </script>

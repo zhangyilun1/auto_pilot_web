@@ -1,0 +1,85 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+                 <?php if($permission['permissionGroupID']==0):?>
+        {include file='public/setting_nav' /}
+            <?php else:?>
+            {include file='public/setting_not_admin' /}
+            <?php endif;?>
+        </div>
+        <form action="{:url('person_info')}" class="right_content add_con" id="person_form" data-back="{:url('index/person_info')}">
+            <div class="top_con mt-20">
+                <span class="r">
+                     <a class="logout-btn" href="javascript:void(0);" onclick="logout()">退出登录</a>
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table mt-10">
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">姓名：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="full_name" value="{$data.full_name}" disabled>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">所属单位：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="companyName" value="{$data.companyName}" disabled>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">所属班组：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="groupName" value="{$data.groupName}" disabled>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+{include file='public/footer' /}
+
+<script>
+        
+    function logout() {
+        console.log("=== logout === ");
+        $.ajax({
+            type: "POST",
+            url: "{:url('logout')}",
+            error: function () {
+                layer.closeAll();
+                layer.alert("网络错误，请刷新重试!");
+            },
+            success: function (response) {
+                window.location.href = "{:url('login')}";
+            }
+        });
+    }
+
+</script>

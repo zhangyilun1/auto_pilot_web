@@ -3,7 +3,7 @@ namespace app\index\controller;
 use app\common\controller\Commons;
 use think\Db;
 use think\facade\Cookie;
-
+use think\facade\Log;
 class Base extends Commons
 {
     protected $is_login=0;
@@ -30,6 +30,23 @@ class Base extends Commons
                 session('member_id',$member_id);
                 session('member',$member);
                 $is_login=1;
+
+
+                $myCompanyName = Db::view('user_info')
+                ->where('userID', $member['userID'])
+                ->value('companyName');
+
+
+                Log::info(" myCompanyName:  " . var_export($myCompanyName,true));
+                if($myCompanyName != null){
+                    $logoPath = '/static/index/img/' . $myCompanyName . '.png';
+                }else {
+                    $logoPath = '/static/index/img/logo.png';
+                }
+              
+                $webInfo = 'AI巡检管控平台';
+                Log::info(" logoPath:  " . $logoPath);
+                // Log::info(" myCompanyName:  " . $myCompanyName['companyName']);
             }else{
                 session('member_id',-1);
                 session('member',[]);
@@ -38,18 +55,34 @@ class Base extends Commons
         $this->is_login=$is_login;
         session('is_login',$this->is_login);
 
+     
+      
+
+
+        // $seo=[
+        //     'title'=>'AI巡检管控平台',
+        //     'desc'=>'AI巡检管控平台',
+        //     'keyword'=>'AI巡检管控平台'
+        // ];
+
+
         $seo=[
-            'title'=>'AI巡检管控平台',
-            'desc'=>'AI巡检管控平台',
-            'keyword'=>'AI巡检管控平台'
+            'title'=> $webInfo,
+            'desc'=> $webInfo,
+            'keyword'=> $webInfo,
+            'logoPath' => $logoPath
         ];
         $this->seo=$seo;
 
-        $no_need=['login'];
+        //$no_need=['login','getTaskList','getTaskDetail'];
+        $no_need=['login','gettasklist','gettaskdetail'];
+
+        Log::info(" ACTION_NAME :  " . $this->request->action()) ;
         if(!$this->is_login && !in_array(ACTION_NAME,$no_need)){
+            Log::info(" need to login   ") ;
             $this->redirect(url('index/login'));
         }
-
+        Log::info(" === not login ===  ");
         if($this->is_login){
             $permission_group_id=$member['permissionGroupID'];
             $permission_id=Db::table('PermissionGroup')
@@ -62,7 +95,7 @@ class Base extends Commons
             $this->my_permission=$my_permission;
             $this->assign(compact('my_permission'));
         }
-
+        Log::info(" member:  " . var_export($member,true));
         $this->assign(compact('member','is_login','seo'));
 
     }

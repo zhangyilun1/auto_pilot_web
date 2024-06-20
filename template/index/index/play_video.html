@@ -11,12 +11,11 @@
 
     }
 
-    .grid-container {
+    /* .grid-container {
         display: grid;
-        grid-template-rows: repeat(10, 1fr);
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
-    }
+    } */
 
     .video-container{
         width: 100%;
@@ -39,6 +38,8 @@
         flex: 1;
         height: 100% !important;
     }
+
+
     .grid-item .info {
         width: 40%; 
         text-align: left;
@@ -46,7 +47,7 @@
     }
 
     .grid-item.selected {
-        background-color: lightgreen;
+        background-color: rgb(244, 63, 63);
     }
 
     .play-button {
@@ -63,6 +64,21 @@
         background-color: #ccc;
         cursor: not-allowed;
     }
+
+
+
+
+    .two-columns td {
+        width: 100%; /* 每列宽度为表格的一半 */
+        box-sizing: border-box; /* 边框和内边距不增加元素宽度 */
+        border: 1px solid #ccc; /* 边框样式 */
+        padding: 10px; /* 单元格内边距 */
+    }
+
+/* 
+    .info{
+        color: white;
+    } */
 </style>
 
 <form action="{:url('index/play_video')}" data-back="{:url('index')}" id="play_video" style="display:block;width:100%;height:100%;" >
@@ -70,17 +86,51 @@
         <!--            <img class="a-3" src="/static/index/img/top_bg.png" />-->
         <div class="text-c a-4" style="">{$title}</div>
         <div class="a-5 text-r top_btn">
-            <div class="a-12">
-                <a href="{:url('index/index')}" >返回</a>
-            </div>
             <div class="a-6-box">
-                <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a>
+                <a href="{:url('index/index')}" >返回</a>
             </div>
         </div>
     </div>
     <div class="a-15">
         <div class="big-border" style="overflow-y:auto;">
-            <div class="grid-container">
+
+        <!-- <table class="grid-container"> -->
+
+        <table class="two_colums">
+            {foreach name='all_drones' item='v' key='k'}
+            <td class="grid-item" onclick="toggleSelect(this)">
+                <div class="info-container">
+                    <table class="table_list table">
+                        <tr class="text-c">
+                            <td style="width:60px !important;">SN码 :</td>
+                            <td style="width:60px !important;" class="snCode-column">{$v.snCode}</td>
+                            <td></td>
+                        </tr>
+                        <tr class="text-c">
+                            <td style="width:60px !important;">执行任务：</td>
+                            <td style="width:60px !important;" class="status-column">1</td>
+                            <td >
+                                <button id="video-button" class="play-button disabled">播放</button>
+                            </td>
+                        </tr>
+                    </table> 
+                </div>
+                <div class="video-container">
+                    <video id="video-player" class="video-js vjs-default-skin" style="width:100%;height:100%;" controls src="{$v.liveAddr}"></video>
+                </div>
+            </td>
+            {/foreach}
+        </table>
+
+
+        
+
+
+
+
+
+            
+            <!-- <div class="grid-container">
                 {foreach name='all_drones' item='v' key='k'}
                     <div class="grid-item" onclick="toggleSelect(this)" >
                         <div class="video-container">
@@ -93,26 +143,27 @@
                         </div>
                     </div>
                 {/foreach}
-            </div>
+            </div> -->
         </div>
     </div>
-    <!-- 内容 -->
 </form>
 
 {include file='public/footer' /}
 <script src="https://cdn.jsdelivr.net/npm/flv.js@1.5.0/dist/flv.min.js"></script>
 <script>
+    console.log("video play ");
     var videoElement = document.getElementById('video-player');
-    // var videoButtonElement = document.getElementById('video-button');
+    var videoButtonElement = document.getElementById('video-button');
     var videoSrc = "{$v.liveAddr}";
     var flvPlayer = flvjs.createPlayer({
         type: 'flv',
         url: videoSrc,
     });
-
+    console.log("videoElement",videoElement);
     flvPlayer.attachMediaElement(videoElement);
     
     document.getElementById('video-button').addEventListener('click', function() {
+        //flvPlayer.unload();
         event.preventDefault();
         flvPlayer.load();
         flvPlayer.play();
@@ -146,3 +197,10 @@
 
 
 </script>
+
+
+
+<!-- <script>
+    const socket = new WebSocket('ws://localhost:3000');
+
+</script> -->

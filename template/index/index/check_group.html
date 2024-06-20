@@ -4,7 +4,11 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
+               <?php if($permission['permissionGroupID']==0):?>
             {include file='public/user_nav' /}
+            <?php else:?>
+            {include file='public/user_not_admin' /}
+            <?php endif;?>
         </div>
         <div action="{:url('add_group')}" class="right_content add_con" >
             <div class="top_con mt-20">

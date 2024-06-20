@@ -42,7 +42,7 @@
                                         <td>{$v.droneID}</td>
                                         <td>{$v.snCode}</td>
                                         <td>
-                                            <input type="radio" name="droneID" value="{$v.droneID}" id="drone_{$v.droneID}" <?php if(in_array($v['droneID'], $drone_ids)) echo 'disabled';?> >
+                                            <input type="radio" name="droneID" value="{$v.droneID}" id="drone_{$v.droneID}" <?php if(in_array($v['droneID'], $drone_ids))?> style="width: 30px; height: 30px; border-radius: 50%;">
                                         </td>
                                     </tr>
                                     {/foreach}

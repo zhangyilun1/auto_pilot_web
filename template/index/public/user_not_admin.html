@@ -1,0 +1,11 @@
+<ul class="left_nav_con">
+    <li class="<?php if (in_array(ACTION_NAME, ['company_list', 'add_company','check_company'])) echo 'active'; ?>">
+        <a href="{:url('company_list')}">单位列表</a>
+    </li>
+    <li class="<?php if (in_array(ACTION_NAME, ['group_list', 'add_group','check_group'])) echo 'active'; ?>">
+        <a href="{:url('group_list')}">班组列表</a>
+    </li>
+    <li class="<?php if (in_array(ACTION_NAME, ['user_list', 'add_user','check_user'])) echo 'active'; ?>">
+        <a href="{:url('user_list')}">人员列表</a>
+    </li>
+</ul>

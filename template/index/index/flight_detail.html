@@ -8,7 +8,11 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
-            {include file='public/setting_nav' /}
+                 <?php if($permission['permissionGroupID']==0):?>
+        {include file='public/setting_nav' /}
+            <?php else:?>
+            {include file='public/setting_not_admin' /}
+            <?php endif;?>
         </div>
         <form action="{:url('add_flight')}" class="right_content add_con">
             <div class="top_con mt-20">

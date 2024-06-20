@@ -34,16 +34,21 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
+        <?php if($permission['permissionGroupID']==0):?>
             {include file='public/setting_nav' /}
+        <?php else:?>
+            {include file='public/setting_not_admin' /}
+        <?php endif;?>
         </div>
-        <form action="{:url('add_flight')}" class="right_content add_con" id="flight_form" data-back="{:url('index/flight_list')}">
+        <form action="{:url('add_flight')}" class="right_content add_con" id="flight_form" data-back="{:url('index/flight_list')}" onsubmit="return validateForm()">
             <input type="hidden" name="towerShapeNameID" value="{$data.towerShapeNameID|default=-1}" />
             <div class="top_con mt-20">
                 <span class="l">
                     <a class="add_btn" href="{:url('flight_list')}">返回</a>
                 </span>
                 <span class="r">
-                     <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a>
+                     <!-- <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a> -->
+                     <a class="add_btn" href="javascript:void(0);" id=submitAndValidate>完成</a>
                 </span>
                 <div style="clear:both;"></div>
             </div>
@@ -133,7 +138,7 @@
                                 <div class="row cl">
                                     <label class="form-label col-xs-4 table_title">正拍角度 *：</label>
                                     <div class="formControls col-xs-8">
-                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="towerTypeLeftAngle" value="{$data.towerTypeLeftAngle}" required>
+                                        <input type="text" class="input-text" id="towerTypeLeftAngle" autocomplete="off" placeholder="" name="towerTypeLeftAngle" value="{$data.towerTypeLeftAngle}" required>
                                     </div>
                                 </div>
                             </td>
@@ -143,12 +148,12 @@
                                 <div class="row cl">
                                     <label class="form-label col-xs-4 table_title">侧拍角度 *：</label>
                                     <div class="formControls col-xs-8">
-                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="towerTypeRightAngle" value="{$data.towerTypeRightAngle}" required>
+                                        <input type="text" class="input-text" id="towerTypeRightAngle" autocomplete="off" placeholder="" name="towerTypeRightAngle" value="{$data.towerTypeRightAngle}" required>
                                     </div>
                                 </div>
                             </td>
                         </tr>
-                        <tr>    
+                        <!-- <tr>    
                             <td>
                                 <div class="row cl">
                                     <label class="form-label col-xs-4 table_title">是否通道巡检 *：</label>
@@ -160,7 +165,7 @@
                                     </div>
                                 </div>
                             </td>
-                        </tr>
+                        </tr> -->
                         <tr>
                             <!-- <td>
                                 <div class="row cl">
@@ -174,7 +179,7 @@
                                 <div class="row cl">
                                     <label class="form-label col-xs-4 table_title">拍摄高度 *：</label>
                                     <div class="formControls col-xs-8">
-                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="tower_height" value="{$data.tower_height}" required>
+                                        <input type="text" class="input-text"  id="tower_height" autocomplete="off" placeholder="" name="tower_height" value="{$data.tower_height}" required>
                                     </div>
                                 </div>
                             </td>
@@ -371,4 +376,57 @@
         $('input,select').prop('disabled',true).prop('readonly',true);
     })
     <?php endif;?>
+</script>
+
+<script>
+    var submitButton = document.getElementById("submitAndValidate");
+
+    if(submitButton){
+        submitButton.addEventListener("click",function(event){
+            console.log("click submitButton");
+            if(validateForm(this)){
+                console.log("validate");
+                submit_form(this);
+            }else{
+                console.log("not validate");
+            }
+            event.preventDefault();
+        });
+    }
+</script>
+<script>
+    function validateForm() {
+        console.log(" === validateForm === ");
+        var towerTypeLeftAngle = document.getElementById("towerTypeLeftAngle").value;
+        console.log("towerTypeLeftAngle :" , towerTypeLeftAngle);
+        var towerTypeRightAngle = document.getElementById("towerTypeRightAngle").value;
+        console.log("towerTypeRightAngle :" , towerTypeRightAngle);
+        var tower_height = document.getElementById("tower_height").value;
+        console.log("tower_height :" , tower_height);
+        
+        if(towerTypeLeftAngle == "" || towerTypeRightAngle == "" || tower_height == "")
+        {
+            layer.msg("保存失败，信息不完全",{time:1000});
+            return false;
+        } else {
+            console.log("validate altitudePattern,latitudePattern,longitudePattern ");
+            // var towerTypeLeftAnglePattern = /^\d+$/;
+            //var towerTypeRightAnglePattern = /^-?\d{1,3}(?:\.\d{0,10}[1-9]\d*)$/;
+           // var tower_heightPattern = /^-?\d{1,3}(?:\.\d{0,10}[1-9]\d*)$/;
+            if ( towerTypeLeftAngle < 30 || towerTypeLeftAngle > 70) {
+                layer.msg("正拍角度范围：30-70",{time:1000});
+                return false;
+            }
+            if ( towerTypeRightAngle < 30 || towerTypeRightAngle > 70) {
+                layer.msg("侧拍角度范围：30-70",{time:1000});
+                return false;
+            }
+            if ( tower_height < 5 || tower_height > 30) {
+                layer.msg("拍摄高度：5-30",{time:1000});
+                return false;
+            }
+        }
+
+        return true;
+    }
 </script>

@@ -1,6 +1,10 @@
 <div class="a-2">
     <!--            <img class="a-3" src="/static/index/img/top_line.png" />-->
-    <div class="text-c a-4" style="background:url(/static/index/img/top_line.png) no-repeat center;background-size:auto 100%;height:90px;line-height:90px;"><img src="/static/index/img/logo.png" class="logo" /> {$seo.title}</div>
+    <div class="text-c a-4" style="background:url(/static/index/img/top_line.png) no-repeat center;background-size:auto 100%;height:90px;line-height:90px;">
+        <!-- <img src="/static/index/img/logo.png" class="logo" />  -->
+        <img src={$seo.logoPath} class="logo" /> 
+        {$seo.title}
+    </div>
     <div class="a-5 text-r top_menu">
         <div class="a-12">
             <?php if($my_permission['findTask']<=0):?>
@@ -23,10 +27,18 @@
             <?php endif;?>
 
             <?php if($my_permission['findData']<=0):?>
-                <a href="javascript:void(0);" onclick="layer.alert('无权查看')" class="<?php if(in_array(ACTION_NAME,['log_list','log_detail','flight_list','add_flight','check_flight']))echo 'active';?>">其它设置</a>
+                <a href="javascript:void(0);" onclick="layer.alert('无权查看')" class="<?php if(in_array(ACTION_NAME,['history_list','history_detail','flight_list','add_flight','check_flight']))echo 'active';?>">其它设置</a>
             <?php else:?>
-                <a href="{:url('index/log_list')}" class="<?php if(in_array(ACTION_NAME,['log_list','log_detail','flight_list','add_flight','check_flight']))echo 'active';?>">其它设置</a>
+                <a href="{:url('index/history_list')}" class="<?php if(in_array(ACTION_NAME,['history_list','history_detail','flight_list','add_flight','check_flight']))echo 'active';?>">其它设置</a>
             <?php endif;?>
         </div>
     </div>
 </div>
+
+<!-- <div class="header">
+    <label class="form-label col-xs-4 table_title">当前用户名：</label>
+        <div  class="formControls col-xs-8">
+            <div>{$member.username}</div>
+            <button id="logout-btn" onclick="logout()">退出</button>
+        </div>
+</div> -->

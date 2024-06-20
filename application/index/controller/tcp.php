@@ -30,7 +30,7 @@ class tcp {
         // {
         //     socket_close();
         // }
-        sleep(1);
+        sleep(2);
         socket_close($socket);
     }
 
@@ -48,10 +48,15 @@ class tcp {
             Log::info("Connect successful");
             $message = ''; // Initialize an empty string to store received message
             // Read data from the socket until the connection is closed
-            // Log::info("socket_read: " .socket_read($socket, 1024));
+
             while ($data = socket_read($socket, 1024)) {
                 $message .= $data;
             }
+
+            Log::info("data in socket receive:" . $data);
+
+            Log::info("message in socket receive:" . $message);
+
             // Close the socket
             sleep(1);
             socket_close($socket);

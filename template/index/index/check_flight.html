@@ -37,7 +37,11 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
-            {include file='public/setting_nav' /}
+                 <?php if($permission['permissionGroupID']==0):?>
+        {include file='public/setting_nav' /}
+            <?php else:?>
+            {include file='public/setting_not_admin' /}
+            <?php endif;?>
         </div>
         <div action="{:url('add_flight')}" class="right_content add_con" id="flight_form" data-back="{:url('index/flight_list')}">
             <input type="hidden" name="towerShapeNameID" value="{$data.towerShapeNameID|default=-1}" />
@@ -156,7 +160,7 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr>
+                        <!-- <tr>
                             <td>
                                 <div class="row cl">
                                     <label class="form-label col-xs-4 table_title">是否通道巡检 *：</label>
@@ -168,7 +172,7 @@
                                     </div>
                                 </div>
                             </td>
-                        </tr>
+                        </tr> -->
                         <tr>
                             <!-- <td>
                                 <div class="row cl">

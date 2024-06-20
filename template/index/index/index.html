@@ -1,7 +1,7 @@
 {include file='public/header' /}
 {include file='public/top_nav' /}
 <style>
-    .play_video{
+    .play-button{
         background-color: rgba(0, 0, 0, 0.1);
     }
 
@@ -42,7 +42,6 @@
         color: white;
     }
 
-
     #container .BMap_mask{
         box-shadow: 0px 0px 100px 130px #042141 inset;
     }
@@ -61,11 +60,83 @@
         padding: 0%;
     }
 
+    .device_con .search_form {
+	    display: inline-block;
+	    width: 90%;
+	    box-sizing: border-box
+    }
+
+    .task_con .upload_btn {
+        float: left;
+        color: #333;
+        background-color: white;
+        height: 30px;
+        width: 30px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 30px;
+        margin-top: 3px;
+    }   
+
+
+
+    .highlight {
+        background-color: #b4c0e3; 
+    }
+
+
+    .custom-confirm {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .custom-confirm-content {
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .custom-confirm-content button {
+        margin: 5px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .custom-confirm-content button:first-of-type {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .custom-confirm-content button:last-of-type {
+        background-color: #f44336;
+        color: white;
+    }
 </style>
 <!-- 内容 -->
 <div class="a-15" style="overflow: visible;">
     <div class="task_con">
         <div class="map" id="container"></div>
+
+        <div id="customConfirm" class="custom-confirm">
+            <div class="custom-confirm-content">
+            <p id="customConfirmMessage"></p >
+            <button id="continueBtn">续飞</button>
+            <button id="retryBtn">重飞</button>
+            </div>
+        </div>
+
         <div class="left">
             <div class="title">任务</div>
             <div class="search">
@@ -74,32 +145,27 @@
                 </form>
                 <?php if($my_permission['addTask']<=0):?>
                 <?php else:?>
-                <a class="add_task" href="{:url('index/add_task')}" title="新增设备"><i class="layui-icon layui-icon-addition"></i></a>
+                <a class="add_task" href="{:url('index/add_task')}" title="新增任务"><i class="layui-icon layui-icon-addition"></i></a>
+                <a href="javascript:void(0);" class="upload_btn" title="导入航点任务"><i class="layui-icon layui-icon-upload"></i></a>
                 <?php endif;?>
             </div>
-
             <div class="list">
                 <table class="table table_search data_table">
                     {foreach name='tasks' item='v' key='k'}
-                    <tr class="item"
-                         <?php if($submissionID==$v['submissionID']):?>
-                            <?php if($my_permission['modifyTask']<=0):?>
-                            <?php else:?>
-                                onclick="location.href='{:url(\'add_task\',[\'id\' => $v[\'submissionID\']])}'"
-                            <?php endif;?>
-                        <?php else:?>
-                            onclick="location.href='{:url(\'index\',[\'submissionID\' => $v[\'submissionID\'], \'droneID\' => $v[\'droneID\']])}'"
-                        <?php endif;?>>
+                    <tr class="item" data-submissionid="{$v.submissionID}" data-droneid="{$v.droneID}">
                         <td style="padding:0;">
                             <div class="li <?php if($submissionID==$v['submissionID'])echo ' on';?>">
-                                
                                 <table class="table_list table">
                                     <tr>
                                         <input type="hidden" class="submissionID" name="submissionID" value="{$v.submissionID}"/>
                                         <td colspan="4" style="text-indent:20px;"> {$v.submissionName}</td>
                                     </tr>
                                     <tr class="text-c table_title">
-                                        <td style="width:60px !important;">飞巡杆塔数</td>
+                                        {if $v.missionID == 5}
+                                            <td style="width:60px !important;">飞巡航点数</td>
+                                        {else/}
+                                            <td style="width:60px !important;">飞巡杆塔数</td>
+                                        {/if}
                                         <td style="width:100px !important;">任务类型</td>
                                         <td style="width:76px !important;">上次执行时间</td>
                                         <td rowspan="2" class="text-c" style="width:40px !important;">
@@ -116,14 +182,13 @@
                                         </td>
                                     </tr>
                                     <tr class="text-c">
+                                       
                                         <td>{$v.tower_num}</td>
                                         <td>{$v.missionType}</td>
-                                        <td>{$v.submissionID|departure_time}</td>
+                                        <!-- <td>{$v.submissionID|departure_time}</td> -->
+                                        <td>{$v.excuteDate}</td>
                                     </tr>
-
                                 </table>
-
-                                
                             </div>
                         </td>
                     </tr>
@@ -138,22 +203,14 @@
                     <form action="" method="get" class="search_form">
                         <input type="text" name="drone_sncode" value="{$drone_sncode}" />
                     </form>
-                    <a class="layui-btn layui-btn-small layui-btn-transparent" style="line-height:1;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+                    <a class="layui-btn layui-btn-small layui-btn-transparent" style="line-height:1;margin-top:3px;float:right" onclick="reloadList()" title="刷新">
                         <i class="layui-icon layui-icon-refresh-3" style="font-size: 30px; padding: 0;"></i>
                     </a>
                 </div>
                 <div class="list">
-                    <table class="table table_search data_table">
+                    <table class="table table_search data_table2">
                         {foreach name='all_drones' item='v' key='k'}
-                        <tr class="drone_item" 
-                            <?php if($droneID==$v['droneID']):?>
-                                <?php if($my_permission['modifyTask']<=0):?>
-                                <?php else:?>
-                                    ondblclick="location.href='{:url(\'get_drone\',[\'id\'=>$v[\'droneID\']])}'"
-                                <?php endif;?>
-                                <?php else:?>
-                                    onclick="location.href='{:url(\'index\',[\'droneID\'=>$v[\'droneID\']])}'"
-                                <?php endif;?>>
+                        <tr class="drone_item" data-droneid="{$v.droneID}">
                             <td style="padding:0;">
                                 <div class="li <?php if($droneID==$v['droneID'])echo ' on';?>" >
                                     <table class="table_list table">
@@ -165,26 +222,14 @@
                                             <td style="width:60px !important;">SN码</td>
                                             <td style="width:60px !important;">飞行任务状态</td>
                                             <td rowspan="2" class="text-c" style="width:100px !important;">
-                                                <button class="play_video" id="play-button"  style="height:60px;width:100px !important;">观看直播</button>
+                                                <button class="play-button" style="height:60px;width:100px !important;" onclick="event.stopPropagation();">观看直播</button>
                                             </td>
                                         </tr>
 
                                         <!-- <tr class="text-c"> -->
                                         <tr class="text-c" id="drone_{$v.snCode}" >
                                             <td style="width:60px !important;" class="snCode-column">{$v.snCode}</td>
-                                            <td style="width:60px !important;" class="status-column"> {if $v.status == 1}
-                                                准备
-                                            {elseif $v.status == 2}
-                                                起飞中
-                                            {elseif $v.status == 3}
-                                                第{$v.waypointIndex}个航点
-                                            {elseif $v.status == 4}
-                                                返航
-                                            {elseif $v.status == 5}
-                                                下载中<!--  -->
-                                            {else}
-                                                未知状态
-                                            {/if}</td>
+                                            <td style="width:60px !important;" class="status-column">准备</td>
                                         </tr>
 
                                     </table>
@@ -203,94 +248,21 @@
     </div>
 </div>
 {include file='public/footer' /}
-<script>
-    // 定义一个函数来执行数据接收和更新页面
-    function updateData() {
-        // console.log("updateData");
-        $.ajax({
-            url: "{:url('getHeartbeatInfo')}",
-            type: 'POST', // 或 'POST'，取决于您的服务器端点的要求
-            dataType: 'json', // 根据您的数据类型进行更改
-            // data: JSON.stringify(allData),
-            // dataType: "json",
-            // contentType: "application/json",
-            success: function (data) {
-                var receivedData = data; 
-                console.log("success : " , receivedData);
-               
-                // console.log("length : " , Object.keys(receivedData).length);
-                if (receivedData.data !== undefined && receivedData.data !== null && receivedData.data !== '') 
-                {
-                    var jsonData = JSON.parse(receivedData.data);
-                    $(".drone_item").each(function() {
-                        var droneRow = $(this);
-                        var droneSnCode = droneRow.find(".snCode-column").text();
-                        var snCode = jsonData.snCode;
-                        console.log("snCode : " , snCode);
-                        if (droneSnCode === snCode) {
-                            var altitude = jsonData.altitude;
-                            console.log("altitude : " , altitude);
-                            var latitude = jsonData.latitude;
-                            console.log("latitude : " , latitude);
-                            var longitude = jsonData.longitude;
-                            console.log("longitude : " , longitude);
-                            var count = jsonData.count;
-                            console.log("count : " , count);
-                            var index = jsonData.index;
-                            console.log("index : " , index);
-                            var missionID = jsonData.missionID;
-                            console.log("missionID : " , missionID);
-                            var statusValue = jsonData.status;
-                    
-                            if (statusValue == 0) {
-                                $("#drone_{$v.snCode} .status-column").text("准备");
-                            } else if (statusValue == 1) {
-                                $("#drone_{$v.snCode} .status-column").text("起飞中");
-                            } else if (statusValue == 2) {
-                                $("#drone_{$v.snCode} .status-column").text("第" + index + "个航点");
-                            }else if (statusValue == 3) {
-                                $("#drone_{$v.snCode} .status-column").text("缺点返航");
-                            }else if (statusValue == 4) {
-                                $("#drone_{$v.snCode} .status-column").text("返航");
-                            } else if (statusValue == 5) {
-                                $("#drone_{$v.snCode} .status-column").text("下载中");
-                            } else if (statusValue == -1){
-                                $("#drone_{$v.snCode} .status-column").text("未分配任务");
-                            }
-                            console.log("status : " , status);
-                        }
-                    });
-                }
-
-                // 设置每两秒调用一次该函数
-                setTimeout(updateData, 2000);
-            },
-            error: function () {
-                // 处理错误情况
-                console.log('Error occurred while fetching data.');
-                setTimeout(updateData, 2000);
-            }
-        });
-    }
-    // 初始调用一次函数，然后设置定时调用
-    updateData();
-</script>
-<!-- <script charset="utf-8" src="https://map.qq.com/api/gljs?v=1.exp&libraries=service&key=4CLBZ-CDM32-K4WUR-CTYB6-TVFZK-ZIBOS"></script> -->
 <script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=jZco57iywrAVkMm7DfjOcwDXhOZDLE7M"></script>
-
 <script type="text/javascript">
+    var map;
+    var convertor;
     setTimeout(function(){
-        
-        console.log("=== display map === ");
-        var map = new BMap.Map('container');
+        console.log("=== init map === ");
+        map = new BMap.Map('container');
         //weidu
         var defaultLat = "{$towers.0.latitude|default=29}";
         //jingdu
         var defaultLng = "{$towers.0.longitude|default=105}";
-
         console.log("defaultLat: ", defaultLat, typeof(defaultLat));
         console.log("defaultLng: ", defaultLng,typeof(defaultLng));
-        var convertor = new BMap.Convertor();
+        convertor = new BMap.Convertor();
+
         if(parseInt(defaultLat) === 29 && parseInt(defaultLng) === 105)
         {
             console.log("=== default ===");
@@ -300,13 +272,13 @@
  
         // map.setMapType(BMAP_NORMAL_MAP);
         map.setMapType(BMAP_SATELLITE_MAP);
+        console.log("=== set Heading ===");
 
         var gpsPointArr = [];
         {foreach name='towers' item='v'}
             point = new BMap.Point("{$v.longitude}", "{$v.latitude}");
             gpsPointArr.push(point);
         {/foreach}
-
 
         console.log("gpsPointArr :" , gpsPointArr.length);
         function processBatch(startIndex) {
@@ -342,34 +314,135 @@
 
         // 开始处理第一批次的请求
         processBatch(0);
-
         // 设置地图类型和其他地图属性
         // map.setMapType(BMAP_NORMAL_MAP);
         map.setMapType(BMAP_SATELLITE_MAP);
         map.enableScrollWheelZoom(true);
-
     }, 1000);
 
-    //     convertor.translate(gpsPointArr, 1, 5, function(data){
-    //         console.log("===translate===");
-    //         console.log("data.status :" , data.status);
-    //         if (data.status === 0) {
-    //             var baiduPointArr = data.points;
-    //             console.log("baiduPointArr length : " , baiduPointArr.length);
-    //             for (var i = 0; i < baiduPointArr.length; i++) {
-    //                 if(i === 1)
-    //                 {
-    //                     map.centerAndZoom(baiduPointArr[i], defaultLat === 29 ? 4 : 17);
-    //                 }
-    //                 var marker = new BMap.Marker(baiduPointArr[i]); 
-    //                 map.addOverlay(marker);
-    //                 console.log("marker :" , marker);
-    //             }
-    //         }
-    //     });
-    //     map.enableScrollWheelZoom(true);  
-    // }, 1000);
+    // 定义一个函数来执行数据接收和更新页面
+    function updateData() {
+        console.log("updateData");
+        var currentDate = new Date();
+        var timestamp = currentDate.getTime();
+        console.log("ajax前时间戳：" + timestamp);
+        $.ajax({
+            url: "{:url('getHeartbeatInfo')}",
+            type: 'POST', 
+            dataType: 'json', 
+            // data: JSON.stringify(allData),
+            // dataType: "json",
+            // contentType: "application/json",
+            success: function (data) {
+               
+                var receivedData = data; 
+                console.log("receivedData ：" ,receivedData);
+                if(receivedData === undefined || receivedData.data === '' ){
+                    console.log("receivedData is undefined");
+                    setTimeout(updateData, 1000);
+                }
+                else {
+                    const jsonStrings = receivedData.data.match(/\{[^}]*\}/g);
+                    // Parse each JSON string and collect them into an array
+                    const jsonArray = jsonStrings.map(jsonString => JSON.parse(jsonString));
+                    // Convert the array to a JSON formatted string
+                    const jsonArrayString = JSON.stringify(jsonArray, null, 2);
+                    console.log("jsonArrayString : " , jsonArrayString);
+
+                    if (receivedData.data !== undefined && receivedData.data !== null && receivedData.data !== '') 
+                    {
+                        var a = JSON.parse(jsonArrayString);
+                        console.log("a : " , a);
+
+                        $(".drone_item").each(function() {
+                            var droneRow = $(this);
+                            var droneSnCode = droneRow.find(".snCode-column").text();
+                            console.log("droneSnCode : " , droneSnCode);
+                            console.log("a.length: ", a.length)
+                            for(var i = 0; i < a.length; i++){
+                                var jsonData = a[i];
+                                var SN = jsonData.snCode;
+                                console.log("sn: " , SN);
+                                if (droneSnCode === SN) {
+                                    var altitude = jsonData.altitude;
+                                    console.log("altitude : " , altitude);
+                                    var latitude = jsonData.latitude;
+                                    console.log("latitude : " , latitude);
+                                    var longitude = jsonData.longitude;
+                                    console.log("longitude : " , longitude);
+                                    var count = jsonData.count;
+                                    console.log("count : " , count);
+                                    var index = jsonData.index;
+                                    console.log("index : " , index);
+                                    var missionID = jsonData.missionID;
+                                    console.log("missionID : " , missionID);
+                                    var statusValue = jsonData.status;
+                                    console.log("statusValue : " , statusValue);
+
+                                    var currentDate = new Date();
+                                    var timestamp = currentDate.getTime();
+                                    console.log("当前时间戳：" + timestamp);
+
+                                    convertor.translate([new BMap.Point(longitude, latitude)], 1, 5, function(translatedData) {
+                                        console.log("===translate===");
+                                        console.log("translatedData.status :", translatedData.status);
+                                        console.log("translatedData.points :", translatedData.points);
+                                        if (translatedData.status === 0) {
+                                            var baiduPoint = translatedData.points[0];
+                                            var droneLocation = new BMap.Point(baiduPoint.lng, baiduPoint.lat);
+                                            //var customIcon = new BMap.Icon('/static/index/img/drone.png', new BMap.Size(30, 30));
+                                            //var marker = new BMap.Marker(droneLocation, {icon:customIcon});
+                                            var marker = new BMap.Marker(droneLocation);
+                                            map.addOverlay(marker);
+                                            map.centerAndZoom(droneLocation, 5);
+                                            marker.setTitle("无人机 " + droneSnCode + " - 海拔: " + altitude + "m");
+                                        
+                                            if (statusValue == 0) {
+                                                $("#drone_" + droneSnCode + " td").eq(1).text("准备");
+                                            } else if (statusValue == 1) {
+                                                $("#drone_" + droneSnCode + " td").eq(1).text("已上传飞行任务");
+                                            } else if (statusValue == 2) {
+                                                $("#drone_" + droneSnCode + " td").eq(1).text("起飞中");
+                                            } else if (statusValue == 3) {
+                                                $("#drone_" + droneSnCode + " td").eq(1).text("第" + index + "个航点");
+                                            } else if (statusValue == 4) {
+                                                $("#drone_" + droneSnCode + " td").eq(1).text("缺电返航");
+                                            } else if (statusValue == 5) {
+                                                $("#drone_" + droneSnCode + " td").eq(1).text("返航");
+                                            } else if (statusValue == 6) {
+                                                $("#drone_" + droneSnCode + " td").eq(1).text("下载中");
+                                            } else if (statusValue == 7) {
+                                                if(index == 0){
+                                                    $("#drone_" + droneSnCode + " td").eq(1).text("已上传打点任务");
+                                                } else {
+                                                    $("#drone_" + droneSnCode + " td").eq(1).text("第" + index + "个航点已打点");
+                                                }
+                                            }else if (statusValue == 8 ) {
+                                                $("#drone_" + droneSnCode + " td").eq(1).text("已完成打点任务");
+                                            }
+                                        }else if (statusValue == -1){
+                                            $("#drone_" + droneSnCode + " td").eq(1).text("未分配任务");
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    setTimeout(updateData, 1000);
+                }
+            },
+            error: function () {
+                console.log('Error occurred while fetching data.');
+                setTimeout(updateData, 1000);
+            }
+        });
+    }
+    // 初始调用一次函数，然后设置定时调用
+    updateData();
 </script>
+
+
+
 <!-- <script>
     setTimeout(function(){
         console.log("settimeout");
@@ -528,12 +601,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/flv.js@1.5.0/dist/flv.min.js"></script>
 <script>
-    document.getElementById('play-button').addEventListener('click', function() {
-        window.location.href = "{:url('index/play_video')}"; 
-    });
-
     document.getElementById("uploadLink").addEventListener('click',function(){
-
+        document.getElementById("uploadLink").disabled = true;
+        document.getElementById("uploadLink").style.opacity = "0.5";
         var submissionInfo = document.getElementsByClassName("submissionID");
         console.log('submissionInfo : ',submissionInfo);
         var allData = [];
@@ -553,75 +623,100 @@
             success: function (response) {
                 console.log('flightTypeArray : ', response.flightTypeArray); 
                 var flightTypeArray =  response.flightTypeArray;
+                var flightValues = flightTypeArray.map(function(item) {
+                    return item.flight;
+                });
+
+                console.log('flightValues: ', flightValues);
+
                 if (flightTypeArray.includes(2)) {
                     console.log(' == includes 2 =='); 
-                    var confirmRenew = confirm("已存在相关文件，是否续飞？");
-                    if (confirmRenew) {
-                        var alldata = [];
-                        for (var i = 0; i < response.flightTypeArray.length; i++) {
-                            var data = { submissionID: allData[i], flight: flightTypeArray[i] };
-                            alldata.push(data);
-                        }
-                        console.log(' alldata choose continue  ',alldata);  
-                        $.ajax({
-                            type: "POST",
-                            url: "{:url('uploadTask')}",
-                            data: JSON.stringify(alldata),
-                            dataType: "json",
-                            contentType: "application/json",
-                            success: function(response) {
-                                console.log("上传成功", response);
-                            },
-                            error: function(error) {
-                                console.log("上传失败", error);
+                    // var confirmRenew = confirm("已存在相关文件，是否续飞？");
+                    showCustomConfirm("已存在相关文件，是否续飞？", function (confirmRenew) {
+                        if (confirmRenew) {
+                            var alldata = flightTypeArray;
+                            for (var i = 0; i < response.flightTypeArray.length; i++) {
+                                var data = { submissionID: allData[i], flight: flightTypeArray[i] };
+                                alldata.push(data);
                             }
-                        });
-                    } else {
-                        console.log(' == 未选择续飞=='); 
-                        // var flight = 2;
-                        var alldata = [];
-                        for (var i = 0; i < response.flightTypeArray.length; i++) {
-                            var data = { submissionID: allData[i], flight: 1};
-                            alldata.push(data);
+                            console.log(' alldata choose continue  ',alldata);  
+                            $.ajax({
+                                type: "POST",
+                                url: "{:url('uploadTask')}",
+                                data: JSON.stringify(alldata),
+                                dataType: "json",
+                                contentType: "application/json",
+                                success: function(response) {
+                                    console.log("上传成功", response);
+                                    layer.msg("上传任务成功",{time:2000});
+                                    document.getElementById("uploadLink").disabled = false;
+                                    document.getElementById("uploadLink").style.opacity = "1";
+                                },
+                                error: function(error) {
+                                    console.log("上传失败", error);
+                                    //alert("上传失败");
+                                    layer.msg("上传任务成功",{time:2000});
+                                    document.getElementById("uploadLink").disabled = false;
+                                    document.getElementById("uploadLink").style.opacity = "1";
+                                }
+                            });
+                        } else {
+                            console.log(' == 未选择续飞=='); 
+                            // var flight = 2;
+                            // var alldata = [];
+                            // for (var i = 0; i < response.flightTypeArray.length; i++) {
+                            //     var data = { submissionID: allData[i], flight: 1};
+                            //     alldata.push(data);
+                            // }
+                            var alldata = flightTypeArray;
+                            console.log(' alldata in not choose continue  ',alldata);  
+                            $.ajax({
+                                type: "POST",
+                                url: "{:url('uploadTask')}",
+                                data: JSON.stringify(alldata),
+                                dataType: "json",
+                                contentType: "application/json",
+                                success: function(response) {
+                                    layer.msg("上传任务成功",{time:2000});
+                                    document.getElementById("uploadLink").disabled = false;
+                                    document.getElementById("uploadLink").style.opacity = "1";
+                                },
+                                error: function(error) {
+                                    console.log("上传失败", error);
+                                    //alert("上传失败");
+                                    layer.msg("上传任务成功",{time:2000});
+                                    document.getElementById("uploadLink").disabled = false;
+                                    document.getElementById("uploadLink").style.opacity = "1";
+                                }
+                            });
                         }
-                        console.log(' alldata in not choose continue  ',alldata);  
-                        $.ajax({
-                            type: "POST",
-                            url: "{:url('uploadTask')}",
-                            data: JSON.stringify(alldata),
-                            dataType: "json",
-                            contentType: "application/json",
-                            success: function(response) {
-                                console.log("上传成功", response);
-                            },
-                            error: function(error) {
-                                console.log("上传失败", error);
-
-                            }
-                        });
-                    }
+                    });
                 } else {
-                        console.log(' == not includes 2 =='); 
-                        var flight = 1;
-                        var alldata = [];
-                        for (var i = 0; i < response.flightTypeArray.length; i++) {
-                            var data = { submissionID: allData[i], flight: 1 };
-                            alldata.push(data);
+                    console.log(' == not includes 2 =='); 
+                    var flight = 1;
+                    var alldata = flightTypeArray;
+                    // for (var i = 0; i < response.flightTypeArray.length; i++) {
+                    //     var data = { submissionID: allData[i], flight: 1 };
+                    //     alldata.push(data);
+                    // }
+                    console.log(' alldata in not include 2  ',alldata); 
+                    $.ajax({
+                        type: "POST",
+                        url: "{:url('uploadTask')}",
+                        data: JSON.stringify(alldata),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function(response) {
+                            layer.msg("任务上传中",{time:2000});
+                            document.getElementById("uploadLink").disabled = false;
+                            document.getElementById("uploadLink").style.opacity = "1";
+                        },
+                        error: function(error) {
+                            layer.msg("任务发送失败",{time:2000});
+                            document.getElementById("uploadLink").disabled = false;
+                            document.getElementById("uploadLink").style.opacity = "1";
                         }
-                        console.log(' alldata in not include 2  ',alldata); 
-                        $.ajax({
-                            type: "POST",
-                            url: "{:url('uploadTask')}",
-                            data: JSON.stringify(alldata),
-                            dataType: "json",
-                            contentType: "application/json",
-                            success: function(response) {
-                                console.log("上传成功", response);
-                            },
-                            error: function(error) {
-                                console.log("上传失败", error);
-                            }
-                        });
+                    });
                 }
             },
             error: function (error) {
@@ -633,6 +728,8 @@
 
     document.getElementById("takeoffLink").addEventListener('click',function(){
 
+        document.getElementById("takeoffLink").disabled = true;
+        document.getElementById("takeoffLink").style.opacity = "0.5";
         var submissionInfo = document.getElementsByClassName("submissionID");
         console.log('submissionInfo : ',submissionInfo);
         var allData = [];
@@ -644,18 +741,27 @@
         }
         // 发送数据到服务器
         $.ajax({
-            type: "POST",
-            url: "{:url('takeoffLink')}",
-            data: JSON.stringify(allData),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(response) {
-            console.log("起飞发送成功", response);
-            // 在成功后的操作，例如显示提示信息等
-            },
+                type: "POST",
+                url: "{:url('takeoffLink')}",
+                data: JSON.stringify(allData),
+                dataType: "json",
+                contentType: "application/json",
+                // success: function(response) {
+                // console.log("起飞发送成功", response);
+                // alert("起飞指令发送成功");
+                // },
+                success: function (response) {
+                    console.log("起飞发送成功", response);
+                    layer.msg("起飞指令发送成功",{time:2000});
+                    document.getElementById("takeoffLink").disabled = false;
+                    document.getElementById("takeoffLink").style.opacity = "1";
+                },
             error: function(error) {
-            console.log("起飞命令失败", error);
-            // 在失败后的操作，例如显示错误信息等
+                console.log("起飞命令失败", error);
+                //alert("起飞命令失败");
+                layer.msg("起飞指令发送失败",{time:2000});
+                document.getElementById("takeoffLink").disabled = false;
+                document.getElementById("takeoffLink").style.opacity = "1";
             }
         });
     });
@@ -690,4 +796,512 @@
             selectedTaskElement.addClass("selected");
         }
 }
-</script> 
+</script>
+
+
+<script>
+    var playButtons = document.querySelectorAll(".play-button");
+    playButtons.forEach(function(button){
+        console.log("play-button");
+        button.addEventListener("click",function(event){
+            window.location.href = "{:url('index/play_video')}"; 
+        })
+    })
+</script>
+<script>
+
+function showCustomConfirm(message, callback) {
+    console.log("showCustom confirm")
+    document.getElementById('customConfirmMessage').innerText = message;
+    document.getElementById('customConfirm').style.display = 'flex';
+    
+    document.getElementById('continueBtn').onclick = function () {
+    document.getElementById('customConfirm').style.display = 'none';
+    callback(true);
+    };
+    
+    document.getElementById('retryBtn').onclick = function () {
+    document.getElementById('customConfirm').style.display = 'none';
+    callback(false);
+    };
+    }
+</script>
+
+<script>
+      layui.use(['upload'],function(){
+        var upload=layui.upload;
+        upload.render({
+            elem: '.upload_btn',
+            url:"{:url('uploadKml')}",
+            accept:'file',
+            exts: 'kml|json|zip',
+            multiple:false,
+            field:'file',
+            auto:true,
+            choose: function(obj){
+                layer.load(1, {
+                    shade: [0.5,'#000']
+                });
+            }, 
+            progress: function(n, elem, res, index){
+                layer.load(1, {
+                    shade: [0.5,'#000']
+                });
+            },
+            done:function(res, index, upload){
+                layer.closeAll();
+                if(res.status===1){
+                    layer.msg('导入成功',{time:1500},function(){
+                        location.reload();
+                    });
+
+                }else{
+                    layer.msg(res.msg,{time:1500});
+                }
+            },
+            error: function(){
+                layer.closeAll();
+                layer.msg('上传失败，请重试',{time:1500});
+            }
+        });
+    })
+</script>
+
+
+<!-- <script>
+    console.log("!1123");
+    const socket = new WebSocket('ws://192.168.3.13:9002');
+    console.log("!2223");
+
+    socket.addEventListener('open', (event) => {
+            console.log('连接已建立');
+
+            // 发送消息到服务器
+            socket.send('Hello, server!');
+        });
+
+        // 收到消息时触发
+        socket.addEventListener('message', (event) => {
+            console.log('收到消息:', event.data);
+        });
+
+        // 连接关闭时触发
+        socket.addEventListener('close', (event) => {
+            console.log('连接已关闭');
+        });
+
+        // 发生错误时触发
+        socket.addEventListener('error', (event) => {
+            console.error('发生错误:', event);
+        });
+</script> -->
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var tableRows = document.querySelectorAll('.item');
+        tableRows.forEach(function(row) {
+            row.addEventListener('click', function(event) {
+                console.log("=== click task ===");
+                handleRowClick(event, row.dataset.submissionid, row.dataset.droneid);
+            });
+        });
+        var selectedSubmissionID = null;
+        var towers;
+        function handleRowClick(event, submissionID, droneID) {
+            console.log("== handleRowClick == ");
+            console.log("submissionID :" , submissionID);
+            console.log("droneID :" , droneID);
+            tableRows.forEach(function(row){
+                row.querySelector('.li').classList.remove('on');
+            });
+            if(submissionID !== selectedSubmissionID){
+                console.log("submissionID not null :" , submissionID);
+                event.currentTarget.querySelector('.li').classList.add('on');
+                selectedSubmissionID = submissionID;
+                console.log(" == add on == ");
+                $.ajax({
+                    type: "POST",
+                    url: "{:url('index')}",
+                    data: JSON.stringify({"submissionID" : submissionID}),
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data) {
+                        var towers = data.data; 
+                        console.log("get tower list success :", data);
+                        var map;
+                        var convertor;
+                        setTimeout(function(){
+                            console.log("=== display map === ");
+                            map = new BMap.Map('container');
+                            console.log("towers in setTimeout : ", towers , towers.length);
+                            if(towers.length === 0){
+                                console.log("1");
+                                var defaultLat = 29;
+                                var defaultLng = 105;
+                            } else {
+                                console.log("2");
+                                var defaultLat = towers[0].latitude;
+                                var defaultLng = towers[0].longitude;
+                            }
+                            console.log("defaultLat: ", defaultLat, typeof(defaultLat));
+                            console.log("defaultLng: ", defaultLng,typeof(defaultLng));
+                            convertor = new BMap.Convertor();
+                            if(parseInt(defaultLat) === 29 && parseInt(defaultLng) === 105)
+                            {
+                                console.log("=== default ===");
+                                var centerPoint = new BMap.Point(defaultLng, defaultLat);
+                                map.centerAndZoom(centerPoint, 5);
+                            }
+                            map.setMapType(BMAP_SATELLITE_MAP);
+                            console.log("=== set Heading ===");
+                            var gpsPointArr = [];
+                            towers.forEach(function(v){
+                                point = new BMap.Point(v.longitude, v.latitude);
+                                gpsPointArr.push(point);
+                            })
+                            console.log("gpsPointArr :" , gpsPointArr.length);
+                            function processBatch(startIndex) {
+                                var batchSize = 10; 
+                                var batch = gpsPointArr.slice(startIndex, startIndex + batchSize);
+                                console.log("batch", batch);
+                                //1 for WGS-84 convert 5 for GCJ-02
+                                convertor.translate(batch, 1, 5, function(data){
+                                    console.log("===translate===");
+                                    console.log("data.status :", data.status);
+                                    console.log("data.points :", data.points);
+                                    if (data.status === 0) {
+                                        var baiduPointArr = data.points;
+                                        console.log("baiduPointArr length :", baiduPointArr.length);
+                                        for (var i = 0; i < baiduPointArr.length; i++) {
+                                            if (i === 1) {
+                                                map.centerAndZoom(baiduPointArr[i], defaultLat === 29 ? 4 : 16);
+                                                // map.centerAndZoom(gpsPointArr[i], defaultLat === 29 ? 4 : 16);
+                                            }
+                                            // var marker = new BMap.Marker(gpsPointArr[i]);
+                                            var marker = new BMap.Marker(baiduPointArr[i]);
+                                            map.addOverlay(marker);
+                                            console.log("marker :", marker);
+                                        }
+                                }
+                                    if (startIndex + batchSize < gpsPointArr.length) {
+                                        setTimeout(function() {
+                                            processBatch(startIndex + batchSize);
+                                        }, 10); 
+                                    }
+                                });
+                            }
+
+                            // 开始处理第一批次的请求
+                            processBatch(0);
+                            // 设置地图类型和其他地图属性
+                            // map.setMapType(BMAP_NORMAL_MAP);
+                            map.setMapType(BMAP_SATELLITE_MAP);
+                            map.enableScrollWheelZoom(true);
+                        }, 1000);
+                    },
+                }); 
+            }else {
+                console.log("enter add task page ");
+                window.location.href = "/index/index/add_task/id/" + selectedSubmissionID;
+            }
+        }
+    });
+</script>
+
+
+<script>
+    function reloadList(){
+        $.ajax({
+            type: "POST",
+            url: "{:url('getDroneList')}",
+            //data: JSON.stringify({"submissionID" : submissionID}),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (data) {
+                var drones = data.data.all_drones; 
+                var tasks = data.data.tasks; 
+                console.log("get drone list success ", drones);
+                console.log("get task list success ", tasks);
+                updateDroneList(drones);
+                updateTaskList(tasks);
+            },
+            error:function(){
+                console.log("reload fail ");
+            }
+        });
+    }
+
+    function updateDroneList(drones) {
+        console.log("=== updateDroneList ===");
+        var deviceListTable = document.querySelector('.table_search.data_table2');
+        console.log("1");
+        var deviceListBody = deviceListTable.querySelector('tbody');
+
+
+        if(deviceListBody == null){
+            console.log("device body is null");
+            deviceListBody = document.createElement('tbody');
+            deviceListTable.appendChild(deviceListBody);
+        }
+
+        deviceListBody.innerHTML = "";
+        var selectedDroneID = {id : null};
+        drones.forEach(function(device) {
+            var row = document.createElement('tr');
+            var subTable = document.createElement('table');
+            subTable.className = "table_list table";
+
+            var subRow1 = document.createElement('tr');
+            var subCell1 = document.createElement('td');
+            subCell1.colSpan = 4;
+            subCell1.style.textIndent = "20px";
+            subCell1.textContent = "ID: " + device.droneID;
+            subRow1.appendChild(subCell1);
+            subTable.appendChild(subRow1);
+
+            var subRow2 = document.createElement('tr');
+            subRow2.className = "text-c table_title";
+
+            var subCell2 = document.createElement('td');
+            subCell2.style.width = "60px";
+            subCell2.textContent = "SN码" ;
+            subRow2.appendChild(subCell2);
+
+            var subCell3 = document.createElement('td');
+            subCell3.style.width = "60px";
+            subCell3.textContent = "飞行任务状态";  
+            subRow2.appendChild(subCell3);
+            subTable.appendChild(subRow2);
+
+            var subCell4 = document.createElement('td');
+            subCell4.className = "text-c";
+            subCell4.style.width = "100px";
+            subCell4.rowSpan = "2";
+
+            var liveButton = document.createElement('button');
+            liveButton.className = "play-button";
+            liveButton.style = "height:60px;width:100px !important";
+            liveButton.onclick = function(event){
+                event.stopPropagation();
+                //playButtonClick(event);
+                window.location.href = "{:url('index/play_video')}"; 
+            }
+            liveButton.textContent = "观看直播";
+
+            subCell4.appendChild(liveButton);
+            subRow2.appendChild(subCell4);
+
+            var subRow3 = document.createElement('tr');
+            subRow3.className = "text-c";
+            subRow3.setAttribute("id","drone_" + device.snCode)
+
+            var subCell3 = document.createElement('td');
+            subCell3.style.padding = "0";
+            subCell3.className = "snCode-column";
+            subCell3.textContent = device.snCode ;
+            subRow3.appendChild(subCell3);
+
+            var subCell4 = document.createElement('td');
+            subCell4.style.width = "60px";
+            subCell4.className = "status-column";
+            subCell4.textContent = "准备"; 
+            subRow3.appendChild(subCell4);
+            subTable.appendChild(subRow3);
+
+            var cell2 = document.createElement('td');
+            cell2.style.padding = "0";
+            var div = document.createElement('div');
+            div.className = "li";
+            div.appendChild(subTable);
+            cell2.appendChild(div);
+            row.appendChild(cell2);
+            row.className = "drone_item";
+            row.dataset.droneid = device.droneID;
+          
+            // liveButton.addEventListener('click',function(event){
+            //     playButtonClick(event);
+            // });
+
+            row.addEventListener('click',function(event){
+                handleRowClick1(event, selectedDroneID, row.dataset.droneid);
+            });
+
+            deviceListBody.appendChild(row);
+        });
+ 
+    }
+
+    function handleRowClick1(event,selectedDroneID, droneID) {
+        var tableRows = document.querySelectorAll('.drone_item');
+        console.log("== handleRowClick == ");
+        console.log("droneID :" , droneID);
+ 
+        tableRows.forEach(function(row){
+            row.querySelector('.li').classList.remove('on');
+        });
+        console.log("droneID:" , droneID);
+        console.log("selectedDroneID 1 :" , selectedDroneID['id']);
+        if(droneID !== selectedDroneID['id']){
+            console.log("submissionID not null :" , droneID);
+            event.currentTarget.querySelector('.li').classList.add('on');
+            selectedDroneID.id = droneID;
+            console.log("selectedDroneID aa :" , selectedDroneID);
+        }else{
+            console.log("enter task infor page ");
+            window.location.href = "/index/index/get_drone/id/" + selectedDroneID.id;
+        }
+    }
+
+    // function playButtonClick(event){
+    //     var playButtons = document.querySelectorAll(".play-button");
+    //         console.log("playButtons:" , playButtons);
+    //         playButtons.forEach(function(button){
+    //             console.log(" click button " );
+    //             button.addEventListener("click",function(event){
+    //                 console.log("== href ==");
+    //                 window.location.href = "{:url('index/play_video')}"; 
+    //             })
+    //         })
+    //     }
+
+
+    function updateTaskList(tasks){
+        console.log("=== updateTaskList ===");
+        var submissionListTable = document.querySelector('.table_search.data_table');
+        var submissionListBody = submissionListTable.querySelector('tbody');
+        tasks.forEach(function(task) {
+            console.log("submissionID : " , task.submissionID);
+            const tdElement = submissionListBody.querySelector('a.del_task[data-id= "' + task.submissionID +'"]');
+            const droneID = task.droneID !== "" ? task.droneID : '-';
+            if(tdElement){
+                tdElement.textContent = droneID;
+            }else{
+                console.log("element not find");
+            }
+        });
+
+    }
+
+
+
+
+
+
+
+</script>
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var tableRows = document.querySelectorAll('.drone_item');
+        tableRows.forEach(function(row) {
+            row.addEventListener('click', function(event) {
+                console.log("=== click task ===");
+                handleRowClick1(event, row.dataset.droneid);
+            });
+        });
+        var selectedDroneID = null;
+        var towers;
+        function handleRowClick1(event, droneID) {
+            console.log("== handleRowClick == ");
+            console.log("droneID :" , droneID);
+            tableRows.forEach(function(row){
+                row.querySelector('.li').classList.remove('on');
+            });
+            if(droneID !== selectedDroneID){
+                console.log("submissionID not null :" , droneID);
+                event.currentTarget.querySelector('.li').classList.add('on');
+                selectedDroneID = droneID;
+
+                //  $.ajax({
+                //     type: "POST",
+                //     url: "{:url('index')}",
+                //     data: JSON.stringify({"submissionID" : submissionID}),
+                //     dataType: "json",
+                //     contentType: "application/json",
+                //     success: function (data) {
+                //         var towers = data.data; 
+                //         console.log("get tower list success ");
+                //         var map;
+                //         var convertor;
+                //         setTimeout(function(){
+                //             console.log("=== display map === ");
+                //             map = new BMap.Map('container');
+                //             console.log("towers in setTimeout : ", towers , towers.length);
+                //             if(towers.length === 0){
+                //                 console.log("1");
+                //                 var defaultLat = 29;
+                //                 var defaultLng = 105;
+                //             } else {
+                //                 console.log("2");
+                //                 var defaultLat = towers[0].latitude;
+                //                 var defaultLng = towers[0].longitude;
+                //             }
+                //             console.log("defaultLat: ", defaultLat, typeof(defaultLat));
+                //             console.log("defaultLng: ", defaultLng,typeof(defaultLng));
+                //             convertor = new BMap.Convertor();
+                //             if(parseInt(defaultLat) === 29 && parseInt(defaultLng) === 105)
+                //             {
+                //                 console.log("=== default ===");
+                //                 var centerPoint = new BMap.Point(defaultLng, defaultLat);
+                //                 map.centerAndZoom(centerPoint, 5);
+                //             }
+                //             map.setMapType(BMAP_SATELLITE_MAP);
+                //             console.log("=== set Heading ===");
+                //             var gpsPointArr = [];
+                //             towers.forEach(function(v){
+                //                 point = new BMap.Point(v.longitude, v.latitude);
+                //                 gpsPointArr.push(point);
+                //             })
+
+                //             console.log("gpsPointArr :" , gpsPointArr.length);
+                //             function processBatch(startIndex) {
+                //                 var batchSize = 10; 
+                //                 var batch = gpsPointArr.slice(startIndex, startIndex + batchSize);
+                //                 console.log("batch", batch);
+                //                 //1 for WGS-84 convert 5 for GCJ-02
+                //                 convertor.translate(batch, 1, 5, function(data){
+                //                     console.log("===translate===");
+                //                     console.log("data.status :", data.status);
+                //                     console.log("data.points :", data.points);
+                //                     if (data.status === 0) {
+                //                         var baiduPointArr = data.points;
+                //                         console.log("baiduPointArr length :", baiduPointArr.length);
+                //                         for (var i = 0; i < baiduPointArr.length; i++) {
+                //                             if (i === 1) {
+                //                                 map.centerAndZoom(baiduPointArr[i], defaultLat === 29 ? 4 : 16);
+                //                                 // map.centerAndZoom(gpsPointArr[i], defaultLat === 29 ? 4 : 16);
+                //                             }
+                //                             // var marker = new BMap.Marker(gpsPointArr[i]);
+                //                             var marker = new BMap.Marker(baiduPointArr[i]);
+                //                             map.addOverlay(marker);
+                //                             console.log("marker :", marker);
+                //                         }
+                //                 }
+                //                     if (startIndex + batchSize < gpsPointArr.length) {
+                //                         setTimeout(function() {
+                //                             processBatch(startIndex + batchSize);
+                //                         }, 10); 
+                //                     }
+                //                 });
+                //             }
+
+                //             // 开始处理第一批次的请求
+                //             processBatch(0);
+                //             // 设置地图类型和其他地图属性
+                //             // map.setMapType(BMAP_NORMAL_MAP);
+                //             map.setMapType(BMAP_SATELLITE_MAP);
+                //             map.enableScrollWheelZoom(true);
+                //         }, 1000);
+                //     },
+                // }); 
+            }else {
+                console.log("enter add task page ");
+                window.location.href = "/index/index/get_drone/id/" + selectedDroneID;
+            }
+        }
+    });
+</script>

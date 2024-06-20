@@ -72,7 +72,8 @@
             contentType: false,
             error: function () {
                 layer.closeAll();
-                layer.alert("网络错误，请刷新重试!");
+                //layer.alert("网络错误，请刷新重试!");
+                layer.msg("网络错误，请刷新重试!",{time:2000});
             },
             success: function (data) {
                 layer.closeAll();
@@ -80,11 +81,15 @@
                 console.log("data: ", data);
                 layer.msg(data.msg,{time:1500},function(){
                     if(data.status===1){
-                        // location.href=back_url;
-                        // console.log(back_url);
+                        location.href=back_url;
+                        console.log(back_url);
                     }
                 });
+                if(data == "good"){
+                    layer.msg("获取日志指令已传达",{time:2000});
+                }
             }
         });
     }
+
 </script> 

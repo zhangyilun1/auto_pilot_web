@@ -4,7 +4,11 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
+               <?php if($permission['permissionGroupID']==0):?>
             {include file='public/user_nav' /}
+            <?php else:?>
+            {include file='public/user_not_admin' /}
+            <?php endif;?>
         </div>
         <form action="{:url('add_company')}" class="right_content add_con">
             <input type="hidden" name="companyID" value="{$data.companyID|default=-1}" />
@@ -33,7 +37,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <!-- <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">二级名称：</label>
                                 <div class="formControls col-xs-8">
@@ -49,16 +53,16 @@
                                 </div>
                             </div>
                         </td>
-                    </tr>
-                    <tr>
-                        <td>
+                    </tr> -->
+                    <!-- <tr> -->
+                        <!-- <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">负责人：</label>
                                 <div class="formControls col-xs-8">
                                     <input type="text" class="input-text" autocomplete="off" placeholder="" name="supervisor" value="{$data.supervisor}">
                                 </div>
                             </div>
-                        </td>
+                        </td> -->
                         <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">备注：</label>

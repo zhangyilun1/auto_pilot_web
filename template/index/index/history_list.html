@@ -4,7 +4,11 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
-            {include file='public/setting_nav' /}
+                 <?php if($permission['permissionGroupID']==0):?>
+        {include file='public/setting_nav' /}
+            <?php else:?>
+            {include file='public/setting_not_admin' /}
+            <?php endif;?>
         </div>
         <div class="right_content">
             <div class="top_con mt-20">
@@ -23,19 +27,19 @@
                 <div style="clear:both;"></div>
             </div>
             <div class="table_con">
-                <table class="table table-hover mt-10">
+                <table class="table text-c table-hover mt-10"> 
                     <thead>
-                    <tr>
+                    <tr class="text-c">
                         <th>序号</th>
                         <th>任务名称</th>
-                        <th>起飞时间</th>
-                        <th>降落时间</th>
+                        <th>执行时间</th>
+                        <th>完成时间</th>
                         <th>&nbsp;&nbsp;操作</th>
                     </tr>
                     </thead>
 
                     {foreach name='data' item='v' key='k'}
-                    <tr>
+                    <tr class="text-c">
                         <td>{$k+1}</td>
                         <td>{$v.submissionName}</td>
                         <td>{$v.DepartureTime}</td>
@@ -43,7 +47,7 @@
                         <td>
                             <?php if($my_permission['findData']<=0):?>
                             <?php else:?>
-                                <a href="{:url('log_detail',['id'=>$v['FlightRecordsID']])}" class="btn">查看</a>
+                                <a href="{:url('history_detail',['id'=>$v['FlightRecordsID']])}" class="btn">查看</a>
                             <?php endif;?>
 
                         </td>

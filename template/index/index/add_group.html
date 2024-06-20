@@ -4,7 +4,11 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
+               <?php if($permission['permissionGroupID']==0):?>
             {include file='public/user_nav' /}
+            <?php else:?>
+            {include file='public/user_not_admin' /}
+            <?php endif;?>
         </div>
         <form action="{:url('add_group')}" class="right_content add_con" id="group_form" data-back="{:url('index/group_list')}">
             <input type="hidden" name="groupID" value="{$data.groupID|default=-1}" />
@@ -32,17 +36,24 @@
                         <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">所属单位：</label>
-                                <div class="formControls col-xs-8">
+                                    <?php if($permission['permissionGroupID']==0):?>
                                     <select class="select" size="1" name="companyID">
                                         {foreach name='companys' item='v'}
                                         <option value="{$v.companyID}" <?php if($v['companyID']==$data['companyID'])echo ' selected';?>>{$v.companyName}</option>
                                         {/foreach}
                                     </select>
-                                </div>
+                                    <?php else:?>
+                                    <div class="formControls col-xs-8">
+                                        <select class="select" size="1" name="companyID">
+                                            <option value="{$permission.companyID}" <?php if($permission['companyID']==$data['companyID'])echo ' selected';?>>{$permission.companyName}</option>
+                                        </select>
+                                    </div>
+                                    <?php endif;?>
                             </div>
+                                <!-- </div> -->
                         </td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                         <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">负责人：</label>
@@ -59,7 +70,7 @@
                                 </div>
                             </div>
                         </td>
-                    </tr>
+                    </tr> -->
                 </table>
             </div>
         </form>

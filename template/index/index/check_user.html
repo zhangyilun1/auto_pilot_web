@@ -4,7 +4,11 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
+            <?php if($permission['permissionGroupID']==0):?>
             {include file='public/user_nav' /}
+            <?php else:?>
+            {include file='public/user_not_admin' /}
+            <?php endif;?>
         </div>
         <form action="{:url('add_user')}" class="right_content add_con" id="user_form" >
 
@@ -32,6 +36,8 @@
                                 </div>
                             </div>
                         </td>
+                    </tr>
+                    <tr>
                         <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">用户名 *：</label>
@@ -76,16 +82,17 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                    </tr>
+                        <!-- <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">职位：</label>
                                 <div class="formControls col-xs-8">
                                     <input type="text" class="input-text" autocomplete="off" placeholder="" name="position" value="{$data.position}">
                                 </div>
                             </div>
-                        </td>
-                    </tr>
-                    <tr>
+                        </td> -->
+                  
+                    <!-- <tr>
                         <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">领导：</label>
@@ -131,7 +138,7 @@
                         <td>
 
                         </td>
-                    </tr>
+                    </tr> -->
                 </table>
             </div>
         </form>

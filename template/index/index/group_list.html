@@ -4,7 +4,11 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
+            <?php if($permission['permissionGroupID']==0):?>
             {include file='public/user_nav' /}
+            <?php else:?>
+            {include file='public/user_not_admin' /}
+            <?php endif;?>
         </div>
         <div class="right_content">
             <div class="top_con mt-20">
@@ -20,7 +24,7 @@
                         <span class="select-box" style="width:120px;padding:0;border:none;">
                             <select name="type" class="select" >
                                 <option value="1" <?php if($type==1)echo ' selected';?> >班组名称</option>
-                                <option value="2" <?php if($type==2)echo ' selected';?> >负责人</option>
+                                <!-- <option value="2" <?php if($type==2)echo ' selected';?> >负责人</option> -->
                             </select>
                         </span>
                     <input type="text" name="keywords" placeholder="" style="width:200px" value="{$keywords}" class="input-text">
@@ -29,23 +33,23 @@
                 <div style="clear:both;"></div>
             </div>
             <div class="table_con">
-                <table class="table table-hover mt-10" data-url="{:url('index/del_group')}">
+                <table class="table table-hover mt-10 text-c" data-url="{:url('index/del_group')}">
                     <thead>
-                    <tr>
+                    <tr class="text-c">
                         <th>序号</th>
                         <th>班组名称</th>
                         <th>人员数量</th>
-                        <th>负责人</th>
+                        <!-- <th>负责人</th> -->
                         <th>&nbsp;&nbsp;操作</th>
                     </tr>
                     </thead>
                     {foreach name='data' item='v' key='k'}
-                    <tr>
+                    <tr class="text-c">
 <!--                        <td>{$v.groupID}</td>-->
                         <td>{$k+1}</td>
                         <td>{$v.groupName}</td>
                         <td>{$v.groupID|group_user_count}</td>
-                        <td>{$v.supervisor}</td>
+                        <!-- <td>{$v.supervisor}</td> -->
                         <td>
                             <?php if($my_permission['findUserMgr']<=0):?>
                             <?php else:?>

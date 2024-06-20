@@ -1,0 +1,355 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<style>
+    .rule-table span{display:inline-block;padding:10px 0;}
+    .rule-table td,.rule-table th,.rule-table{border-color:#4D8CCF}
+    .left-sider{
+        width: 30%;
+        float: left;
+        padding: 5%;
+        box-sizing: border-box;
+    }
+    .right-sider{
+        width: 60%;
+        float: right;
+        padding: 5%;
+        box-sizing: border-box;
+    }
+    .controls{
+        display:block;
+        width:200px;
+        height:200px;
+        background:url(/static/index/img/circle.png) no-repeat center;
+        background-size:100% 100%;
+        position:absolute;
+        padding:30px;
+    }
+    
+    .controls .table td div{width:95%;height:95%;}
+    .controls .table td div img{ width:100%;height:100%;background:none !important;}
+    .controls .table td div .arrow:hover{cursor:pointer;} 
+    .controls .table td{padding:0;}
+</style>
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            <?php if($permission['permissionGroupID']==0):?>
+                {include file='public/setting_nav' /}
+            <?php else:?>
+                {include file='public/setting_not_admin' /}
+            <?php endif;?>
+        </div>
+        <form action="{:url('sync_file')}" class="right_content add_con" id="sync_form" data-back="{:url('index/drone_log_list')}">
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('drone_log_list')}">返回</a>
+                </span>
+                <span class="r">
+                    <a class="add_btn" href="javascript:void(0);" id="running_download" onclick="running_download(this)">运行状态下载</a>
+                </span>
+                <span class="r">
+                     <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">日志下载</a>
+                </span>
+                <span class="l">
+                    <a class="add_btn" href="javascript:void(0);" onclick="clear_log(this)">清理日志</a>
+                </span>
+                <span class="l">
+                    <a class="add_btn" href="javascript:void(0);" onclick="photograph_test(this)">拍照测试</a>
+                </span>
+                <span class="r">
+                    <a class="add_btn" href="javascript:void(0);" onclick="picture_download(this)">图片下载</a>
+                </span>
+
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table mt-10">
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">选择飞机：</label>
+                                <div class="formControls col-xs-8">
+                                    <select class="select" size="1" name="snCode" id="droneSelect">
+                                        {foreach name='drones' item='v'}
+                                            <option value="{$v.snCode}" <?php if($v['droneID']==$data['droneID'])echo ' selected';?>>{$v.snCode}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">起始日期：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="datetime-local" class="input-text" autocomplete="off" placeholder="" name="beginDate" id="beginDate" required>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">最终日期：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="datetime-local" class="input-text" autocomplete="off" placeholder="" name="finishDate" id="endDate" required>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    var startDateInput = document.getElementById('beginDate');
+    var endDateInput = document.getElementById('endDate');
+    var currentDate = new Date();
+    console.log("currentDate ： " ,currentDate);
+    currentDate.setHours(currentDate.getHours() + 8);
+    var formattedDate = currentDate.toISOString().slice(0, 16);
+    console.log("formattedDate ： " ,formattedDate);
+    endDateInput.max = formattedDate;
+    startDateInput.max = formattedDate;
+
+    startDateInput.addEventListener('input', function () {
+        console.log("startDateInput.value : ", startDateInput.value);
+        endDateInput.min = startDateInput.value;
+    });
+
+    endDateInput.addEventListener('input', function () {
+        endDateInput.min = startDateInput.value;
+        var selectEndDate = this.value;
+        console.log("selectEndDate ： " ,this.value);
+        console.log("selectEndDate ： " ,selectEndDate);
+        console.log("formattedDate ： " ,formattedDate);
+        if(selectEndDate > formattedDate){
+            console.log("value > currentDate ");
+            this.value = formattedDate;
+        }
+    });
+
+
+</script>
+
+<script>
+    function clear_log(_this){
+        console.log("clear_log");
+        var id=$(_this).closest('form').attr('id');
+        var form=document.getElementById(id);
+        console.log("form:" ,form);
+        var form_data=new FormData(form);
+        console.log("form_data:" ,form_data);
+        layer.load(1, {
+            shade: [0.5,'#000']
+        });
+        $.ajax({
+            type: "POST",
+            url: "{:url('clear_log')}",
+            data: form_data,
+            dataType: "json",
+            processData: false,
+            contentType: false,
+            error: function () {
+                layer.closeAll();
+                //layer.alert("网络错误，请刷新重试!");
+                layer.msg("网络错误，请刷新重试!",{time:2000});
+            },
+            success: function (data) {
+                layer.closeAll();
+                //layer.alert("clear 指令已发送");
+                layer.msg("清除日志指令已发送",{time:2000});
+                console.log("url: ", url);
+                console.log("data: ", data);
+                layer.msg(data.msg,{time:1500},function(){
+                    if(data.status===1){
+                        location.href=back_url;
+                        console.log(back_url);
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+<script>
+    function picture_download(_this){
+        console.log("picture_download");
+        var id=$(_this).closest('form').attr('id');
+        console.log("id:" ,id);
+        var back_url=$(_this).closest('form').data('back');
+        console.log("back_url:" ,back_url);
+        var form=document.getElementById(id);
+        console.log("form:" ,form);
+        var form_data=new FormData(form);
+        console.log("form_data:" ,form_data);
+        var beginDate;
+        var finishDate;
+        for (var pair of form_data.entries()) {
+            if(pair[0] == 'beginDate'){
+                beginDate = pair[1];
+            } else if(pair[0] == 'finishDate'){
+                finishDate = pair[1];
+            }
+        }
+        console.log("beginDate:" ,beginDate);
+        console.log("finishDate:" ,finishDate);
+
+        if(beginDate == '' && finishDate == ''){
+            var confirm = '未选择时间节点，将下载全部图片数据';
+            layer.confirm(confirm,function(){
+                $.ajax({
+                    type: "POST",
+                    url: "{:url('picture_download')}",
+                    data: form_data,
+                    dataType: "json",
+                    processData: false,
+                    contentType: false,
+                    error: function () {
+                        layer.closeAll();
+                        layer.msg("网络错误，请刷新重试!",{time:2000});
+                    },
+                    success: function (data) {
+                        layer.closeAll();
+                        console.log("data: ", data);
+                        layer.msg(data.msg,{time:1500},function(){
+                            if(data.status===1){
+                                location.href=back_url;
+                                console.log(back_url);
+                            }
+                        });
+                        if(data == "good"){
+                            layer.msg("获取日志指令已传达",{time:2000});
+                        }
+                    }
+                });
+            });
+        }else if(beginDate != '' && finishDate != ''){
+            var confirm = '是否将所需时间节点中的图片下载至本地';
+            layer.confirm(confirm,function(){
+                $.ajax({
+                    type: "POST",
+                    url: "{:url('picture_download')}",
+                    data: form_data,
+                    dataType: "json",
+                    processData: false,
+                    contentType: false,
+                    error: function () {
+                        layer.closeAll();
+                        //layer.alert("网络错误，请刷新重试!");
+                        layer.msg("网络错误，请刷新重试!",{time:2000});
+                    },
+                    success: function (data) {
+                        layer.closeAll();
+                        console.log("data: ", data);
+                        layer.msg(data.msg,{time:1500},function(){
+                            if(data.status===1){
+                                location.href=back_url;
+                                console.log(back_url);
+                            }
+                        });
+                        if(data == "good"){
+                            layer.msg("获取日志指令已传达",{time:2000});
+                        }
+                    }
+                });
+            });
+        }else{
+            layer.msg("请正确填写时间结点",{time:2000});
+        }
+       
+        
+    }
+</script>
+
+<script>
+    function running_download(_this){
+        console.log("running_download");
+        var id=$(_this).closest('form').attr('id');
+        var form=document.getElementById(id);
+        console.log("form:" ,form);
+        var form_data=new FormData(form);
+        console.log("form_data:" ,form_data);
+        layer.load(1, {
+            shade: [0.5,'#000']
+        });
+        $.ajax({
+            type: "POST",
+            url: "{:url('running_download')}",
+            data: form_data,
+            dataType: "json",
+            processData: false,
+            contentType: false,
+            error: function () {
+                layer.closeAll();
+                layer.msg("网络错误，请刷新重试!",{time:2000});
+            },
+            success: function (data) {
+                layer.closeAll();
+                layer.msg("获取盒子运行状态指令已发送",{time:2000});
+                document.getElementById("running_download").classList.add("disabled");
+            }
+        });
+    }
+</script>
+
+<script>
+    function photograph_test(_this){
+        console.log("photograph_test");
+        var id=$(_this).closest('form').attr('id');
+        var form=document.getElementById(id);
+        console.log("form:" ,form);
+        var form_data=new FormData(form);
+        console.log("form_data:" ,form_data);
+        layer.load(1, {
+            shade: [0.5,'#000']
+        });
+        $.ajax({
+            type: "POST",
+            url: "{:url('photograph_test')}",
+            data: form_data,
+            dataType: "json",
+            processData: false,
+            contentType: false,
+            error: function () {
+                layer.closeAll();
+                layer.msg("网络错误，请刷新重试!",{time:2000});
+            },
+            success: function (data) {
+                layer.closeAll();
+                layer.msg("拍照测试指令已发送",{time:2000});
+            }
+        });
+    }
+</script>

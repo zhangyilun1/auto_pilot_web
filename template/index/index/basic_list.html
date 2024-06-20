@@ -13,6 +13,18 @@
     #container .BMap_cpyCtrl span{
         display: none !important;
     }
+
+    .task_con .search_form {
+	    display: inline-block;
+	    width: 90%;
+	    box-sizing: border-box
+    }
+    /* .device_con.gt_con .search_form{
+        display: inline-block;
+	    width: 90%;
+	    box-sizing: border-box
+    } */
+
 </style>
 <!-- 内容 -->
 <div class="a-15" style="overflow: visible;">
@@ -41,8 +53,7 @@
                             <?php endif;?>
                         <?php else:?>
                             onclick="location.href='{:url(\'basic_list\',[\'lineID\'=>$v[\'lineID\']])}'"
-                        <?php endif;?>
-                    >
+                        <?php endif;?>>
                         <td style="padding:0;">
                             <div class="li <?php if($lineID==$v['lineID'])echo ' on';?>">
                                 <table class="table_list table">
@@ -99,7 +110,7 @@
                                         </tr>
                                         <tr class="text-c">
                                             <td>{$v.towerName}</td>
-                                            <td>{$v.insulatorNum}</td>
+                                            <td>{$v.insulatorNum / 10} </td>
                                             <td>{$v.towerShapeName}</td>
                                         </tr>
                                     </table>

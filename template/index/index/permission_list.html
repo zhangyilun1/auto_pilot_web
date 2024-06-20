@@ -4,7 +4,11 @@
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
+            <?php if($permission['permissionGroupID']==0):?>
             {include file='public/user_nav' /}
+            <?php else:?>
+            {include file='public/user_not_admin' /}
+            <?php endif;?>
         </div>
         <div class="right_content">
             <div class="top_con mt-20">
@@ -28,17 +32,17 @@
                 <div style="clear:both;"></div>
             </div>
             <div class="table_con">
-                <table class="table table-hover mt-10" data-url="{:url('index/del_permission')}">
+                <table class="table table-hover mt-10 text-c" data-url="{:url('index/del_permission')}">
                     <thead>
-                    <tr>
+                    <tr class="text-c">
                         <th>序号</th>
                         <th>权限名称</th>
                         <th>&nbsp;&nbsp;操作</th>
                     </tr>
                     </thead>
                     {foreach name='data' item='v' key='k'}
-                    <tr>
-<!--                        <td>{$v.permissionID}</td>-->
+                    <tr class="text-c">
+                    <!-- <td>{$v.permissionID}</td>-->
                         <td>{$k+1}</td>
                         <td>{$v.permissionName}</td>
                         <td>

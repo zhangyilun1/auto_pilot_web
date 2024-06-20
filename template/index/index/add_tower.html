@@ -1,10 +1,10 @@
 {include file='public/header' /}
 <style>
     .a-1{padding:30px;padding-top:0;}
-    #add_route_form .input-con{position:relative;display:inline-block;vertical-align: middle;top:0;margin-top:50px;margin-bottom:30px;}
+    #add_route_form .input-con{position:relative;display:inline-block;vertical-align: middle;top:0;margin-top:50px;margin-bottom:30px;margin-left: 15%;}
     .import_icon{width:25px;height:25px;}
     #add_route_form .import_btn{display:inline-block;width:100px;height:30px;line-height:30px;background:url(/static/index/img/btnUsersubFocus.png) no-repeat center;background-size:100% 100%;color:white;text-align:center;}
-    .controls{display:block;width:270px;height:270px;background:url(/static/index/img/circle.png) no-repeat center;background-size:100% 100%;position:absolute;left:2%;top:0;padding:30px;}
+    .controls{display:block;width:270px;height:270px;background:url(/static/index/img/circle.png) no-repeat center;background-size:100% 100%;position:absolute;left:5%;top:0;padding:30px;}
     .controls .table td div{width:90px;height:90px;}
     .controls .table td div img{ width:100%;height:100%;background:none !important;}
     .controls .table td div .arrow:hover{cursor:pointer;}
@@ -38,51 +38,146 @@
         <div id="add_route_form" style="text-align:center;position:relative;" >
             <input type="hidden" name="towerID" value="{$data.towerID|default=-1}" />
             <div class="input-con">
-                <div class="row cl" style="margin-bottom:20px;">
-                    <label class="form-label col-xs-4 table_title">杆塔名称：</label>
-                    <div class="formControls col-xs-8">
-                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="towerName" value="{$data.towerName}">
-                    </div>
-                </div>
+                <table>
+                <tr>
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">杆塔名称：</label>
+                            <div class="formControls col-xs-8">
+                                <input type="text" class="input-text" autocomplete="off" placeholder="" name="towerName" value="{$data.towerName}">
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">杆塔经度：</label>
+                            <div class="formControls col-xs-8">
+                                <input type="text" class="input-text" id="longitude" autocomplete="off" placeholder="可通过打点任务获取" name="longitude" value="{$data.longitude}" >
+                            </div>
+                        </div>
+                    </td>
+                   
+                </tr>
+                <tr>
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">航线类型：</label>
+                            <div class="formControls col-xs-8">
+                                <select class="select" size="1" name="towerShapeID">
+                                    {foreach name='shapes' item='v'}
+                                        <option value="{$v.towerShapeNameID}" <?php if($v['towerShapeNameID']==$data['towerShapeID'])echo ' selected';?>>{$v.towerShapeName}</option>
+                                    {/foreach}
+                                    <!-- <option value="34" <?php if($data['towerShapeID']==34)echo ' selected';?> data-po="">自定义</option> -->
+                                </select>
+                                <!-- <input type="hidden" name="hiddenTowerShapeID" value="{$data.towerShapeID}"> -->
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">杆塔纬度：</label>
+                            <div class="formControls col-xs-8">
+                                <input type="text" class="input-text" id="latitude" autocomplete="off" placeholder="可通过打点任务获取" name="latitude" value="{$data.latitude}" >
+                            </div>
+                        </div>
+                    </td>
+                </tr>
 
-                <div class="row cl" style="margin-bottom:20px;">
-                    <label class="form-label col-xs-4 table_title">航线类型：</label>
-                    <div class="formControls col-xs-8">
-                        <select class="select" size="1" name="towerShapeID">
-                            {foreach name='shapes' item='v'}
-                                <option value="{$v.towerShapeNameID}" <?php if($v['towerShapeNameID']==$data['towerShapeID'])echo ' selected';?>>{$v.towerShapeName}</option>
-                            {/foreach}
-                            <!-- <option value="34" <?php if($data['towerShapeID']==34)echo ' selected';?> data-po="">自定义</option> -->
-                        </select>
-                        <!-- <input type="hidden" name="hiddenTowerShapeID" value="{$data.towerShapeID}"> -->
-                    </div>
-                </div>
 
-                <div class="row cl" style="margin-bottom:20px;">
-                    <label class="form-label col-xs-4 table_title">所属线路：</label>
-                    <div class="formControls col-xs-8">
-                        <select class="select" size="1" name="lineID">
-                            {foreach name='lines' item='v'}
-                            <option value="{$v.lineID}" <?php if($v['lineID']==$data['lineID'] || $lineID==$v['lineID'])echo ' selected';?>>{$v.lineName}</option>
-                            {/foreach}
-                        </select>
-                    </div>
-                </div>
+                <tr>
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">所属线路：</label>
+                            <div class="formControls col-xs-8">
+                                <select class="select" size="1" name="lineID" >
+                                    {foreach name='lines' item='v'}
+                                    <option value="{$v.lineID}" <?php if($v['lineID']==$data['lineID'] || $lineID==$v['lineID'])echo ' selected';?>>{$v.lineName}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">杆塔海拔：</label>
+                            <div class="formControls col-xs-8">
+                                <input type="text" class="input-text" id="altitude" autocomplete="off" placeholder="可通过打点任务获取" name="altitude" value="{$data.altitude}" >
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <a href="javascript:void(0);" class="import_btn">坐标导入</a>
+                        </div>
+                    </td>
+                </tr>
 
+
+
+<!-- 
                 <div class="row cl" style="margin-bottom:20px;white-space: nowrap">
                     <label class="form-label col-xs-4 table_title">　基准点：</label>
                     <div class="formControls col-xs-8">
-                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="location" value="{$data.longitude},{$data.latitude},{$data.altitude}">
+                        <input type="text" class="input-text" autocomplete="off" placeholder="" id="location" name="location" value="{$data.longitude},{$data.latitude},{$data.altitude}">
                     </div>
                     <img src="/static/index/img/import.png" class="import_icon" />　
                     <a href="javascript:void(0);" class="import_btn">文件导入</a>
-                </div>
-                <div class="row cl" style="margin-bottom:20px;">
-                    <label class="form-label col-xs-4 table_title">放大倍数：</label>
-                    <div class="formControls col-xs-8">
-                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="insulatorNum" value="{$data.insulatorNum}">
-                    </div>
-                </div>
+                </div> -->
+
+                <tr>
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">局部超清：</label>
+                            <div class="formControls col-xs-8">
+                                <select class="select" size="1" name="localClearPhoto" >
+                                    <option value="1" <?php if($data['localClearPhoto'])echo ' selected';?>>是</option>
+                                    <option value="0" <?php if(!$data['localClearPhoto'])echo ' selected';?>>否</option>
+                                </select>
+                            </div>
+                        </div>
+                    </td>
+                    
+                </tr>
+                <tr>
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">通道拍照：</label>
+                            <div class="formControls col-xs-8">
+                                <select class="select" size="1" name="channelPhotography" >
+                                    <option value="1" <?php if($data['channelPhotography'])echo ' selected';?>>是</option>
+                                    <option value="0" <?php if(!$data['channelPhotography'])echo ' selected';?>>否</option>
+                                </select>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">初始倍率：</label>
+                            <div class="formControls col-xs-8">
+                                <input type="text" class="input-text" id="insulatorNum" autocomplete="off" placeholder="" name="insulatorNum" value="{$data.insulatorNum / 10}" >
+                            </div>
+                        </div>
+                    </td>
+                    <!-- <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">
+                                <img src="/static/index/img/import.png" class="import_icon" />
+                            </label>
+                            <a href="javascript:void(0);" class="import_btn">文件导入</a>
+                        </div>
+                    </td> -->
+                </tr>
+
+                
+
+
+
+
+                
+            
                 <!-- <div class="row cl" style="margin-bottom:20px;">
                     <label class="form-label col-xs-4 table_title">杆塔类型：</label>
                     <div class="formControls col-xs-8">
@@ -90,6 +185,7 @@
                     </div>
                 </div> -->
                 <input type="hidden" name="po_arr" value="" />
+                </table>
             </div>
 
             <div class="controls">
@@ -105,19 +201,19 @@
                     <tr>
                         <td><div class="po1">
                             <img src="/static/index/img/left<?php if($data['po'][1]==1)echo 'select';?>.png" data-dire="left" class="arrow <?php if($data['po'][1]==1)echo ' active';?>" />
-                            <input type="hidden" name="po[2]" value="{$data.po.2+0}" />
+                            <input type="hidden" name="po[1]" value="{$data.po.1+0}" />
                         </div></td>
                         <td><div><img src="/static/index/img/circlemid.png" /></div></td>
                         <td><div class="po2">
                             <img src="/static/index/img/right<?php if($data['po'][2]==1)echo 'select';?>.png" data-dire="right" class="arrow <?php if($data['po'][2]==1)echo ' active';?>" />
-                            <input type="hidden" name="po[3]" value="{$data.po.1+0}" />
+                            <input type="hidden" name="po[2]" value="{$data.po.2+0}" />
                         </div></td>
                     </tr>
                     <tr>
                         <td><div></div></td>
                         <td><div class="po3">
                             <img src="/static/index/img/down<?php if($data['po'][3]==1)echo 'select';?>.png" data-dire="down" class="arrow <?php if($data['po'][3]==1)echo ' active';?>" />
-                            <input type="hidden" name="po[1]" value="{$data.po.3+0}" /></div></td>
+                            <input type="hidden" name="po[3]" value="{$data.po.3+0}" /></div></td>
                         <td><div></div></td>
                     </tr>
                 </table>
@@ -127,6 +223,8 @@
 </div>
 </form>
 {include file='public/footer' /}
+
+
 <script>
     $(function() {
         $('#towerShapeSelect').on('change', function() {
@@ -183,10 +281,13 @@
             $(this).addClass('active');
             $(this).parent().find('input').val(1);
         }
+        console.log("dire :" , dire);
         var po_arr=[];
         for(var i=0;i<=3;i++){
             var po_con=$('.po'+i);
+            console.log("po_con :" , po_con);
             po_arr.push(po_con.find('input').val());
+            console.log("value :" , po_con.find('input').val())
         }
         po_arr=po_arr.join('');
         console.log("po_arr : " ,po_arr );
@@ -201,7 +302,7 @@
         }else{
             $('select[name=towerShapeID]').val(34);
         }
-    })
+    });
 
     function del_tower(){
         layer.confirm('确定删除该杆塔？',function(){
@@ -233,7 +334,9 @@
                 layer.closeAll();
                 if(res.status===1){
                     layer.msg('导入成功',{time:1500});
-                    $('input[name=location]').val(res.data.loc);
+                    $('input[name=longitude]').val(res.data.lon);
+                    $('input[name=latitude]').val(res.data.lat);
+                    $('input[name=altitude]').val(res.data.alt);
                 }else{
                     layer.alert(res.msg);
                 }
@@ -289,4 +392,12 @@
 
         })
     })
+</script>
+
+<script>
+    var insulatorNum = document.getElementById("insulatorNum").value;
+    console.log("insulatorNum: ",insulatorNum);
+    if(insulatorNum == 0){
+        document.getElementById("insulatorNum").value = 2.0;
+    }
 </script>
