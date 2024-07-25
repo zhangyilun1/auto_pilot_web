@@ -1,4 +1,7 @@
 ./public/droneLog/*
 ./public/importRoute/*
 ./public/loc_file/*
-./log
+./public/rsa/*
+./public/unzip/*
+./public/upload/*
+./log/*
