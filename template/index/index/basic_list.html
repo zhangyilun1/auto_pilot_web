@@ -105,7 +105,7 @@
                                         <tr><td colspan="2"></td></tr>
                                         <tr class="text-c">
                                             <td style="width:110px !important;">杆塔名称</td>
-                                            <td style="width:110px !important;">放大倍率</td>
+                                            <td style="width:110px !important;">初始倍率</td>
                                             <td style="width:110px !important;">航线类型</td>
                                         </tr>
                                         <tr class="text-c">
@@ -131,6 +131,7 @@
     setTimeout(function(){
         
         console.log("=== display map === ");
+        console.log("towers :", {$towers});
         var map = new BMap.Map('container');
         //weidu
         var defaultLat = "{$towers.0.latitude|default=29}";
@@ -151,9 +152,11 @@
         map.setMapType(BMAP_SATELLITE_MAP);
 
         var gpsPointArr = [];
+        var towerNameArr = [];
         {foreach name='towers' item='v'}
             point = new BMap.Point("{$v.longitude}", "{$v.latitude}");
             gpsPointArr.push(point);
+            towerNameArr.push("{$v.towerName}")
         {/foreach}
 
 
@@ -161,6 +164,7 @@
         function processBatch(startIndex) {
             var batchSize = 10; // 每批次发送的请求数量
             var batch = gpsPointArr.slice(startIndex, startIndex + batchSize);
+            var batchTowerName= towerNameArr.slice(startIndex, startIndex + batchSize);
             console.log("batch", batch);
             //1 for WGS-84 convert 5 for GCJ-02
             convertor.translate(batch, 1, 5, function(data){
@@ -175,8 +179,13 @@
                              map.centerAndZoom(baiduPointArr[i], defaultLat === 29 ? 4 : 16);
                            // map.centerAndZoom(gpsPointArr[i], defaultLat === 29 ? 4 : 16);
                         }
-                        // var marker = new BMap.Marker(gpsPointArr[i]);
-                        var marker = new BMap.Marker(baiduPointArr[i]);
+                
+                        
+                        var customIcon = new BMap.Icon('/static/index/img/tower1.png', new BMap.Size(30, 30));
+                        var marker = new BMap.Marker(baiduPointArr[i], {icon:customIcon});
+
+                        marker.setTitle("杆塔名称: " + batchTowerName[i]);
+
                         map.addOverlay(marker);
                         console.log("marker :", marker);
                     }

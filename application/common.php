@@ -2165,6 +2165,22 @@ function group_user_count($group_id){
         ->count();
 }
 
+
+function group_county_company($company_id){
+    return \think\Db::table('CompanyList')
+        ->where('countyCompanyID', $company_id)
+        ->count();
+}
+
+
+
+function group_company($company_id){
+    return \think\Db::table('groupList')
+        ->where('companyID',$company_id)
+        ->count();
+}
+
+
 function departure_time($id){
     return \think\Db::table('FlightRecords')
         ->where('submissionID',$id)

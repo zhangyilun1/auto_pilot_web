@@ -1,0 +1,84 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<div class="a-15" style="overflow: visible;">
+    <div class="user_con">
+        <div class="left_nav">
+            <?php if($permission['permissionGroupID']==0):?>
+            {include file='public/user_nav' /}
+            <?php else:?>
+            {include file='public/user_not_admin' /}
+            <?php endif;?>
+        </div>
+        <form action="{:url('add_county_company')}" class="right_content add_con">
+            <input type="hidden" name="companyID" value="{$data.companyID|default=-1}" />
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('county_company_list')}">返回</a>
+                </span>
+                <span class="r">
+                    <?php if($my_permission['modifyUserMgr']<=0):?>
+                    <?php else:?>
+                    <a class="add_btn" href="{:url('add_county_company',['id'=>$data['county_company']])}">修改</a>
+                    <?php endif;?>
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="table_con">
+                <table class="table mt-10">
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">上级单位名称 *：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        name="countyCompanyName" value="{$data.county_company_name}">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="table table-hover mt-10 text-c" data-url="{:url('index/del_county_company')}">
+                    <thead>
+                        <tr class="text-c">
+                            <th>序号</th>
+                            <th>单位名称</th>
+                            <th>班组数量</th>
+                            <th>&nbsp;&nbsp;操作</th>
+                        </tr>
+                    </thead>
+                    {foreach name='companys' item='v' key='k'}
+                    <tr class="text-c">
+                        <td>{$k+1}</td>
+                        <td>{$v.companyName}</td>
+                        <td>{$v.companyID|group_company}</td>
+                        <td>
+                            <?php if($my_permission['findUserMgr']<=0):?>
+                            <?php else:?>
+                            <a class="btn" href="{:url('check_company',['id'=>$v['companyID']])}">查看</a>
+                            <?php endif;?>
+
+                            <?php if($my_permission['modifyUserMgr']<=0):?>
+                            <?php else:?>
+                            <a class="btn" href="{:url('add_company',['id'=>$v['companyID']])}">修改</a>
+                            <?php endif;?>
+
+                            <?php if($my_permission['deleteUserMgr']<=0):?>
+                            <?php else:?>
+                            <a class="btn" onclick="del_tr(this,{$v.companyID})">删除</a>
+                            <?php endif;?>
+                        </td>
+                    </tr>
+                    {/foreach}
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+{include file='public/footer' /}
+<script>
+    $(function () {
+        $('input,select').prop('disabled', true).prop('readonly', true);
+    })
+</script>

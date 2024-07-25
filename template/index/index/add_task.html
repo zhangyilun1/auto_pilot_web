@@ -179,7 +179,32 @@
                         <!-- <td></td> -->
                     </tr>
 
-                    
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">续飞方式：</label>
+                                <div class="formControls col-xs-8">
+                                    <select class="select" size="1" name="continueFlightTypeID" id="continueFlightTypeSelect">
+                                        {foreach name='continueFlightTypes' item='v'}
+                                        <option value="{$v.continueFlightTypeID}" <?php if($v['continueFlightTypeID']==$data['continueFlightTypeID'])echo ' selected';?>>{$v.continueFlightTypeName}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">续飞高度：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="continueFlightHeight" value="{$data.continueFlightHeight}">
+                                </div>
+                            </div>
+                        </td>
+
+                    </tr>
+
+
+
                     <div>
                         <tr>
                             <td id="inputAltitudeRow">

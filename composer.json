@@ -33,7 +33,8 @@
         "phpoffice/phpword": "^0.18.2",
         "mpdf/mpdf": "^8.0",
         "topthink/think-worker": "2.0.*",
-        "tencentcloud/tencentcloud-sdk-php": "^3.0"
+        "tencentcloud/tencentcloud-sdk-php": "^3.0",
+        "ext-dom": "*"
     },
     "autoload": {
         "psr-4": {
@@ -44,7 +45,11 @@
         "think-path": "thinkphp"
     },
     "config": {
-        "preferred-install": "dist"
+        "preferred-install": "dist",
+        "allow-plugins": {
+            "topthink/think-installer": true,
+            "easywechat-composer/easywechat-composer": true
+        }
     },
     "repositories": {
         "packagist": {

@@ -221,9 +221,11 @@
                                         <tr class="text-c table_title">
                                             <td style="width:60px !important;">SN码</td>
                                             <td style="width:60px !important;">飞行任务状态</td>
+                                            <?php if( $permission['playLive'] == 1):?>
                                             <td rowspan="2" class="text-c" style="width:100px !important;">
-                                                <button class="play-button" style="height:60px;width:100px !important;" onclick="event.stopPropagation();">观看直播</button>
+                                                <button class="play-button" style="height:60px;width:100px !important;" onclick="event.stopPropagation();"  data-sncode="{$v.snCode}">观看直播</button>
                                             </td>
+                                            <?php endif; ?>
                                         </tr>
 
                                         <!-- <tr class="text-c"> -->
@@ -296,10 +298,16 @@
                     for (var i = 0; i < baiduPointArr.length; i++) {
                         if (i === 1) {
                              map.centerAndZoom(baiduPointArr[i], defaultLat === 29 ? 4 : 16);
-                           // map.centerAndZoom(gpsPointArr[i], defaultLat === 29 ? 4 : 16);
+                                //map.centerAndZoom(gpsPointArr[i], defaultLat === 29 ? 4 : 16);
                         }
                         // var marker = new BMap.Marker(gpsPointArr[i]);
-                        var marker = new BMap.Marker(baiduPointArr[i]);
+
+                        var customIcon = new BMap.Icon('/static/index/img/tower1.png', new BMap.Size(30, 30));
+                        var marker = new BMap.Marker(baiduPointArr[i], {icon:customIcon});
+
+                        //var marker = new BMap.Marker(baiduPointArr[i]);
+
+                       
                         map.addOverlay(marker);
                         console.log("marker :", marker);
                     }
@@ -390,9 +398,9 @@
                                         if (translatedData.status === 0) {
                                             var baiduPoint = translatedData.points[0];
                                             var droneLocation = new BMap.Point(baiduPoint.lng, baiduPoint.lat);
-                                            //var customIcon = new BMap.Icon('/static/index/img/drone.png', new BMap.Size(30, 30));
-                                            //var marker = new BMap.Marker(droneLocation, {icon:customIcon});
-                                            var marker = new BMap.Marker(droneLocation);
+                                            var customIcon = new BMap.Icon('/static/index/img/drone.png', new BMap.Size(30, 30));
+                                            var marker = new BMap.Marker(droneLocation, {icon:customIcon});
+                                            // var marker = new BMap.Marker(droneLocation);
                                             map.addOverlay(marker);
                                             map.centerAndZoom(droneLocation, 5);
                                             marker.setTitle("无人机 " + droneSnCode + " - 海拔: " + altitude + "m");
@@ -599,7 +607,7 @@
 
 </script>  -->
 
-<script src="https://cdn.jsdelivr.net/npm/flv.js@1.5.0/dist/flv.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/flv.js@1.5.0/dist/flv.min.js"></script> -->
 <script>
     document.getElementById("uploadLink").addEventListener('click',function(){
         document.getElementById("uploadLink").disabled = true;
@@ -629,17 +637,19 @@
 
                 console.log('flightValues: ', flightValues);
 
-                if (flightTypeArray.includes(2)) {
-                    console.log(' == includes 2 =='); 
+                if (flightValues.includes(2)) {
+                    console.log('是否续飞确认'); 
                     // var confirmRenew = confirm("已存在相关文件，是否续飞？");
                     showCustomConfirm("已存在相关文件，是否续飞？", function (confirmRenew) {
                         if (confirmRenew) {
                             var alldata = flightTypeArray;
-                            for (var i = 0; i < response.flightTypeArray.length; i++) {
-                                var data = { submissionID: allData[i], flight: flightTypeArray[i] };
-                                alldata.push(data);
-                            }
-                            console.log(' alldata choose continue  ',alldata);  
+                            // for (var i = 0; i < response.flightTypeArray.length; i++) {
+                            //     console.log(' alldata choose continue  ',allData[i]);  
+                            //     console.log(' alldata choose continue  ',flightTypeArray[i].flight);  
+                            //     // var data = { submissionID: allData[i], flight: flightTypeArray[i] };
+                            //    // alldata.push(data);
+                            // }
+                            // console.log(' alldata choose continue  ',alldata);  
                             $.ajax({
                                 type: "POST",
                                 url: "{:url('uploadTask')}",
@@ -647,15 +657,22 @@
                                 dataType: "json",
                                 contentType: "application/json",
                                 success: function(response) {
-                                    console.log("上传成功", response);
-                                    layer.msg("上传任务成功",{time:2000});
+                                    if(!response.success){
+                                        layer.msg("上传续飞任务失败: " + response.message);
+                                    }else{
+                                        layer.msg("续飞任务上传中",{time:2000});
+                                    }
+
+                            
                                     document.getElementById("uploadLink").disabled = false;
                                     document.getElementById("uploadLink").style.opacity = "1";
+                                    
+
                                 },
                                 error: function(error) {
                                     console.log("上传失败", error);
                                     //alert("上传失败");
-                                    layer.msg("上传任务成功",{time:2000});
+                                    layer.msg("上传续飞任务失败",{time:2000});
                                     document.getElementById("uploadLink").disabled = false;
                                     document.getElementById("uploadLink").style.opacity = "1";
                                 }
@@ -677,14 +694,19 @@
                                 dataType: "json",
                                 contentType: "application/json",
                                 success: function(response) {
-                                    layer.msg("上传任务成功",{time:2000});
+                                    if(!response.success){
+                                        layer.msg("上传失败: " + response.message);
+                                    }else{
+                                        layer.msg("任务上传中",{time:2000});
+                                    }
+
                                     document.getElementById("uploadLink").disabled = false;
                                     document.getElementById("uploadLink").style.opacity = "1";
+
                                 },
                                 error: function(error) {
                                     console.log("上传失败", error);
-                                    //alert("上传失败");
-                                    layer.msg("上传任务成功",{time:2000});
+                                    layer.msg("任务发送失败",{time:2000});
                                     document.getElementById("uploadLink").disabled = false;
                                     document.getElementById("uploadLink").style.opacity = "1";
                                 }
@@ -707,7 +729,11 @@
                         dataType: "json",
                         contentType: "application/json",
                         success: function(response) {
-                            layer.msg("任务上传中",{time:2000});
+                            if(!response.success){
+                                layer.msg("上传失败: " + response.message);
+                            }else{
+                                layer.msg("任务上传中",{time:2000});
+                            }
                             document.getElementById("uploadLink").disabled = false;
                             document.getElementById("uploadLink").style.opacity = "1";
                         },
@@ -728,8 +754,6 @@
 
     document.getElementById("takeoffLink").addEventListener('click',function(){
 
-        document.getElementById("takeoffLink").disabled = true;
-        document.getElementById("takeoffLink").style.opacity = "0.5";
         var submissionInfo = document.getElementsByClassName("submissionID");
         console.log('submissionInfo : ',submissionInfo);
         var allData = [];
@@ -739,31 +763,69 @@
             console.log('submissionID : ',submissionID);
             allData.push(submissionID);
         }
-        // 发送数据到服务器
+
+        
         $.ajax({
-                type: "POST",
-                url: "{:url('takeoffLink')}",
-                data: JSON.stringify(allData),
-                dataType: "json",
-                contentType: "application/json",
-                // success: function(response) {
-                // console.log("起飞发送成功", response);
-                // alert("起飞指令发送成功");
-                // },
-                success: function (response) {
-                    console.log("起飞发送成功", response);
-                    layer.msg("起飞指令发送成功",{time:2000});
-                    document.getElementById("takeoffLink").disabled = false;
-                    document.getElementById("takeoffLink").style.opacity = "1";
-                },
-            error: function(error) {
-                console.log("起飞命令失败", error);
-                //alert("起飞命令失败");
-                layer.msg("起飞指令发送失败",{time:2000});
-                document.getElementById("takeoffLink").disabled = false;
-                document.getElementById("takeoffLink").style.opacity = "1";
+            type: "POST",
+            url: "{:url('getHeightDifference')}", // 假设这是获取高度差的接口
+            data: JSON.stringify(allData),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(response) {
+                console.log("response.result.length : " ,response.result.length);
+                if (response.result.length > 0) {
+                    var content = '';
+                    response.result.forEach(function(item) {
+                        console.log("heightDifference: ", item.heightDifference);
+                        console.log("snCode: " , item.snCode);
+                        console.log("taskName: ", item.taskName);
+                        if(item.heightDifference == null){
+                            content += '<span style="color: blue; font-weight: bold;">' + item.snCode + '</span> 无人机 将执行 <span style="color: blue; font-weight: bold;">' + item.taskName + ' 任务</span> <span style="color: red; font-weight: bold;"> 任务有误 </span> <br>';
+                        } else {
+                            content += '<span style="color: blue; font-weight: bold;">' + item.snCode + '</span> 无人机 将执行 <span style="color: blue; font-weight: bold;">' + item.taskName + ' 任务</span> </br> - 请确认该任务首座杆塔塔头高度 高于 当前无人机 <span style="color: red; font-weight: bold;">' + item.heightDifference + '</span> 米 !!!<br></br>';
+                        }
+                    });
+                }
+
+                layer.open({
+                    title: '起飞确认',
+                    content: content,
+                    btn: ['起飞', '取消'],
+                    yes: function(index, layero){
+                        document.getElementById("takeoffLink").disabled = true;
+                        document.getElementById("takeoffLink").style.opacity = "0.5";
+                
+                        // 发送数据到服务器
+                        $.ajax({
+                                type: "POST",
+                                url: "{:url('takeoffLink')}",
+                                data: JSON.stringify(allData),
+                                dataType: "json",
+                                contentType: "application/json",
+                                // success: function(response) {
+                                // console.log("起飞发送成功", response);
+                                // alert("起飞指令发送成功");
+                                // },
+                                success: function (response) {
+                                    console.log("起飞发送成功", response);
+                                    layer.msg("起飞指令发送成功",{time:2000});
+                                    document.getElementById("takeoffLink").disabled = false;
+                                    document.getElementById("takeoffLink").style.opacity = "1";
+                                },
+                            error: function(error) {
+                                console.log("起飞命令失败", error);
+                                layer.msg("起飞指令发送失败",{time:2000});
+                                document.getElementById("takeoffLink").disabled = false;
+                                document.getElementById("takeoffLink").style.opacity = "1";
+                            }
+                        });
+                    }
+                })
             }
         });
+
+
+  
     });
 
 
@@ -804,10 +866,33 @@
     playButtons.forEach(function(button){
         console.log("play-button");
         button.addEventListener("click",function(event){
-            window.location.href = "{:url('index/play_video')}"; 
+            var snCode = button.getAttribute("data-sncode");
+            var liveAddr = button.getAttribute("data-liveaddr");
+            var url = "{:url('index/play_video')}?snCode=" + encodeURIComponent(snCode);            window.location.href = url;
         })
     })
 </script>
+
+
+
+<!-- <script>
+    var playButtons = document.querySelectorAll(".play-button");
+    playButtons.forEach(function(button){
+        console.log("play-button");
+        button.addEventListener("click",function(event){
+            //window.location.href = "{:url('index/play_video')}"; 
+
+            var droneID = button.getAttribute("data-droneid");
+            var snCode = button.getAttribute("data-sncode");
+            var liveAddr = button.getAttribute("data-liveaddr");
+
+            var url = "{:url('index/play_video')}?droneID=" + encodeURIComponent(droneID) +
+            "&snCode=" + encodeURIComponent(snCode) +
+            "&liveAddr=" + encodeURIComponent(liveAddr);
+        })
+    })
+</script> -->
+
 <script>
 
 function showCustomConfirm(message, callback) {
@@ -834,7 +919,7 @@ function showCustomConfirm(message, callback) {
             elem: '.upload_btn',
             url:"{:url('uploadKml')}",
             accept:'file',
-            exts: 'kml|json|zip',
+            exts: 'kml|json|zip|kmz',
             multiple:false,
             field:'file',
             auto:true,
@@ -945,7 +1030,7 @@ function showCustomConfirm(message, callback) {
                                 var defaultLng = towers[0].longitude;
                             }
                             console.log("defaultLat: ", defaultLat, typeof(defaultLat));
-                            console.log("defaultLng: ", defaultLng,typeof(defaultLng));
+                            console.log("defaultLng: ", defaultLng, typeof(defaultLng));
                             convertor = new BMap.Convertor();
                             if(parseInt(defaultLat) === 29 && parseInt(defaultLng) === 105)
                             {
@@ -978,8 +1063,14 @@ function showCustomConfirm(message, callback) {
                                                 map.centerAndZoom(baiduPointArr[i], defaultLat === 29 ? 4 : 16);
                                                 // map.centerAndZoom(gpsPointArr[i], defaultLat === 29 ? 4 : 16);
                                             }
-                                            // var marker = new BMap.Marker(gpsPointArr[i]);
-                                            var marker = new BMap.Marker(baiduPointArr[i]);
+                                       
+                                            //var marker = new BMap.Marker(baiduPointArr[i]);
+
+                                            var customIcon = new BMap.Icon('/static/index/img/tower1.png', new BMap.Size(30, 30));
+                                            var marker = new BMap.Marker(baiduPointArr[i], {icon:customIcon});
+
+                                            marker.setTitle("杆塔名称: " + towers[i].towerName);
+
                                             map.addOverlay(marker);
                                             console.log("marker :", marker);
                                         }
@@ -1079,18 +1170,24 @@ function showCustomConfirm(message, callback) {
             subCell4.style.width = "100px";
             subCell4.rowSpan = "2";
 
-            var liveButton = document.createElement('button');
-            liveButton.className = "play-button";
-            liveButton.style = "height:60px;width:100px !important";
-            liveButton.onclick = function(event){
-                event.stopPropagation();
-                //playButtonClick(event);
-                window.location.href = "{:url('index/play_video')}"; 
-            }
-            liveButton.textContent = "观看直播";
+            var playLive = <?php echo json_encode($permission['playLive']); ?>;
+            console.log("play live :" , playLive);
+            if(playLive != 0){
+                var liveButton = document.createElement('button');
+                liveButton.className = "play-button";
+                liveButton.style = "height:60px;width:100px !important";
+                liveButton.onclick = function(event){
+                    event.stopPropagation();
+                    //playButtonClick(event);
+                    var url = "{:url('index/play_video')}?snCode=" + encodeURIComponent(device.snCode);
+                    window.location.href = url; 
+                }
+                liveButton.textContent = "观看直播";
 
-            subCell4.appendChild(liveButton);
-            subRow2.appendChild(subCell4);
+                subCell4.appendChild(liveButton);
+                subRow2.appendChild(subCell4);
+            }
+
 
             var subRow3 = document.createElement('tr');
             subRow3.className = "text-c";

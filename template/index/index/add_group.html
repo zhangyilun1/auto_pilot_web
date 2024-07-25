@@ -36,7 +36,7 @@
                         <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">所属单位：</label>
-                                    <?php if($permission['permissionGroupID']==0):?>
+                                    <?php if($permission['permissionGroupID'] == 0 || $permission['permissionGroupID'] == 3):?>
                                     <select class="select" size="1" name="companyID">
                                         {foreach name='companys' item='v'}
                                         <option value="{$v.companyID}" <?php if($v['companyID']==$data['companyID'])echo ' selected';?>>{$v.companyName}</option>

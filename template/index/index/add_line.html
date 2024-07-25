@@ -42,7 +42,7 @@
 
     .layui-layer {
         height: auto !important;
-        border: 1px solid gray !important;
+        border: 1px solid rgb(114, 100, 100) !important;
     }
 </style>
 <form id="line_form" action="{:url('index/add_line')}" data-back="{:url('index/basic_list')}"
@@ -73,29 +73,33 @@
                 <input type="hidden" name="lineID" value="{$data.lineID|default=-1}" />
                 <div class="input-con">
                     <div class="row cl" style="margin-bottom:20px;">
-                    <label class="form-label col-xs-4 table_title">线路名称：</label>
-                    <div class="formControls col-xs-8">
-                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="lineName" value="{$data.lineName}">
+                        <label class="form-label col-xs-4 table_title">线路名称：</label>
+                        <div class="formControls col-xs-8">
+                            <input type="text" class="input-text" autocomplete="off" placeholder="" name="lineName"
+                                value="{$data.lineName}">
+                        </div>
                     </div>
-                    </div>
-                    
+
                     <div class="row cl" style="margin-bottom:20px;">
-                    <label class="form-label col-xs-4 table_title">巡检单位：</label>
-                    <div class="formControls col-xs-8">
-                    <?php if($permission['permissionGroupID'] == 0): ?>
-                    <select class="select" size="1" name="companyID">
-                    {foreach name='companys' item='v'}
-                    <option value="{$v.companyID}" <?php if($v['companyID'] == $data['companyID']) echo 'selected'; ?>>{$v.companyName}</option>
-                    {/foreach}
-                    </select>
-                    <?php else: ?>
-                    <select class="select" size="1" name="companyID" disabled>
-                    <option value="{$permission.companyID}" <?php if($permission['companyID'] == $data['companyID']) echo 'selected'; ?>>{$permission.companyName}</option>
-                    </select>
-                    <?php endif; ?>
+                        <label class="form-label col-xs-4 table_title">巡检单位：</label>
+                        <div class="formControls col-xs-8">
+                            <?php if($permission['permissionGroupID'] == 0): ?>
+                            <select class="select" size="1" name="companyID">
+                                {foreach name='companys' item='v'}
+                                <option value="{$v.companyID}" <?php if($v['companyID']==$data['companyID'])
+                                    echo 'selected' ; ?>>{$v.companyName}</option>
+                                {/foreach}
+                            </select>
+                            <?php else: ?>
+                            <select class="select" size="1" name="companyID" disabled>
+                                <option value="{$permission.companyID}" <?php
+                                    if($permission['companyID']==$data['companyID']) echo 'selected' ; ?>
+                                    >{$permission.companyName}</option>
+                            </select>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    </div>
-                    </div>
+                </div>
 
             </div>
         </div>
@@ -122,12 +126,12 @@
             layer.open({
                 type: 1,
                 title: '选择文件类型',
-                closeBtn: 0,
+                closeBtn: 1,
                 shadeClose: false,
                 content: `
                     <div style="padding: 20px; text-align: center;">
                     <button class="layui-btn" id="selectCSV">CSV 文件</button>
-                    <button class="layui-btn" id="selectKML">KML 文件</button>
+                    <button class="layui-btn" id="selectKML">KMZ 文件</button>
                     </div>
                     `,
                 area: ['300px', '200px'],
@@ -155,128 +159,88 @@
             var upload = layui.upload;
             var layer = layui.layer;
             var content = '';
-            if(fileType === 'csv'){
-                content =  `
-                    {include file='public/header' /}
-                    <style>
-                        .a-1 {padding: 0; padding-top: 0;}
-                        #set_tower_type_form .input-text, #set_tower_type_form .select {width: 250px}
-                        #set_tower_type_form {display: block; width: 100%; height: 100%; text-align: center; position: relative;}
-                        #set_tower_type_form .input-con {display: inline-block; width: 330px; height: 100px; vertical-align: middle; position: relative; top: calc(50% - 50px);}
-                        .row label, .row select {font-size: 16px;}
-                    </style>
-                    <form id="towertype_form" style="display: block; width: 100%; height: 100%;">
-                        <div class="a-2 a-2-1">
-                            <div class="text-c a-4">设置杆塔属性</div>
-                            <input type="file" id="fileInput" name="file" style="display: none;">
-                        </div>
-                        <div class="a-15">
-                            <div id="set_tower_type_form" style="text-align: left; padding: 30px;">
-                                <input type="hidden" name="lineID" value="{$data.lineID|default=-1}" />
-                                <table class="table">
-                                    <tr>
-                                        <td>
-                                            <div class="row cl" style="margin-bottom: 40px;">
-                                                <label class="form-label col-xs-4 table_title">杆塔类型：</label>
-                                                <div class="formControls col-xs-8">
-                                                    <select class="select" size="1" name="towerShapeNameID" id="towerType">
-                                                        {foreach name='towerType' item='v'}
-                                                            <option value="{$v.towerShapeNameID}" <?php if($v['towerShapeNameID']==$data['towerShapeNameID']) echo 'selected';?>>{$v.towerShapeName}</option>
-                                                        {/foreach}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="row cl" style="margin-bottom: 40px;">
-                                                <label class="form-label col-xs-4 table_title">放大倍率：</label>
-                                                <div class="formControls col-xs-8">
-                                                    <input type="text" class="input-text" id="zoomFactor" autocomplete="off" placeholder="" name="insulatorNum" value="{$data.insulatorNum}">
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
+            var title = '<div class="custom-title" style="font-size: 18px;text-align: center; " >设置杆塔属性</div>';
+            if (fileType === 'csv') {
+                content = `
+                    <div style="padding: 30px;">
+                        <input type="file" id="fileInput" name="file" style="display: none;">
+                        <div style="text-align: left;">
+                            <input type="hidden" name="lineID" value="{$data.lineID|default=-1}" />
+                            <div style="margin-top: 20px;">
+                                <label style="display: inline-block; width: 140px; font-size: 18px;">杆塔类型：</label>
+                                <select size="1"  style="width:163px; height:38px; font-size: 18px;" name="towerShapeNameID" id="towerType">
+                                    {foreach name='towerType' item='v'}
+                                        <option value="{$v.towerShapeNameID}" <?php if($v['towerShapeNameID']==$data['towerShapeNameID']) echo 'selected';?>>{$v.towerShapeName}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <label style="display: inline-block; width: 140px; font-size: 18px;">初始倍率：</label>
+                                <input type="text"  style="width:163px; height:38px; font-size: 18px;" id="zoomFactor" autocomplete="off" placeholder="" name="insulatorNum" value="{$data.insulatorNum}">
                             </div>
                         </div>
-                    </form>`
-            } else if(fileType === 'kml') {
-                content =  `
-                    {include file='public/header' /}
-                    <style>
-                        .a-1 {padding: 0; padding-top: 0;}
-                        #set_tower_type_form .input-text, #set_tower_type_form .select {width: 250px}
-                        #set_tower_type_form {display: block; width: 100%; height: 100%; text-align: center; position: relative;}
-                        #set_tower_type_form .input-con {display: inline-block; width: 330px; height: 100px; vertical-align: middle; position: relative; top: calc(50% - 50px);}
-                        .row label, .row select {font-size: 16px;}
-                    </style>
-                    <form id="towertype_form" style="display: block; width: 100%; height: 100%;">
-                        <div class="a-2 a-2-1">
-                            <div class="text-c a-4">设置杆塔属性</div>
-                            <input type="file" id="fileInput" name="file" style="display: none;">
+                    </div>`
+            } else if (fileType === 'kml') {
+                content = `  
+                <div>
+                    <input type="file" id="fileInput" name="file" style="display: none;">
+                    <div id="set_tower_type_form" style="text-align: left; padding: 30px;">
+                        <input type="hidden" name="lineID" value="{$data.lineID|default=-1}" />
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: inline-block; width: 140px; font-size: 18px;">航线类型：</label>
+                            <select size="1" style="width:163px; height:38px; font-size: 18px;" name="towerShapeNameID" id="towerType">
+                                {foreach name='towerType' item='v'}
+                                <option value="{$v.towerShapeNameID}" <?php if($v['towerShapeNameID']==$data['towerShapeNameID']) echo 'selected';?>>{$v.towerShapeName}</option>
+                                {/foreach}
+                            </select>
                         </div>
-                        <div class="a-15">
-                            <div id="set_tower_type_form" style="text-align: left; padding: 30px;">
-                                <input type="hidden" name="lineID" value="{$data.lineID|default=-1}" />
-                                <table class="table">
-                                    <tr>
-                                        <td>
-                                            <div class="row cl" style="margin-bottom: 20px;">
-                                                <label class="form-label col-xs-4 table_title">批量杆塔名称：</label>
-                                                <div class="formControls col-xs-8">
-                                                    <input type="text" class="input-text" id="towerName" autocomplete="off" placeholder="" name="towerName" value="{$data.towerName}">
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="row cl" style="margin-bottom: 20px;">
-                                                <label class="form-label col-xs-4 table_title">杆塔起始序号：</label>
-                                                <div class="formControls col-xs-8">
-                                                    <input type="text" class="input-text" id="towerSquence" autocomplete="off" placeholder="" name="towerSquence" value="{$data.towerSquence}">
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="row cl" style="margin-bottom: 20px;">
-                                                <label class="form-label col-xs-4 table_title">打点海拔高度：</label>
-                                                <div class="formControls col-xs-8">
-                                                    <input type="text" class="input-text" id="alt" autocomplete="off" placeholder="" name="alt" value="{$data.alt}">
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: inline-block; width: 140px; font-size: 18px;">批量杆塔名称：</label>
+                            <input type="text"  style="width:160px; height:33px; font-size: 18px;" id="towerName" autocomplete="off" placeholder="" name="towerName" value="{$data.towerName}">
                         </div>
-                    </form>`
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: inline-block; width: 140px; font-size: 18px;">杆塔起始序号：</label>
+                            <input type="text"  style="width:160px; height:33px; font-size: 18px;" id="towerSquence" autocomplete="off" placeholder="" name="towerSquence" value="{$data.towerSquence}">
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: inline-block; width: 140px; font-size: 18px;">打点高度：</label>
+                            <input type="text" style="width:160px; height:33px; font-size: 18px;" id="towerHeight" autocomplete="off" placeholder="" name="towerHeight" value="{$data.towerHeight}">
+                        </div>
+
+                    </div>
+                </div>`
             }
             layer.ready(function () {
                 layer.open({
                     type: 1,
-                    title: false,
+                    title: title,
                     closeBtn: 0,
                     shadeClose: false, // 防止点击遮罩层关闭对话框
-                    content:content,
-                    area: ['50%', '60%'],
+                    content: content,
+                    area: ['30%', '60%'],
                     btn: ['确认', '取消'],
                     success: function (layero) {
-                        layero.find('.layui-layer-btn').css({
-                            'position': 'absolute',
-                            'bottom': '10px',
-                            'right': '10px'
-                        });
-                    },
-                    yes: function (index, layero) {
-                        if(fileType === 'csv'){
+                        layero.find('.layui-layer-btn .layui-layer-btn0, .layui-layer-btn .layui-layer-btn1').css({
+                            'font-size': '23px'
+                            });
+                        },
+                    yes: function (index,layero) {
+                        if (fileType === 'csv') {
                             console.log("点击确认后");
                             selectedTowerType = $('#towerType').val();
                             zoomFactor = $('#zoomFactor').val();
+                            if(zoomFactor === '' || selectedTowerType === ''){
+                                layer.msg('存在未输入信息', { time: 1500 });
+                                return false;
+                            }
+                            if(isNaN(zoomFactor)){
+                                layer.msg('初始倍率必须为数字',{ time: 1500 });
+                                return false;
+                            }
                             console.log("selectedTowerType:", selectedTowerType);
                             console.log("zoomFactor:", zoomFactor);
                             if (selectedTowerType && zoomFactor) {
@@ -284,14 +248,34 @@
                                 $('#fileInput').click();
                             }
                         }
-                        else if(fileType === 'kml'){
-                            towerName =  $('#towerName').val();
-                            towerSquence =  $('#towerSquence').val();
-                            alt = $('#alt').val();
+                        else if (fileType === 'kml') {
+                            selectedTowerType = $('#towerType').val();
+                            towerName = $('#towerName').val();
+                            towerSquence = $('#towerSquence').val();
+                            towerHeight = $('#towerHeight').val();
+
+                            console.log("selectedTowerType:", selectedTowerType);
                             console.log("towerName:", towerName);
                             console.log("towerSquence:", towerSquence);
-                            console.log("alt:", alt);
-                            if(towerName && towerSquence && alt){
+                            console.log("towerHeight:", towerHeight);
+
+                            if(towerHeight === '' || towerSquence ==='' || towerName === '' || selectedTowerType === '' ){
+                                layer.msg('存在未输入信息', { time: 1500 });
+                                return false;
+                            }
+
+                            if(isNaN(towerSquence)){
+                                layer.msg('杆塔起始序号必须为数字',{ time: 1500 });
+                                return false;
+                            }
+
+                            if(isNaN(towerHeight)){
+                                layer.msg('打点高度必须为数字',{ time: 1500 });
+                                return false;
+                            }
+
+
+                            if (towerName && towerSquence && selectedTowerType) {
                                 console.log("==== kml ====");
                                 $('#fileInput').click();
                             }
@@ -303,7 +287,7 @@
             });
 
             console.log("showInputDialog2");
-            if(fileType === 'csv'){
+            if (fileType === 'csv') {
                 upload.render({
                     elem: '#fileInput',
                     url: "{:url('importLine')}",
@@ -342,22 +326,28 @@
                     }
                 });
             }
-            else if(fileType === 'kml'){
+            else if (fileType === 'kml') {
                 upload.render({
                     elem: '#fileInput',
-                    url: "{:url('importLine')}",
+                    url: "{:url('importKMLLine')}",
                     accept: 'file',
-                    exts: 'kml',
+                    exts: 'kml|kmz',
                     multiple: false,
                     field: 'file',
                     auto: true,
                     data: {
                         lineID: '{$data.lineID}',
+                        towerName: function () {
+                            return towerName;
+                        },
                         towerType: function () {
                             return selectedTowerType;
                         },
-                        zoomFactor: function () {
-                            return zoomFactor;
+                        towerSquence: function () {
+                            return towerSquence;
+                        },
+                        towerHeight: function () {
+                            return towerHeight;
                         }
                     },
                     choose: function (obj) {

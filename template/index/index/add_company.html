@@ -61,14 +61,16 @@
                         </td> -->
                         <td>
                             <div class="row cl">
-                                <label class="form-label col-xs-4 table_title">备注：</label>
-                                <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="comment" value="{$data.comment}">
-                                </div>
+                                <label class="form-label col-xs-4 table_title">所属上级单位：</label>
+                                    <div class="formControls col-xs-8">
+                                        <select class="select" size="1" name="countyCompanyID">
+                                            <option value="" <?php if ($data['countyCompanyID'] == null) echo 'selected'; ?>>未分配上级单位</option>
+                                            {foreach name='county_companys' item='v'}
+                                                <option value="{$v.county_company_id}" <?php if($data['countyCompanyID']==$v['county_company_id'])echo ' selected';?>>{$v.county_company_name}</option>
+                                            {/foreach}
+                                        </select>
+                                    </div>
                             </div>
-                        </td>
-                        <td>
-
                         </td>
                     </tr>
                 </table>

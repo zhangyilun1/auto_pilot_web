@@ -13,11 +13,11 @@
         <div class="right_content">
             <div class="top_con mt-20">
                 <span class="l">
-                     <?php if($my_permission['addUserMgr']<=0 || $permission['permissionGroupID']<>0):?>
-                     <?php else:?>
+                    <?php if($permission['permissionGroupID'] == 0 || $permission['permissionGroupID'] == 3):?>
                     <a class="add_btn" href="{:url('add_company')}">
                         <img src="/static/index/img/table_add.png" />
                     </a>
+                    <?php else:?>
                     <?php endif;?>
                 </span>
                 <form class="r" method="get" action="{:url(ACTION_NAME)}" id="search_form" >
@@ -39,9 +39,7 @@
                     <tr class="text-c">
                         <th>序号</th>
                         <th>单位名称</th>
-                        <!-- <th>二级名称</th>
-                        <th>地址</th>
-                        <th>负责人</th> -->
+                        <th>班组数量</th>
                         <th>&nbsp;&nbsp;操作</th>
                     </tr>
                     </thead>
@@ -50,6 +48,7 @@
                         <!--<td>{$v.companyID}</td>-->
                         <td>{$k+1}</td>
                         <td>{$v.companyName}</td>
+                        <td>{$v.companyID|group_company}</td>
                         <!-- <td>{$v.second_name}</td>
                         <td>{$v.address}</td>
                         <td>{$v.supervisor}</td> -->

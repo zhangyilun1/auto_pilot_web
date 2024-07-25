@@ -18,8 +18,30 @@
             <?php else:?>
                 <a href="{:url('index/basic_list')}" class="<?php if(ACTION_NAME==='basic_list')echo 'active';?>">基础数据</a>
             <?php endif;?>
+
+            <?php if($my_permission['findTask']<=0):?>
+            <a href="javascript:void(0);" onclick="layer.alert('无权查看')" class="<?php if(ACTION_NAME==='data_analysis')echo 'active';?>">数据分析</a>
+            <?php else:?>
+            <a href="{:url('index/data_analysis')}" class="<?php if(ACTION_NAME==='data_analysis')echo 'active';?>">数据分析</a>
+            <?php endif;?>
+
+            
+
+
+
         </div>
+
+
+
+
+
         <div class="a-6-box">
+            <?php if($my_permission['findBasicData']<=0):?>
+            <a href="javascript:void(0);" onclick="layer.alert('无权查看')" class="<?php if(ACTION_NAME==='exception_handler')echo 'active';?>">异常处理</a>
+            <?php else:?>
+                <a href="{:url('index/exception_handler')}" class="<?php if(ACTION_NAME==='exception_handler')echo 'active';?>">异常处理</a>
+            <?php endif;?>
+
             <?php if($my_permission['findUserMgr']<=0):?>
                 <a href="javascript:void(0);" onclick="layer.alert('无权查看')" class="<?php if(in_array(ACTION_NAME,['user_list','check_user','add_user','company_list','check_company','add_company','add_group','check_group','group_list','pg_list','check_pg','add_pg','permission_list','add_permission','check_permission']))echo 'active';?>">用户管理</a>
             <?php else:?>

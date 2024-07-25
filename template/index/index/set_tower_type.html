@@ -20,7 +20,7 @@
                     <input type="hidden" name="lineID" value="{$data.lineID|default=-1}" />
                     <div class="input-con">
                         <div class="row cl" style="margin-bottom:20px;">
-                            <label class="form-label col-xs-4 table_title">杆塔类型：</label>
+                            <label class="form-label col-xs-4 table_title">航线类型：</label>
                             <select class="select" size="1" name="towerShapeNameID" id="towerType">
                                 {foreach name='towerType' item='v'}
                                 <option value="{$v.towerShapeNameID}" <?php if($v['towerShapeNameID']==$data['towerShapeNameID'])echo ' selected';?>>{$v.towerShapeName}</option>

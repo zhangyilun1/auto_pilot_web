@@ -1,23 +1,26 @@
 {include file='public/header' /}
 <style>
-    .a-1{padding:30px;padding-top:0;}
-    input[type=checkbox]{width:20px;height:20px;}
-    #add_task_form .table-td td{padding-left:10px;}
-    #add_task_form a.btn{
+    .a-1 {
+        padding: 30px;
+        padding-top: 0;
+    }
 
+    input[type=checkbox] {
+        width: 20px;
+        height: 20px;
+    }
+
+    #add_task_form .table-td td {
+        padding-left: 10px;
+    }
+
+    #add_task_form a.btn {
         color: white;
         background: none !important;
         border: none !important;
-
     }
 
-    /* .grid-container {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    } */
-
-    .video-container{
+    .video-container {
         width: 100%;
         text-align: right;
     }
@@ -25,23 +28,22 @@
     .info-container {
         width: 100%;
         text-align: left;
-    } 
+    }
 
     .grid-item {
         width: 100%;
         height: 100%;
         border: 1px solid #ccc;
         display: flex;
-    } 
-    
-    .grid-item video{
+    }
+
+    .grid-item video {
         flex: 1;
         height: 100% !important;
     }
 
-
     .grid-item .info {
-        width: 40%; 
+        width: 40%;
         text-align: left;
         padding: 0% 10px;
     }
@@ -64,143 +66,123 @@
         background-color: #ccc;
         cursor: not-allowed;
     }
-
-
-
-
-    .two-columns td {
-        width: 100%; /* 每列宽度为表格的一半 */
-        box-sizing: border-box; /* 边框和内边距不增加元素宽度 */
-        border: 1px solid #ccc; /* 边框样式 */
-        padding: 10px; /* 单元格内边距 */
-    }
-
-/* 
-    .info{
-        color: white;
-    } */
 </style>
 
-<form action="{:url('index/play_video')}" data-back="{:url('index')}" id="play_video" style="display:block;width:100%;height:100%;" >
+<form action="{:url('index/play_video')}" data-back="{:url('index')}" id="play_video"
+    style="display:block;width:100%;height:100%;">
     <div class="a-2 a-2-1">
-        <!--            <img class="a-3" src="/static/index/img/top_bg.png" />-->
-        <div class="text-c a-4" style="">{$title}</div>
+        <div class="text-c a-4">{$title}</div>
         <div class="a-5 text-r top_btn">
             <div class="a-6-box">
-                <a href="{:url('index/index')}" >返回</a>
+                <a href="{:url('index/index')}">返回</a>
             </div>
         </div>
     </div>
     <div class="a-15">
         <div class="big-border" style="overflow-y:auto;">
-
-        <!-- <table class="grid-container"> -->
-
-        <table class="two_colums">
-            {foreach name='all_drones' item='v' key='k'}
-            <td class="grid-item" onclick="toggleSelect(this)">
+            <div class="grid-item">
                 <div class="info-container">
                     <table class="table_list table">
                         <tr class="text-c">
-                            <td style="width:60px !important;">SN码 :</td>
-                            <td style="width:60px !important;" class="snCode-column">{$v.snCode}</td>
-                            <td></td>
+                            <td style="width:60px !important;">SN码:</td>
+                            <td style="width:60px !important;" class="snCode-column">{$currentDrone.snCode}</td>
                         </tr>
                         <tr class="text-c">
-                            <td style="width:60px !important;">执行任务：</td>
-                            <td style="width:60px !important;" class="status-column">1</td>
-                            <td >
-                                <button id="video-button" class="play-button disabled">播放</button>
-                            </td>
+                            <td style="width:60px !important;">任务ID:</td>
+                            <td style="width:60px !important;" class="snCode-column">{$currentDrone.submissionID}</td>
                         </tr>
-                    </table> 
+                        <tr class="text-c">
+                            <td style="width:60px !important;">任务名称:</td>
+                            <td style="width:60px !important;" class="snCode-column">{$currentDrone.submissionName}</td>
+                        </tr>
+
+                        <!-- <tr class="text-c">
+                            <td style="width:60px !important;"> 
+                                <button id="video-button" class="play-button">播放</button>
+                            </td>
+                            <td style="width:60px !important;"> 
+                                <button id="stop-button" class="stop-button">停止</button>
+                            </td>
+                            
+                        </tr> -->
+
+
+                    </table>
+
                 </div>
                 <div class="video-container">
-                    <video id="video-player" class="video-js vjs-default-skin" style="width:100%;height:100%;" controls src="{$v.liveAddr}"></video>
+                    <video id="video-player" class="video-js vjs-default-skin" style="width:100%;height:100%;" controls
+                        src="{$currentDrone.liveAddr}"></video>
                 </div>
-            </td>
-            {/foreach}
-        </table>
-
-
-        
-
-
-
-
-
-            
-            <!-- <div class="grid-container">
-                {foreach name='all_drones' item='v' key='k'}
-                    <div class="grid-item" onclick="toggleSelect(this)" >
-                        <div class="video-container">
-                            <video id="video-player"  class="video-js vjs-default-skin" style="width:360px;height:240px;" controls src="{$v.liveAddr}"></video>
-                        </div>
-                           
-                        <div class="info-container">
-                            <div class="info">{$v.snCode}</div>
-                            <button id="video-button" class="play-button disabled">播放</button>
-                        </div>
-                    </div>
-                {/foreach}
-            </div> -->
+            </div>
         </div>
     </div>
 </form>
 
 {include file='public/footer' /}
 <script src="https://cdn.jsdelivr.net/npm/flv.js@1.5.0/dist/flv.min.js"></script>
+
+
+
+
 <script>
-    console.log("video play ");
-    var videoElement = document.getElementById('video-player');
-    var videoButtonElement = document.getElementById('video-button');
-    var videoSrc = "{$v.liveAddr}";
-    var flvPlayer = flvjs.createPlayer({
-        type: 'flv',
-        url: videoSrc,
-    });
-    console.log("videoElement",videoElement);
-    flvPlayer.attachMediaElement(videoElement);
-    
-    document.getElementById('video-button').addEventListener('click', function() {
-        //flvPlayer.unload();
-        event.preventDefault();
-        flvPlayer.load();
-        flvPlayer.play();
-    });
+    document.addEventListener('DOMContentLoaded', function () {
+        const videoPlayer = document.getElementById('video-player');
+        const videoSrc = videoPlayer.getAttribute('src');
+        let flvPlayer = null;
 
-   videoElement.addEventListener('dblclick', function() {
-        if (videoElement.requestFullscreen) {
-            videoElement.requestFullscreen();
-        } else if (videoElement.mozRequestFullScreen) { // 兼容 Firefox
-            videoElement.mozRequestFullScreen();
-        } else if (videoElement.webkitRequestFullscreen) { // 兼容 Chrome、Safari和Opera
-            videoElement.webkitRequestFullscreen();
-        } else if (videoElement.msRequestFullscreen) { // 兼容IE
-            videoElement.msRequestFullscreen();
+        // const currentDrone = {
+        //     snCode : "{$currentDrone.snCode}"
+        // }
+        // // Function to send signal
+        // function sendSignal() {
+        //     console.log("Signal sent at " + new Date().toLocaleTimeString());
+        //     $.ajax({
+        //         url: "{:url('send_play_video')}",
+        //         type: 'POST', 
+        //         dataType: 'json',
+        //         data:currentDrone
+
+
+        //     });
+        // }
+        // setInterval(sendSignal, 1000);
+
+
+
+        function loadFlvPlayer() {
+            if (flvjs.isSupported()) {
+                flvPlayer = flvjs.createPlayer({
+                    type: 'flv',
+                    url: videoSrc,
+                });
+                flvPlayer.attachMediaElement(videoPlayer);
+                flvPlayer.load();
+            } else {
+                console.log('FLV.js is not supported in this browser.');
+            }
         }
+
+        videoPlayer.addEventListener('play', function () {
+            if (!flvPlayer) {
+                console.log("play button")
+                loadFlvPlayer();
+                flvPlayer.play();
+            } else {
+                flvPlayer.play();
+            }
+        });
+
+        videoPlayer.addEventListener('pause', function () {
+            if (flvPlayer) {
+                console.log("pause button")
+                flvPlayer.unload();
+                flvPlayer = null;
+            }
+        });
+
+        // loadFlvPlayer();
     });
-
-    function toggleSelect(element) {
-        var allItems = document.querySelectorAll('.grid-item');
-        for (var i = 0; i < allItems.length; i++) {
-            allItems[i].classList.remove('selected');
-            var playButton = allItems[i].querySelector('.play-button');
-            playButton.disabled = true;
-            playButton.classList.add('disabled');
-        }
-        element.classList.add('selected');
-        var selectedPlayButton = element.querySelector('.play-button');
-        selectedPlayButton.disabled = false;
-        selectedPlayButton.classList.remove('disabled');
-    }
-
-
 </script>
 
 
-
-<!-- <script>
-    const socket = new WebSocket('ws://localhost:3000');
-
-</script> -->

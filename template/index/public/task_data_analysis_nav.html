@@ -1,0 +1,26 @@
+<ul class="left_nav_con" id="task-list">
+    {foreach name='tasks' item='v' key='k'}
+    <li id="task-{$v.submissionID}" class="<?php if ($currentTaskID == $v['submissionID']) echo 'active'; ?>">
+        <a href="javascript:void(0);" onclick="selectTask('<?php echo urlencode($v['submissionID']); ?>')">{$v.submissionName}</a>
+    </li>
+    {/foreach}
+</ul>
+
+
+<script>
+    function selectTask(taskID) {
+        
+        const taskItems = document.querySelectorAll('.left_nav_con li');
+        taskItems.forEach(item => {
+            item.classList.remove('active');
+        });
+
+        const selectedTask = document.getElementById('task-' + taskID);
+        selectedTask.classList.add('active');
+
+        // var scrollPosition = selectedTaskElement.offset().top - $(".list").offset().top;
+        //     $(".list").scrollTop(scrollPosition);
+
+        window.location.href = 'data_analysis?submissionID=' + taskID;
+    }
+</script>

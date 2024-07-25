@@ -1,0 +1,299 @@
+{include file='public/header' /}
+{include file='public/top_nav' /}
+<!-- 内容 -->
+<style>
+    .task_con .left_nav {
+        width: 22%;
+        float: left;
+        height: 100%;
+        display: block;
+        box-sizing: border-box;
+    }
+
+    .task-list-container {
+        padding: 10px;
+    }
+
+    .task-list-title {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    .task_con .search_form input {
+        outline: none;
+        background: url(/static/index/img/search.png) no-repeat left center;
+        background-size: auto 100%;
+        display: inline-block;
+        height: 35px;
+        line-height: 35px;
+        width: 100%;
+        color: white;
+        font-size: 20px;
+        box-sizing: border-box;
+        border-radius: 18px;
+    }
+
+    .task-list {
+        height: calc(100vh - 140px);
+        overflow-y: auto;
+    }
+
+    .left_nav_con li a {
+        display: block;
+        width: 100%;
+        height: 100%;
+        color: white;
+        font-size: 60%;
+    }
+
+    .thumbnail-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+
+    .thumbnail {
+        width: 23%;
+        margin: 1%;
+        box-sizing: border-box;
+        cursor: pointer;
+        border: 1% solid transparent;
+        transition: transform 0.3s, border-color 0.3s;
+        text-align: center;
+    }
+
+    .thumbnail img {
+        max-width: 100%;
+        height: auto;
+        transition: transform 0.3s;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .thumbnail-title {
+        margin-top: 5px;
+        font-size: 14px;
+        color: black;
+        font-weight: bold;
+
+        display: flex;
+        justify-content: space-between;
+    }
+
+
+
+    .task_con .right_content.add_con {
+        width: 76%;
+        float: right;
+        height: 85%;
+        overflow: hidden;
+        display: block;
+        background: url(/static/index/img/tableborder.png) no-repeat center;
+        background-size: 100% 100%;
+        padding: 3%;
+        box-sizing: border-box
+    }
+
+    .right_content .table_con {
+        height: calc(100% - 80px);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .button-container {
+        display: flex;
+        align-items: center;
+        text-align: center;
+    }
+
+    .thumbnail.selected {
+        border-color: red;
+        border-width: 10px;
+    }
+
+    .modal {
+        display: none;
+        /* 默认隐藏 */
+        position: fixed;
+        /* 固定定位 */
+        z-index: 1000;
+        /* 保证在最上层 */
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        /* 允许滚动 */
+        background-color: rgba(0, 0, 0, 0.9);
+        /* 半透明黑色背景 */
+        text-align: center;
+
+    }
+
+    /* 模态窗口内容 */
+    .modal-content {
+        margin: auto;
+        display: block;
+        max-width: 80%;
+        max-height: 80%;
+        transform: translate(-50%, -50%);
+        top: 50%;
+        left: 50%;
+        position: absolute;
+    }
+
+    /* 关闭按钮样式 */
+    .close {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #fff;
+        font-size: 40px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #bbb;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+
+
+<div id="image-modal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modal-img">
+</div>
+<div class="a-15" style="overflow: visible;">
+    <div class="task_con">
+        <div class="left_nav">
+            <div class="task-list-container">
+                <div class="title">任务列表</div>
+                <div class="search">
+                    <form action="" method="get" class="search_form" id="task-search">
+                        <input type="text" name="task_name" placeholder="输入任务名称" value="{$task_name}" />
+                    </form>
+                </div>
+                <div class="task-list" id="task-list">
+                    {include file='public/task_data_analysis_nav' /}
+                </div>
+            </div>
+        </div>
+
+        <div class="right_content add_con">
+            <div class="top_con mt-20">
+                <span class="l">
+                    <a class="add_btn" href="{:url('upload_defect')}">上报缺陷</a>
+                </span>
+                <span class="r">
+                    <div class="button-container">
+                        <a id="all-thumbnails-btn" class="add_btn">全部图片</a>
+                        <a id="defect-thumbnails-btn" class="add_btn">缺陷图片</a>
+                    </div>
+                </span>
+                <div style="clear:both;"></div>
+            </div>
+
+            <div class="table_con">
+                <div class="thumbnail-container" id="thumbnail-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{include file='public/footer' /}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const allThumbnailsBtn = document.getElementById('all-thumbnails-btn');
+        const defectThumbnailsBtn = document.getElementById('defect-thumbnails-btn');
+        const thumbnailContainer = document.getElementById('thumbnail-container');
+        let selectedThumbnails = [];
+
+        const modal = document.getElementById('image-modal');
+        const modalImg = document.getElementById('modal-img');
+        const span = document.getElementsByClassName('close')[0];/* 模态窗口的样式 */
+
+        allThumbnailsBtn.addEventListener('click', function () {
+            displayThumbnails('all');
+            allThumbnailsBtn.classList.add('layui-btn-normal');
+            allThumbnailsBtn.classList.remove('layui-btn-primary');
+            defectThumbnailsBtn.classList.add('layui-btn-primary');
+            defectThumbnailsBtn.classList.remove('layui-btn-normal');
+        });
+
+        defectThumbnailsBtn.addEventListener('click', function () {
+            displayThumbnails('defects');
+            defectThumbnailsBtn.classList.add('layui-btn-normal');
+            defectThumbnailsBtn.classList.remove('layui-btn-primary');
+            allThumbnailsBtn.classList.add('layui-btn-primary');
+            allThumbnailsBtn.classList.remove('layui-btn-normal');
+        });
+
+        function displayThumbnails(type) {
+
+            thumbnailContainer.innerHTML = '';
+
+            const allThumbnails = [{ src: '/static/index/picture_test/1.jpg', type: 'all', name: 'thumbnail2' },
+            { src: '/static/index/picture_test/2.jpg', type: 'defects', name: 'thumbnail1' },
+            { src: '/static/index/picture_test/3.jpg', type: 'all', name: 'thumbnail3' },
+            { src: '/static/index/picture_test/4.jpg', type: 'defects', name: 'thumbnail4' },
+            { src: '/static/index/picture_test/5.jpg', type: 'all', name: 'thumbnail5' },
+            { src: '/static/index/picture_test/5.jpg', type: 'all', name: 'thumbnail6' },
+            { src: '/static/index/picture_test/5.jpg', type: 'all', name: 'thumbnail7' },
+            { src: '/static/index/picture_test/5.jpg', type: 'defects', name: 'thumbnail8'},
+            { src: '/static/index/picture_test/5.jpg', type: 'all', name: 'thumbnail9' },
+            { src: '/static/index/picture_test/5.jpg', type: 'defects', name: 'thumbnail10'},
+            ];
+
+            const filteredThumbnails = allThumbnails.filter(thumbnail => {
+                return type === 'all' || thumbnail.type === 'defects';
+            });
+
+
+            filteredThumbnails.forEach((thumbnail,index)=> {
+                const thumbElement = document.createElement('div');
+                thumbElement.className = 'thumbnail';
+
+                thumbElement.innerHTML = `
+                    <img src="${thumbnail.src}" alt="缩略图" />
+                    
+                    <div class="thumbnail-title">
+                        <strong>${thumbnail.name}</strong>
+                        <input type="checkbox" class="thumbnail-checkbox" id="thumbnail-${index}" value="${thumbnail.src}">
+                    </div>
+                `;
+                thumbElement.querySelector('img').addEventListener('click', function () {
+                    modal.style.display = 'block';
+                    modalImg.src = thumbnail.src;
+                });
+
+                thumbElement.querySelector('.thumbnail-checkbox').addEventListener('change', function () {
+                    thumbElement.classList.toggle('selected');
+                    const src = thumbnail.src;
+                    if (this.checked) {
+                        selectedThumbnails.push(src);
+                    } else {
+                        selectedThumbnails = selectedThumbnails.filter(s => s !== src);
+                    }
+                });
+                thumbnailContainer.appendChild(thumbElement);
+            });
+        }
+
+        span.onclick = function () {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        displayThumbnails('all')
+    });
+
+
+</script>

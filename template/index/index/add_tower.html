@@ -22,13 +22,16 @@
             <a href="{:url('index/basic_list',['lineID'=>$lineID])}" >返回</a>
         </div>
         <div class="a-6-box">
+            <a class="add_btn" href="javascript:void(0);" onclick="setAlt()">高度修正</a>
+        </div>
+        <div class="a-6-box">
             <a class="add_btn" href="javascript:void(0);" onclick="submit_form(this)">完成</a>
         </div>
+        {if $data.towerID !== null}
        <div class="a-6-box">
-            {if $data.towerID !== null}
-                <a class="del_tower" href="javascript:void(0);" data-id="{$data.towerID}" id=delete>删除</a>
-            {/if}
+            <a class="del_tower" href="javascript:void(0);" data-id="{$data.towerID}" id=delete>删除</a>    
         </div>
+        {/if}
         <div style="clear:both;"></div>
     </div>
 </div>
@@ -136,7 +139,15 @@
                             </div>
                         </div>
                     </td>
-                    
+                    <td>
+                        <div class="row cl" style="margin-bottom:20px;">
+                            <label class="form-label col-xs-4 table_title">修正类型：</label>
+                            <div class="formControls col-xs-8">
+                                <input type="hidden" id="fixtypeHidden" value="{$data.fixedtype}">
+                                <input type="text" class="input-text" id="fixtypeDisplay" autocomplete="off" readonly>
+                            </div>
+                        </div>
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -223,6 +234,150 @@
 </div>
 </form>
 {include file='public/footer' /}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var fixtype = document.getElementById('fixtypeHidden').value;
+        console.log("fixtype:" , fixtype);
+        var fixtypeDisplay = document.getElementById('fixtypeDisplay');
+        if (fixtype === "0") {
+            fixtypeDisplay.value = '原始数据未修正';
+        } else if (fixtype === "1") {
+            fixtypeDisplay.value = 'm30修正';
+        } else if (fixtype === "2") {
+            fixtypeDisplay.value = 'M3修正';
+        }
+    });
+</script>
+
+<script>
+    function setAlt() {
+        layer.open({
+            type: 1,
+            title: '杆塔高度修正',
+            area: ['400px', '300px'],
+            content: `
+                <div style="padding: 20px;">
+                    <input type="hidden" name="towerID" value="{$data.towerID|default=-1}" />
+                    <input type="hidden" name="towerAlt" value="{$data.altitude|default=-1}" />
+                    <label for="heightInput">本机RTK高度值:</label>
+                    <input type="text" id="heightInput" class="layui-input" name="height">
+                    <div style="margin-top: 20px;">
+                        <label>选择本机类型:</label>
+                        <div>
+                            <input type="radio" id="m3Correction" name="importType" value="2" onclick="toggleRadio(this)">
+                            <label for="m3Correction">M3T</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="m30Correction" name="importType" value="1" onclick="toggleRadio(this)">
+                            <label for="m30Correction">M30T</label>
+                        </div>
+                
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button class="layui-btn layui-btn-primary" onclick="coverTower()">覆盖该杆塔</button>
+                        <button class="layui-btn" onclick="coverLine()">覆盖该线路</button>
+                    </div>
+                </div>`
+        });
+    }
+
+    function coverTower() {
+        var height = document.getElementById("heightInput").value;
+        var towerID = document.querySelector('input[name="towerID"]').value;
+        var towerAlt = document.querySelector('input[name="towerAlt"]').value;
+        var selectedType = document.querySelector('input[name="importType"]:checked').value;
+        layer.confirm('此操作仅修改该杆塔高度值',{
+            btn:['确认','取消']
+        },function(index){
+            sendCoverTowerRequest(towerID, height, towerAlt, selectedType);
+        });
+    }
+
+    function coverLine() {
+        var height = document.getElementById("heightInput").value;
+        var towerID = document.querySelector('input[name="towerID"]').value;
+        var towerAlt = document.querySelector('input[name="towerAlt"]').value;
+        var selectedType = document.querySelector('input[name="importType"]:checked').value;
+        layer.confirm('此操作仅修改该线路所有杆塔高度值',{
+            btn:['确认','取消']
+        },function(index){
+            sendCoverLineRequest(towerID, height, towerAlt, selectedType);
+        });
+    }
+
+
+
+    function sendCoverTowerRequest(towerID, height, towerAlt, selectedType) {
+        console.log('send data : ' , {towerID, height, towerAlt, selectedType} )
+        $.ajax({
+            url: "{:url('update_tower_alt')}", 
+            type: 'POST',
+            data: {
+                towerID: towerID,
+                height: height,
+                towerAlt: towerAlt,
+                selectedType:selectedType
+            },
+            success: function(response) {
+                if(response.success) {
+                    layer.msg("已修正该杆塔高度", {time:2000});
+                    layer.closeAll();
+                    location.reload();
+                } else {
+                    layer.msg("更新失败: " + response.message ,{time:2000});
+                }
+            
+            },
+            error: function() {
+                layer.msg("无效输入，请检查输入", {time:2000});
+               
+            }
+        });
+    }
+
+    function sendCoverLineRequest(towerID, height, towerAlt, selectedType){
+        console.log('send data : ' , {towerID, height, towerAlt, selectedType} )
+        $.ajax({
+            url: "{:url('update_line_alt')}", 
+            type: 'POST',
+            data: {
+                towerID: towerID,
+                height: height,
+                towerAlt: towerAlt,
+                selectedType: selectedType
+            },
+            success: function(response) {
+                if(response.success) {
+                    layer.msg("已修正该线路所有杆塔高度", {time:2000});
+                    layer.closeAll();
+                    location.reload();
+                } else {
+                    layer.msg("更新失败: " + response.message, {time:2000});
+                }
+            },
+            error: function() {
+                layer.msg("无效输入，请检查输入", {time:2000});
+            }
+        });
+
+    }
+</script>
+
+<script>
+    let lastSelectedRadio = null;
+
+    function toggleRadio(radio) {
+        if (lastSelectedRadio === radio) {
+            radio.checked = false;
+            lastSelectedRadio = null;
+            console.log("lastSelectedRadio1 :" ,lastSelectedRadio);
+        } else {
+            lastSelectedRadio = radio;
+            console.log("lastSelectedRadio2 :" ,lastSelectedRadio);
+        }
+    }
+</script>
 
 
 <script>

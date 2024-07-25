@@ -1,6 +1,9 @@
 <ul class="left_nav_con">
+    <li class="<?php if (in_array(ACTION_NAME, ['county_company_list', 'add_county_company','check_county_company'])) echo 'active'; ?>">
+        <a href="{:url('county_company_list')}">上级单位列表</a>
+    </li>
     <li class="<?php if (in_array(ACTION_NAME, ['company_list', 'add_company','check_company'])) echo 'active'; ?>">
-        <a href="{:url('company_list')}">单位列表</a>
+        <a href="{:url('company_list')}">子单位列表</a>
     </li>
     <li class="<?php if (in_array(ACTION_NAME, ['group_list', 'add_group','check_group'])) echo 'active'; ?>">
         <a href="{:url('group_list')}">班组列表</a>

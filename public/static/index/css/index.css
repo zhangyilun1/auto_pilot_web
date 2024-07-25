@@ -42,7 +42,7 @@ a:hover {
 
 @media (max-width:1300px) {
 	.a-1 {
-		padding: 20px;
+		padding: 1%;
 	}
 }
 
@@ -170,16 +170,15 @@ a:hover {
 	line-height: 75px;
 	text-align: center;
 	font-size: 30px;
+	margin: 0 30px;
 }
 
 .top_menu a:hover {
-	color: white;
+	color:white;
 	text-decoration: none;
 }
 
-.top_menu a:nth-child(2n+1) {
-	margin-right: 40px;
-}
+
 
 .top_menu a.active {
 	background-image: url(../img/button_bg_on.png)
@@ -418,7 +417,7 @@ table th {
 	color: white;
 	padding-left: 75px;
 	font-size: 20px;
-	width: 100%;
+	width: 90%;
 	margin-left: 20px;
 	box-sizing: border-box;
 	border-radius: 18px;
@@ -435,6 +434,11 @@ table th {
 	line-height: 30px;
 	margin-top: 3px;
 }
+
+
+
+
+
 
 .add_task i {
 	font-size: 26px;

@@ -123,7 +123,7 @@ class Admins extends Base{
             if(($act=='add' || $act=='edit') ){
 
                 if(empty($data['username'])){
-                    ajax_return(-1,'请填写登录帐号');
+                    ajax_return(-1,'请填写登录账号');
                 }
 
                 if(empty($data['group_id'])){

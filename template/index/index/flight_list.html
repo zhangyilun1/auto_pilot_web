@@ -62,19 +62,14 @@
                                 <a class="btn" href="{:url('check_flight',['id'=>$v['towerShapeNameID']])}">查看</a>
                             <?php endif;?>
 
-                            <?php if($my_permission['modifyData']<=0):?>
-                            <?php else:?>
+                            <?php if(($permission['permissionGroupID']== 0) || ($v['createManID'] == $permission['userID'])) :?>
                                 <a class="btn" href="{:url('add_flight',['id'=>$v['towerShapeNameID']])}">修改</a>
                             <?php endif;?>
 
-                            <?php if($my_permission['deleteData']<=0):?>
-                            <?php else:?>
-                                <?php if(!in_array($v['towerShapeNameID'],[1,2,3])):?>
-                                    <a class="btn" onclick="del_tr(this,{$v.towerShapeNameID})">删除</a>
-                                <?php else:?>
-                                    <a class="btn">　　</a>
-                                <?php endif;?>
+                            <?php if(($permission['permissionGroupID']== 0) || ($v['createManID'] == $permission['userID'])) :?>
+                                <a class="btn" onclick="del_tr(this,{$v.towerShapeNameID})">删除</a>
                             <?php endif;?>
+
                         </td>
                     </tr>
                     {/foreach}

@@ -50,8 +50,7 @@
                     <a class="add_btn" href="{:url('flight_list')}">返回</a>
                 </span>
                 <span class="r">
-                     <?php if($my_permission['modifyData']<=0):?>
-                     <?php else:?>
+                    <?php if(($permission['permissionGroupID']== 0) || ($data['createManID'] == $permission['userID'])) :?>
                          <a class="add_btn" href="{:url('add_flight',['id'=>$data['towerShapeNameID']])}">修改</a>
                      <?php endif;?>
                 </span>

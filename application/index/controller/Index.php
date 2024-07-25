@@ -3,6 +3,7 @@
 namespace app\index\controller;
 
 use app\common\model\Message;
+use Mpdf\Tag\Select;
 use think\Db;
 use think\facade\Cookie;
 use think\facade\Log;
@@ -20,6 +21,59 @@ class Index extends Base
     public function __construct()
     {
         parent::__construct();
+    }
+
+    public function getHeightDifference(){
+        if(IS_AJAX && IS_POST){
+            $datas=input('post.');
+            Log::info("getHeightDifference : " . var_export($datas,true));
+
+            $submission_id_associated_drone =  Db::table("submission_mission")
+                                        ->whereIn('submissionID',$datas)
+                                        ->whereNotNull('sncode')
+                                        ->column('submissionID');
+            Log::info("submission_id_associated_drone : " . var_export($submission_id_associated_drone, true));
+
+            $items = Db::table("drone_submission_homepoint")
+                    ->whereIn('submissionID',$submission_id_associated_drone)
+                    ->whereNotNull('sncode')
+                    ->select();
+
+            Log::info("items : " . var_export($items,true));
+            foreach($items as $item){
+                $firstTowerAlt = Db::view("submission_tower_missiontype")
+                    ->where('submissionID', $item['submissionID'])
+                    ->where('towernumber', '1')
+                    ->find();
+
+                Log::info("firstTowerAlt: " . var_export($firstTowerAlt, true));
+
+                if($firstTowerAlt == null){
+                    $submissionName = Db::view("submission_mission")
+                        ->where('submissionID', $item['submissionID'])
+                        ->value('submissionName');
+                } else {
+                    $submissionName = $firstTowerAlt['submissionName'];
+                    $heightDifference = $item['homePoint'] - $firstTowerAlt['altitude'];
+                    $heightDifference = number_format($heightDifference, 1);
+                }
+
+                Log::info("submissionName : " . var_export($submissionName, true));
+
+                Log::info("firstTowerAlt altitude : " . var_export($firstTowerAlt['altitude'], true));
+
+                Log::info("firstTowerAlt submissionName: " . var_export($firstTowerAlt['submissionName'], true));
+
+                $result[] = [
+                    "heightDifference" => $heightDifference,
+                    "snCode" => $item['snCode'],
+                    "taskName" => $submissionName,
+                    "taskID" => $item['submissionID'],
+                ];
+            }
+            Log::info("result in getHeightDiff : " . var_export($result,true));
+            return json(['success' => true, 'result' =>  $result]);
+        }
     }
 
 
@@ -75,6 +129,8 @@ class Index extends Base
                     "data" =>  $all_data,
                 );
 
+                
+
                 $snCode = $combinedData['data']['snCode'];
                 Log::info("snCode: " .  $snCode);
                 $combinedData = json_encode($combinedData, JSON_UNESCAPED_SLASHES);
@@ -82,8 +138,19 @@ class Index extends Base
                 Log::info("combinedData['data']['snCode'] : " . var_export($combinedData['data']['snCode'],true) );
                 if($snCode!== null){
                     Log::info("send to socket_connect " );
-                    $socket = new tcp();
-                    $socket->socketSend($combinedData);
+
+                    $missionType = Db::table('submissionList')
+                        ->where('submissionID',$data)
+                        ->value('missionID');
+
+                    if($missionType === '4' || $missionType === '5'){
+                        $socket = new tcp();
+                        $socket->socketSend($combinedData);
+                    }
+
+                   
+
+
                     $time = date('Y-m-d H:i:s');
                     Log::info("time: " . $time );
                     $result = Db::table('submissionList')
@@ -397,23 +464,32 @@ class Index extends Base
 
            // $jsonFilePath = './loc_file/'. $task['submissionID'] .'.json';
             //'./Desktop/console_socket/console_socket'
-            $jsonFilePath = "C:/Users/Administrator/Desktop/txzf_server/route/" . $task['submissionID'];
-            //$jsonFilePath = '../../../console_socket/console_socket/x64/Debug/route/'. $task['submissionID'];
-            Log::info("jsonFilePath: " . var_export($jsonFilePath, true));
-            if(file_exists( $jsonFilePath)){
-                Log::info("file_exists ");
-                $jsonContent = json_decode(file_get_contents($jsonFilePath),true);
-                Log::info("jsonContent: " . var_export($jsonContent, true));
-                if($jsonContent){
-                    $combinedData[] = [
-                        'submissionID'=>$task['submissionID'],
-                        'finishedTime'=>$task['planDate'],
-                        'excuteTime'=>$task['excuteDate'],
-                        'towerDetail' => $towerDetail,
-                        'jsonInfor' => $jsonContent,
-                    ];
-                }
-            }      
+
+            $combinedData = [
+                'submissionID'=>$task['submissionID'],
+                'finishedTime'=>$task['planDate'],
+                'excuteTime'=>$task['excuteDate'],
+                'towerDetail' => $towerDetail,
+                // 'jsonInfor' => $jsonContent,
+            ];
+
+            // $jsonFilePath = "C:/Users/123/Desktop/origin_php/myphp/public/ddd/" . $task['submissionID']. '.json';
+            // //$jsonFilePath = '../../../console_socket/console_socket/x64/Debug/route/'. $task['submissionID'];
+            // Log::info("jsonFilePath: " . var_export($jsonFilePath, true));
+            // if(file_exists( $jsonFilePath)){
+            //     Log::info("file_exists " . var_export(file_get_contents($jsonFilePath),true));
+            //     $jsonContent = json_decode(file_get_contents($jsonFilePath),true);
+            //     // Log::info("jsonContent: " . var_export($jsonContent, true));
+            //     // if($jsonContent){
+            //         $combinedData[] = [
+            //             'submissionID'=>$task['submissionID'],
+            //             'finishedTime'=>$task['planDate'],
+            //             'excuteTime'=>$task['excuteDate'],
+            //             'towerDetail' => $towerDetail,
+            //             // 'jsonInfor' => $jsonContent,
+            //         ];
+            //     //}
+            // }      
             Log::info("combinedData : " . var_export($combinedData, true));
             return json($combinedData);
         }
@@ -486,6 +562,31 @@ class Index extends Base
             ->where($task_where)
             ->order('submissionID desc')
             ->select();
+        }else if($permission['permissionGroupID'] == 3){
+            Log::info("=== county admin  ==="); 
+
+            $countyID = Db::table('companyList')
+                ->where("companyID",$companyID)
+                ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+            $tasks = Db::view('submission_mission')
+                ->join('UserList', 'submission_mission.createManID = UserList.userID')
+                ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+                ->join('companyList', 'GroupList.companyID = companyList.companyID')
+                ->whereIn('companyList.companyID',$companyArray)
+                ->where($task_where)
+                ->order('submissionID desc')
+                ->select();
+
+            Log::info("tasks : " . var_export( $tasks,true));
+        
         }else if($permission['permissionGroupID'] == 1){
             Log::info("=== company admin  ==="); 
             $tasks = Db::view('submission_mission')
@@ -522,8 +623,6 @@ class Index extends Base
         $submissionID=input('submissionID',-1);
         Log::info("submissionID change : " . var_export($submissionID,true));
 
-
-
         if($submissionID>=0){
             $tower_ids=Db::table('submissiontowerList')
                 ->where('submissionID',$submissionID)
@@ -550,9 +649,10 @@ class Index extends Base
                 ->select();
         }
 
-
+        
+        Log::info("permission['playLive']: " . var_export($permission['playLive'],true));  
         //P($tasks);
-        $this->assign(compact('tasks','task_name','towers','submissionID','related_drones'));
+        $this->assign(compact('tasks','task_name','towers','submissionID','related_drones','permission'));
 
         $drone_sncode=input('snCode','');
 
@@ -569,6 +669,13 @@ class Index extends Base
                 ->where($drone_where)
                 ->order('droneID desc')
                 ->select();
+        }else if($permission['permissionGroupID'] == 3){
+            $all_drones = Db::table('drone')
+            ->whereIn('companyID',$companyArray)
+            ->where('whetherOnline', 1)
+            ->where($drone_where)
+            ->order('droneID desc')
+            ->select();
         }else {
             Log::info("=== not superadmin ==="); 
             $all_drones = Db::table('drone')
@@ -666,6 +773,7 @@ class Index extends Base
                     ->where('towerID','in',$tower_ids)
                     ->order('towerNumber asc')
                     ->select();
+                
             }
 
             Log::info("towers in index : " . var_export($towers,true));
@@ -793,6 +901,27 @@ class Index extends Base
                     ->order('droneID desc')
                     ->select();
 
+            }else if ($permission['permissionGroupID'] == 3){
+                $countyID = Db::table('companyList')
+                ->where("companyID",$permission['companyID'])
+                ->value('countyCompanyID');
+
+                Log::info("countyID : " . var_export( $countyID,true));   
+
+                $companyArray=Db::table('companyList')
+                    ->where("countyCompanyID", $countyID)
+                    ->column('companyID');
+                Log::info("companyArray : " . var_export( $companyArray,true));
+
+                $all_drones = Db::table('drone')
+                    ->whereIn('companyID', $companyArray)
+                    ->where('whetherOnline', 1)
+                    ->where($drone_where)
+                    ->order('droneID desc')
+                    ->select();
+                Log::info("all_drones : " . var_export( $all_drones,true));
+
+
             }else {
                 Log::info("aaaa"); 
                 $all_drones = Db::table('drone')
@@ -800,9 +929,7 @@ class Index extends Base
                     ->where('whetherOnline', 1)
                     ->where($drone_where)
                     ->order('droneID desc')
-                    ->select();
-
-                    
+                    ->select();     
             }
 
             $task_name=input('task_name','');
@@ -826,7 +953,19 @@ class Index extends Base
                 ->order('submissionID desc')
                 ->select();
     
-            }else if($permission['permissionGroupID'] == 1){
+            }else if($permission['permissionGroupID'] == 3){
+
+                $tasks = Db::view('submission_mission')
+                    ->join('UserList', 'submission_mission.createManID = UserList.userID')
+                    ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+                    ->join('companyList', 'GroupList.companyID = companyList.companyID')
+                    ->whereIn('companyList.companyID', $companyArray)
+                    ->where($task_where)
+                    ->order('submissionID desc')
+                    ->select();
+                Log::info("tasks : " . var_export( $tasks,true));
+            }
+            else if($permission['permissionGroupID'] == 1){
                 Log::info("=== company admin  ==="); 
                 $tasks = Db::view('submission_mission')
                     ->join('UserList', 'submission_mission.createManID = UserList.userID')
@@ -846,12 +985,6 @@ class Index extends Base
                 ->order('submissionID desc')
                 ->select();
             }
-
-
-
-
-
-
             ajax_return(1,"success", ['all_drones' => $all_drones, 'tasks' => $tasks]);
 
         }
@@ -865,11 +998,23 @@ class Index extends Base
             Log::info("data in ajax : " . var_export($datas,true));
             $controller =  "index";
             foreach($datas as $data) {
-                $snCode = Db::view('submission_mission')
-                ->where('submissionID',$data['submissionID'])
-                ->value('snCode');
-                Log::info("++++ data submissionID ： " . var_export($data['submissionID'],true));
+
+                $taskInfo = Db::view('submission_mission')
+                ->where('submissionID', $data['submissionID'])
+                ->find();
+
+                $snCode = $taskInfo['snCode'];
+                $submissionType = $taskInfo['missionID'];
+                $policyID = $taskInfo['policyID'];
+
+                // $snCode = Db::view('submission_mission')
+                // ->where('submissionID',$data['submissionID'])
+                // ->value('snCode');
+                // Log::info("++++ data submissionID ： " . var_export($data['submissionID'],true));
+
+                Log::info("====== task Info : " . var_export($taskInfo,true));
                 Log::info("+++++++++++++++++++snCode ： " . var_export($snCode,true));
+
                 $networkType = Db::table('networkTypes')
                 ->where('isValid',1)
                 ->value('networkType');
@@ -877,9 +1022,9 @@ class Index extends Base
                 $timestamp = time();
 
 
-                $submissionType = Db::view('submission_mission')
-                ->where('submissionID',$data['submissionID'])
-                ->value('missionID');
+                // $submissionType = Db::view('submission_mission')
+                // ->where('submissionID',$data['submissionID'])
+                // ->value('missionID');
                 
                 //chinese can't display
                 Log::info("networkType: " . $networkType);
@@ -892,36 +1037,22 @@ class Index extends Base
                 $imgheight = 1;
                 // $flight = $data['flight'];
 
-                $policyID = Db::view('submission_mission')
-                ->where('submissionID',$data['submissionID'])
-                ->value('policyID');
+                // $policyID = Db::view('submission_mission')
+                // ->where('submissionID',$data['submissionID'])
+                // ->value('policyID');
                 Log::info("policyID : " . $policyID);
                 if($policyID == 0){ 
                     //return from origin line  
                     $return = 255;
                 } else if ($policyID == 1){
                     //return need altitude
-                    $returnAltitude = Db::view('submission_mission')
-                        ->where('submissionID',$data['submissionID'])
-                        ->value('returnAltitude');
-                    $return = (double)$returnAltitude;
+                    $returnAltitude = (double)$taskInfo['returnAltitude'];
                 }else if($policyID == 2){
                     //return from other point  
                     $return = 254;
-                    $landingLongtitude = Db::view('submissionList')
-                    ->where('submissionID',$data['submissionID'])
-                    ->value('landingLongtitude');
-                    $landingLongtitude = (double)$landingLongtitude;
-
-                    $landingLatitude = Db::view('submissionList')
-                    ->where('submissionID',$data['submissionID'])
-                    ->value('landingLatitude');
-                    $landingLatitude = (double)$landingLatitude;
-
-                    $landingAltitude = Db::view('submissionList')
-                    ->where('submissionID',$data['submissionID'])
-                    ->value('landingAltitude');
-                    $landingAltitude = (double)$landingAltitude;
+                    $landingLongtitude = (double)$taskInfo['landingLongtitude'];
+                    $landingLatitude = (double)$taskInfo['landingLatitude'];
+                    $landingAltitude = (double)$taskInfo['landingAltitude'];
                 }
                 Log::info("return : " . $return);
 
@@ -936,9 +1067,11 @@ class Index extends Base
                     "imgwidth" => $imgwidth,
                     "imgheight" => $imgheight,
                     "return" => $return,
-                    "landingLongtitude" => $landingLongtitude,
-                    "landingLatitude" =>  $landingLatitude,
-                    "landingAltitude" => $landingAltitude,
+                    "landingLongtitude" => isset($landingLongtitude)?$landingLongtitude:null,
+                    "landingLatitude" =>  isset($landingLatitude)?$landingLatitude:null,
+                    "landingAltitude" => isset($landingAltitude)?$landingAltitude:null,
+                    "continueFlightTypeID" => $taskInfo['continueFlightTypeID'],
+                    "continueFlightHeight" => $taskInfo['continueFlightHeight'],
                 );
 
                 // $all_data = json_encode($all_data,JSON_UNESCAPED_SLASHES);
@@ -956,10 +1089,35 @@ class Index extends Base
                 $combinedData = json_encode($combinedData, JSON_UNESCAPED_SLASHES);
                 Log::info("combinedData: " . var_export($combinedData,true));
                 if($snCode !== null){
-                    Log::info("send to socket_connect " );
+                    Log::info("send to socket_connect " . var_export($submissionType,true));
+                    if($submissionType === '4'){
+                        $droneType = Db::table('drone')
+                        ->where('snCode',$snCode)
+                        ->value('droneType');
+
+                        $towerFixedType = Db::view('submission_tower_missiontype')
+                            ->where('submissionID', $data['submissionID'])
+                            ->column('fixedtype');
+                        Log::info("droneType: " . var_export($droneType,true));
+                        Log::info("towerFixedType: " . var_export($towerFixedType,true));
+
+                        if($droneType === "M3T"){
+                            if(in_array("1",$towerFixedType)){
+                                Log::info("tower'; list not fixed");
+                                return json(['success' => false, 'message' => '根据机型修正杆塔高度后可上传任务']);
+                            }
+                        }else if($droneType === "M30T"){
+                            if(in_array("2",$towerFixedType)){
+                                return json(['success' => false, 'message' => '根据机型修正杆塔高度后可上传任务']);
+                            }
+                        }
+                    }
+                    
+
                     $socket = new tcp();
-                    Log::info("combinedData: " . var_export($combinedData,true));
+                    // Log::info("combinedData: " . var_export($combinedData,true));
                     $socket->socketSend($combinedData);
+                    return json(['success' => true]);
                 }else{
                     Log::info("sncode is null");
                 }
@@ -971,6 +1129,7 @@ class Index extends Base
             return "good";
         }
     }
+
     public function del_task(){
         if(IS_AJAX && IS_POST){
             if($this->my_permission['deleteTask']<=0){
@@ -1480,6 +1639,11 @@ class Index extends Base
         $missions=Db::table('missionList')
             ->order('missionID asc')
             ->select();
+        
+        $continueFlightTypes = Db::table('continueFlightTypeList')
+            ->order('continueFlightTypeID asc')
+            ->select();
+
 
         // 查询 networkTypes 表中的记录
             $networkTypes = Db::table('networkTypes')
@@ -1535,6 +1699,25 @@ class Index extends Base
             $lines=Db::table('lineList')
                 ->order('lineID desc')
                 ->select();
+        }else if ($permission['permissionGroupID'] == 3){
+            $countyID = Db::view('companyList')
+            ->where("companyID",$companyID)
+            ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+            $lines = Db::table('lineList')
+                ->join('UserList', 'lineList.createManID = UserList.userID')
+                ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+                ->join('companyList', 'GroupList.companyID = companyList.companyID')
+                ->whereIn('companyList.companyID', $companyArray)
+                ->select();
+
         }else{
             Log::info("=== company admin  ==="); 
             $lines = Db::table('lineList')
@@ -1585,7 +1768,7 @@ class Index extends Base
         
         Log::info("towers in add task aaaaa : " . var_export($towers, true)); 
         Log::info("tower status  : " . var_export($towerStatus, true)); 
-        $this->assign(compact('data','permission','towerStatus','title','shapes','missions','lines','towers','towers1','all_towers','line_ids','tower_ids','policys','snCode','returnAltitude','RTK','filteredMissionList','waypoints','photoType'));
+        $this->assign(compact('data','continueFlightTypes','permission','towerStatus','title','shapes','missions','lines','towers','towers1','all_towers','line_ids','tower_ids','policys','snCode','returnAltitude','RTK','filteredMissionList','waypoints','photoType'));
         return $this->fetch();
     }
 
@@ -1706,7 +1889,7 @@ class Index extends Base
         if(IS_POST){
             $data = input();
             if (empty($data['username'])) {
-                ajax_return(-1, '请输入帐号');
+                ajax_return(-1, '请输入账号');
             }
             if (empty($data['password'])) {
                 ajax_return(-1, '请输入密码');
@@ -1715,7 +1898,7 @@ class Index extends Base
                 ->where(['username'=>$data['username'],'passWord'=>$data['password']])
                 ->find();
             if(empty($has_user)){
-                ajax_return(-1,'帐号或密码错误');
+                ajax_return(-1,'账号或密码错误');
             }
             session('member_id',$has_user['userID']);
             session('member',$has_user);
@@ -1755,6 +1938,25 @@ class Index extends Base
                 ->where($line_where)
                 ->order('lineID desc')
                 ->select();
+        } else if ($permission['permissionGroupID'] == 3){
+            $countyID = Db::view('companyList')
+            ->where("companyID",$companyID)
+            ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+            $lines = Db::table('lineList')
+            ->join('UserList', 'lineList.createManID = UserList.userID')
+            ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+            ->join('companyList', 'GroupList.companyID = companyList.companyID')
+            ->whereIn('companyList.companyID', $companyArray)
+            ->order('lineID desc')
+            ->select();
         }else{
             Log::info("=== company admin  ==="); 
             $lines = Db::table('lineList')
@@ -1762,6 +1964,7 @@ class Index extends Base
                 ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
                 ->join('companyList', 'GroupList.companyID = companyList.companyID')
                 ->where('companyList.companyID', $companyID)
+                ->order('lineID desc')
                 ->select();
             Log::info("lines: " . var_export($lines, true)); 
         }  
@@ -2100,6 +2303,36 @@ class Index extends Base
             $shapes=Db::table('towerShapeList')
                 ->order('towerShapeNameID asc')
                 ->select();
+        } else if ($permission['permissionGroupID'] == 3){
+            $countyID = Db::view('companyList')
+            ->where("companyID",$companyID)
+            ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+            $query = Db::table('towerShapeList')
+            ->join('UserList', 'towerShapeList.createManID = UserList.userID')
+            ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+            ->join('companyList', 'GroupList.companyID = companyList.companyID')
+            ->whereIn('companyList.companyID', $companyID)
+            ->column('towerShapeNameID');
+
+            $shapes1 =  Db::table('towerShapeList')
+                ->where('createManID', 0)
+                ->select();
+            Log::info("shapes1 : " .var_export($shapes1,true)); 
+            $shapes2 =  Db::table('towerShapeList')
+                ->whereIN('towerShapeNameID', $query)
+                ->select();
+            Log::info("shapes2 : " .var_export($shapes2,true));
+            $shapes = array_merge($shapes1,$shapes2);
+            Log::info("shapes : " .var_export($shapes,true));
+
         }else{
             Log::info("company admin and staff"); 
             $query = Db::table('towerShapeList')
@@ -2157,9 +2390,100 @@ class Index extends Base
 
         // 将 $po_arr1 分配给视图  
         $this->assign(compact('po_arr1','po_arr'));
-        $this->assign(compact('data','title','lines','shapes','lineID'));
+        $this->assign(compact('data','title','lines','shapes','lineID','permission'));
         return $this->fetch();
     }
+    public function update_line_alt(){
+        Log::info(" ==== update_line_alt ==== ");
+        if(IS_AJAX && IS_POST){
+            Log::info("Post data: " .var_export($_POST,true));
+            $towerID = $_POST['towerID'];
+            $height = $_POST['height'];
+            $towerAlt = $_POST['towerAlt'];
+            $selectedType = $_POST['selectedType'];
+            Log::info("towerID: " . var_export($towerID, true));
+            Log::info("height: " . var_export($height, true));
+            Log::info("towerAlt: " . var_export($towerAlt, true));
+            Log::info("selectedType: " . var_export($selectedType, true));
+            if(isset($towerID) && isset($height)&&($height !== '')){
+
+                $diff = $height - $towerAlt;
+
+                $lineID = Db::table('towerList')
+                    ->where('towerID',$towerID)
+                    ->value('lineID');
+                Log::info("lineID: " . var_export($lineID, true));
+
+                    // 通过lineID获取需要更新的记录
+                $towers = Db::table('towerList')->where('lineID', $lineID)->select();
+                $updateCount = 0;
+        
+                    // 遍历所有符合条件的记录并更新
+                foreach ($towers as $tower) {
+                    $towerAlt = $tower['altitude'];
+                    $newAlt = $towerAlt + $diff;
+        
+                    $res = Db::table('towerList')
+                        ->where('towerID', $tower['towerID'])
+                        ->update(['altitude' => $newAlt,
+                                'fixedtype' => $selectedType]);
+        
+                    if ($res) {
+                        $updateCount++;
+                    }
+                }
+        
+                if ($updateCount > 0) {
+                    Log::info("更新成功, 更新记录数: " . $updateCount);
+                    return json(['success' => true, 'message' => '高度更新成功', 'updateCount' => $updateCount]);
+                } else {
+                    Log::info("没有记录被更新");
+                    return json(['success' => false, 'message' => '没有记录被更新']);
+                }
+
+            } else {
+                Log::info("无效的输入");
+                return json(['success' => false, 'message' => '无效的输入']);
+            }
+
+
+        }
+    }
+
+
+
+    public function update_tower_alt(){
+        Log::info(" ==== update_tower_alt ==== ");
+        if(IS_AJAX && IS_POST){
+            Log::info("Post data: " .var_export($_POST,true));
+            $towerID = $_POST['towerID'];
+            $height = $_POST['height'];
+            $towerAlt = $_POST['towerAlt'];
+            $selectedType = $_POST['selectedType'];
+            Log::info("towerID: " . var_export($towerID, true));
+            Log::info("height: " . var_export($height, true));
+            Log::info("towerAlt: " . var_export($towerAlt, true));
+            Log::info("selectedType: " . var_export($selectedType, true));
+            if(isset($towerID) && isset($height) && ($height !== '')){
+                $diff = $height - $towerAlt;
+                Log::info("diff: " . var_export($diff, true));
+                $res = Db::table('towerList')
+                    ->where('towerID',$towerID)
+                    ->update(['altitude' => ($towerAlt + $diff),
+                            'fixedtype' => $selectedType]);
+                if($res){
+                    return json(['success' => true, 'message' => '高度更新成功']);
+                }else {
+                    return json(['success' => false, 'message' => '高度更新失败']);
+                }
+
+            }else{
+                return json(['success' => false, 'message' => '无效输入']);
+            }
+        }
+    }
+
+
 
     public function del_tower(){
         if(IS_AJAX && IS_POST){
@@ -2181,9 +2505,21 @@ class Index extends Base
                 ->delete();
             Log::info("res : " .var_export($res,true));
             if($res!==false){
-                ajax_return(1,'已删除');
+                $updateTowerNumber = Db::table('towerList')
+                                    ->where('lineID', $has_data['lineID'])
+                                    ->where('towerNumber','>', $has_data['towerNumber'])
+                                    ->setDec('towerNumber',1);
+                if($updateTowerNumber){
+                    ajax_return(1,'已删除');
+                }else{
+                    ajax_return(-1,'删除失败');
+                }
+            }else{
+                ajax_return(-1,'删除失败');
             }
-            ajax_return(-1,'删除失败');
+
+
+           
         }
     }
 
@@ -2201,7 +2537,22 @@ class Index extends Base
                 Log::info("name : " . var_export($file->getInfo('name'),true));
                 $savePath = '.' . DIRECTORY_SEPARATOR .'importRoute' .DIRECTORY_SEPARATOR;
                 $saveName = 'importRoute_'.date('ymd_His').'.'.pathinfo($file->getInfo('name'), PATHINFO_EXTENSION);
-                $result = $file->validate(['size'=>111590560,'ext'=>'kml,KML,json,JSON,zip'])->move($savePath, $saveName);
+
+                $extension = strtolower(pathinfo($file->getInfo('name'), PATHINFO_EXTENSION));
+                if($extension === 'kmz'){
+                    Log::info("extension :" .var_export($extension,true));
+                    $saveName = 'loc_txt_'.date('ymd_His').'.'.'zip';
+                    Log::info("saveName :" .var_export($saveName,true));
+                    $kmlPath = $savePath . $saveName;
+                    $result = $file->validate(['ext'=>'kml,KML,kmz,KMZ'])->move($savePath, $saveName);
+                    Log::info("result==== :" .var_export($kmlPath,true));               
+                }else{
+                    $result = $file->validate(['ext'=>'kml,KML,json,JSON,zip,kmz,KMZ'])->move($savePath, $saveName);
+                }
+
+
+
+              
                 if($result){
                     $extension = strtolower(pathinfo($file->getInfo('name'), PATHINFO_EXTENSION));
                     Log::info("extension: " .$extension);
@@ -2211,7 +2562,7 @@ class Index extends Base
                     } elseif ($extension == 'json') {
                         $jsonFilePath=$savePath.$saveName;
                         $this->parseJSON($jsonFilePath, $fileName, $saveName);
-                    } elseif($extension == 'zip'){
+                    } elseif($extension == 'zip' || $extension == 'kmz'){
                         $zipFilePath=$savePath.$saveName;
                         $this->parseZip($zipFilePath, $fileName, $saveName);
                     }
@@ -2242,8 +2593,6 @@ class Index extends Base
             $zip->close();
             $this->recursiveDirTraversal($unzipPath1, $taskName);
         }
-
-        Db::commit();
     }
 
     function recursiveDirTraversal($unzipPath1,$taskName){
@@ -2480,7 +2829,7 @@ class Index extends Base
         $namespace = $root->getAttribute('xmlns:wpml');
         Log::info(" namespace: " . $namespace);
 
-        $wpmlNamespace =  $namespace;
+        $wpmlNamespace = $namespace;
         $placemarks = $doc->getElementsByTagName('Placemark');
         $placemarkCount = $placemarks->length;
         Log::info(" placemarkCount : ".$placemarkCount);
@@ -2737,8 +3086,6 @@ class Index extends Base
                     $lat = $content['lat'];
                     $alt = $content['alt'];
 
-
-
                     ajax_return(1,'识别成功',['lon'=>$lon,'lat'=>$lat,'alt'=>$alt]);
                     @unlink($savePath.$saveName);
                     ajax_return(1,'操作成功');
@@ -2750,10 +3097,228 @@ class Index extends Base
         }
     }
 
+    public function importKMLLine(){
+        Log::info(" ==== importKMLLine ====" );
+        
+        if(IS_AJAX && IS_POST){
+            //P($_FILES);
+            $lineID = $_POST['lineID'];
+            $towerOriginName = isset($_POST['towerName']) ? $_POST['towerName'] : '';
+            $towerType = isset($_POST['towerType']) ? $_POST['towerType'] : '';
+            $towerSquence = isset($_POST['towerSquence']) ? $_POST['towerSquence'] : '';
+         
+            Log::info("lineID :" .var_export($lineID,true));
+            Log::info("TowerType :" .var_export($towerType,true));
+            Log::info("towerName :" .var_export($towerOriginName,true));
+            Log::info("towerSquence :" .var_export($towerSquence,true));
 
+            $shapeInCompass = Db::table('towerShapeList')
+                ->where('towerShapeNameID', $towerType)
+                ->value('shapeInCompass');
+            Log::info("photoPosition :" . var_export($shapeInCompass,true));
+            $bitdata = 0;
+            if ($shapeInCompass[0] == 1) {
+                $bitdata |= 1;
+            }
+            else {
+                $bitdata &= 0;
+            }
+            if ($shapeInCompass[3] == 1) {
+                $bitdata |= 2;
+            }
+            else {
+                $bitdata &= 0xfffd;
+            } 
+            if ($shapeInCompass[1] == 1) {
+                $bitdata |= 4;
+            }
+            else {
+                $bitdata &= 0xfffb;
+            }
+            if ($shapeInCompass[2] == 1) {
+                $bitdata |= 8;
+            }
+            else {
+                $bitdata &= 0xfff7;
+            }
+            Log::info("bitdata : " . var_export($bitdata, true));
+            $zoomFactor = 2 * 10;
+
+            Log::info("file size :" .var_export($_FILES['file']['size'],true));
+
+            if($_FILES['file']['size']<=0){
+                ajax_return(-1,'请上传有效的KML文档');
+            }
+
+            if($_FILES['file']['size']>0){
+                $file = request()->file('file');
+                $savePath = './loc_file/';
+                $extension = strtolower(pathinfo($file->getInfo('name'), PATHINFO_EXTENSION));
+                if($extension === 'kmz'){
+                    Log::info("extension :" .var_export($extension,true));
+                    $saveName = 'loc_txt_'.date('ymd_His').'.'.'zip';
+                    Log::info("saveName :" .var_export($saveName,true));
+                    $kmlPath = $savePath . $saveName;
+                    $result = $file->validate(['ext'=>'kml,KML,kmz,KMZ'])->move($savePath, $saveName);
+                    $kmlPath = $this->parseTowerKML($kmlPath, $saveName);
+                    Log::info("kmlPath==== :" .var_export($kmlPath,true));
+                }else{
+                    $saveName = 'loc_txt_'.date('ymd_His').'.'.pathinfo($file->getInfo('name'), PATHINFO_EXTENSION);
+                    $kmlPath = $savePath . $saveName;
+                    $result = $file->validate(['ext'=>'kml,KML,kmz,KMZ'])->move($savePath, $saveName);
+                }
+              
+                Log::info("result :" .var_export($result,true));
+                $dbAccount = Db::table('towerList')  
+                            ->where('lineID', $lineID)
+                            ->count();
+                $arr = [];
+                if($result){
+                    Log::info("kmlPath :" .var_export($kmlPath,true));
+                    $doc = new \DOMDocument('1.0', 'utf-8');
+                    $doc->load($kmlPath);
+                    Log::info(" doc create ");
+                    $root = $doc->documentElement;
+                    $namespace = $root->getAttribute('xmlns:wpml');
+                    Log::info(" namespace: " . $namespace);
+                    $wpmlNamespace = $namespace;
+                    $placemarks = $doc->getElementsByTagName('Placemark');
+
+                    foreach ($placemarks as $placemark) {
+                        $towerName =  $towerOriginName . $towerSquence;
+                        Log::info("towerName === :" .var_export($towerName,true));
+                        $point = $placemark->getElementsByTagName('Point')->item(0);
+                        $ellipsoidHeight = $placemark->getElementsByTagName('ellipsoidHeight')->item(0);
+                        $height = $ellipsoidHeight->nodeValue - 10;
+                        Log::info("ellipsoidHeight === :" . var_export($height,true));
+                        $coordinatesNode = $point->getElementsByTagName('coordinates')->item(0);
+                        Log::info("coordinatesNode=== :" .var_export($coordinatesNode,true));
+                        if ($coordinatesNode) {
+                            $coordinatesString = $coordinatesNode->nodeValue;
+                            $coordinatesArray = explode(',', $coordinatesString);
+                            if (count($coordinatesArray) == 2) {
+                                $longitude = (double)trim($coordinatesArray[0]);
+                                $latitude = (double)trim($coordinatesArray[1]);
+                                Log::info("longitude :" . $longitude);
+                                Log::info("latitude :" . $latitude);
+                            }
+                        }
+                        
+                        $actionGroupNode = $placemark->getElementsByTagName('actionGroup')->item(0);
+                        Log::info("actionGroupNode=== :" .var_export($actionGroupNode,true));
+                        if ($actionGroupNode) {
+                            $actionGroupNode = $actionGroupNode->getElementsByTagName('action')->item(0);
+                            $focalLengthNode = $placemark->getElementsByTagNameNS($wpmlNamespace, 'focalLength')->item(0);
+                            if($focalLengthNode){
+                                $focalLength = $focalLengthNode->nodeValue;
+                                $zoomFactor = $focalLength / 24 * 10;
+                                Log::info(" zoomFactor :" . $zoomFactor);
+                            }
+                        }else {
+                            Log::info(" without actionGroupNode ====" );
+                            // $zoomFactor = 20;
+                            continue;
+                        }
+                        Log::info("dbAccount :" .var_export($dbAccount,true));
+                        if($dbAccount === 0){
+                            $sequence += 1;
+                        }else {
+                            $sequence = $dbAccount + 1;
+                        }
+            
+                        $arr[]=[
+                            'towerName'=>$towerName,
+                            'lineID' =>  $lineID,
+                            'longitude' => $longitude,
+                            'latitude' => $latitude,
+                            'altitude' => $height,
+                            'towerNumber' => $sequence,
+                            'insulatorNum' => $zoomFactor,
+                            'towerShapeID' => $towerType,
+                            'photoPosition' => $bitdata,
+                        ];
+                    
+                        $dbAccount = $sequence;
+                        Log::info("====== towerSquence :" .var_export($towerSquence,true));
+                        $towerSquence += 1;
+                    }
+
+                    if(empty($arr)){
+                        Log::info("arr is null :" .var_export($arr,true));
+                        ajax_return(-1, '拍照点个数为0');
+                    }
+
+                   
+                    $batchSize = 100;
+                    $batches = array_chunk($arr, $batchSize);
+
+                    foreach ($batches as $batch) {
+                        $res = Db::table('towerList')->insertAll($batch);
+                        if (!$res) {
+                            Db::rollback();
+                            ajax_return(-1, '添加失败');
+                        }
+                    }
+                    Db::commit();
+                    ajax_return(1, '添加成功');
+                }else{
+                    ajax_return(-1,'文件保存出错');
+                }
+            }
+            ajax_return(-1,'操作成功');
+        }
+    }
+
+    public function parseTowerKML($kmlPath,$saveName){
+        Log::info(" ==== parseTowerKML ====" );
+
+        $zip = new ZipArchive;
+        Log::info("saveName " . $kmlPath);
+        $unzipPath = dirname($kmlPath);
+        $unzipName = pathinfo($saveName, PATHINFO_FILENAME);
+        $unzipPath1 = $unzipPath . '/' .$unzipName;
+        Log::info("unzipPath1 " . $unzipPath1);
+        Log::info("kmlPath " . $kmlPath);
+        if($zip->open($kmlPath)){
+            $zip->extractTo($unzipPath1);
+            $zip->close();
+            $a = $this->recursiveFindKML($unzipPath1);
+            Log::info("a==== " . $a);
+            return $a;
+        }
+        return null;
+    }
+
+    public function recursiveFindKML($unzipPath1){
+        $dir = new \DirectoryIterator($unzipPath1);
+        Log::info("unzipPath1 " . $unzipPath1);
+        $saveName = pathinfo($unzipPath1, PATHINFO_FILENAME);
+        Log::info("saveName " . $saveName);
+        $aimFile = '';
+        foreach($dir as $fileInfo){
+            Log::info("fileInfo " . $fileInfo);
+            if(!$fileInfo->isDot()){
+                $filePath = $fileInfo->getPathname();
+                if($fileInfo->isDir()){
+                    $aimFile = $this->recursiveFindKML($filePath);
+                    if($aimFile){
+                        return $aimFile;
+                    }
+                }else{
+                    $extension = strtolower(pathinfo($filePath,PATHINFO_EXTENSION));
+                    if($extension === 'kml'){
+                        Log::info("KML NAME  " . $filePath);
+                        return $filePath;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     public function importLine(){
         Log::info(" ==== importLine ====" );
+
         if(IS_AJAX && IS_POST){
             //P($_FILES);
             $lineID = $_POST['lineID'];
@@ -2806,55 +3371,59 @@ class Index extends Base
                 $file = request()->file('file');
                 $savePath = './loc_file/';
                 $saveName = 'loc_txt_'.date('ymd_His').'.'.pathinfo($file->getInfo('name'), PATHINFO_EXTENSION);
-                $result = $file->validate(['size'=>2097152,'ext'=>'csv,CSV'])->move($savePath, $saveName);
+                $result = $file->validate(['ext'=>'csv,CSV'])->move($savePath, $saveName);
                 Log::info("result :" .var_export($result,true));
 
                 if($result){
                     $excel = $savePath . $saveName;
                     Log::info("excel :" .var_export($excel,true));
-                    // $fileContent = file_get_contents($excel);
-                    // $originalEncoding = mb_detect_encoding($fileContent, ['UTF-8', 'GB2312', 'GBK']);
-                    // Log::info("originalEncoding :" .var_export($originalEncoding,true));
-                    // $fileContentUTF8 = mb_convert_encoding($fileContent, 'UTF-8', $originalEncoding);
-                    // Log::info("Encoding :" . $fileContentUTF8);
-                    // $lines = explode("\n", $fileContentUTF8);
-                    // foreach ($lines as $line) {
-                    //     Log::info("line :" . $line);
-                    //     $columns = str_getcsv($line);
-                    //     Log::info("columns :" . var_export($columns,true));
+                    ini_set('default_charset', 'UTF-8');
+                    
+                    $fileContent = file_get_contents($excel);
+                    
+                    $originalEncoding = mb_detect_encoding($fileContent, ['UTF-8', 'ISO-8859-1', 'GB2312', 'GBK']);
+                    
+                    // if ($originalEncoding !== 'UTF-8' || $originalEncoding !== 'GB2312') {
+                    //     ajax_return(-1, '文件编码格式错误，仅支持UTF-8和GB2312编码格式');
                     // }
 
-                    ini_set('default_charset','UTF-8');
-                    $file = fopen($excel, "r");
+
+
+                    Log::info("=== originalEncoding :" .var_export($originalEncoding,true));
+                    if ($originalEncoding !== 'UTF-8') {
+                        $fileContentUTF8 = mb_convert_encoding($fileContent, 'UTF-8', 'GB2312');
+                    } else {
+                        $fileContentUTF8 = $fileContent;
+                    }
+    
+                    $tempFile = tempnam(sys_get_temp_dir(), 'csv');
+                    Log::info(" tempFile :" .var_export($tempFile,true));
+                    file_put_contents($tempFile, $fileContentUTF8);
+                    $file = fopen($tempFile, "r");
+
+
                     if ($file) {
                         // 读取CSV文件的第一行，通常是表头
                         $header = fgetcsv($file,1000,',');
-                        // 检测表头编码格式并转换为UTF-8
-                        // foreach ($header as $column) {
-                        //     $encoding = mb_detect_encoding($column, 'UTF-8,ISO-8859-1');
-                        //     if ($encoding !== 'UTF-8') {
-                        //         $column = iconv($encoding, 'UTF-8', $column);
-                        //     }
-                        // }
                         $csvData[] = $header;
                         Log::info("header :" .var_export($header,true));
 
-                        $sequence = 0;
+                        $dbAccount = Db::table('towerList')  
+                            ->where('lineID', $lineID)
+                            ->count();
+                  
+                  
                         while (($row = fgetcsv($file,1000,',')) !== false){
-                        //while (($row = fgetcsv($file)) !== false) {
-                            // 检测每行数据的编码格式并转换为UTF-8
-                            // foreach ($row as $column) {
-                            //     $encoding = mb_detect_encoding($column, 'UTF-8,ISO-8859-1');
-                            //     if ($encoding !== 'UTF-8') {
-                            //         $column = iconv($encoding, 'UTF-8', $column);
-                            //     }
-                            // }
-                            $sequence = $sequence + 1;
+                            Log::info("dbAccount :" .var_export($dbAccount,true));
+                            if($dbAccount === 0){
+                                $sequence += 1;
+                            }else {
+                                $sequence = $dbAccount + 1;
+                            }
+    
                             $csvData[] = $row;
                             Log::info("row :" .var_export($row,true));
                             $towerName = $row[0];
-                            Log::info("row :" .var_export($row,true));
-
                             if(strpos($row[0],',') !== false){
                                 $wayPoints = explode(',', $row[0]);
                                 $towerName = $wayPoints[0];
@@ -2889,22 +3458,42 @@ class Index extends Base
                                 'insulatorNum'=>$zoomFactor,
                                 'towerShapeID'=>$towerType,
                                 'photoPosition' => $bitdata,
-                                // 'photoHeight'=>$photoHeight,
+                               // 'photoHeight'=>$photoHeight,
 
                             ];
+                            $dbAccount = $sequence;
                         }
-                        if(!empty($arr)){
-                            $res=Db::table('towerList')
-                                ->insertAll($arr);
-                            if(!$res){
+                        // if(!empty($arr)){
+                        //     $res=Db::table('towerList')
+                        //         ->insertAll($arr);
+                        //     if(!$res){
+                        //         Db::rollback();
+                        //         ajax_return(-1,'添加失败');
+                        //     }
+                        // }
+                        // Db::commit();
+                        // ajax_return(1,'添加成功');
+                        // Log::info("row :" .var_export($row,true));
+                        // fclose($file);
+
+                        $batchSize = 100; // 每批插入100条数据
+                        $batches = array_chunk($arr, $batchSize);
+
+                        foreach ($batches as $batch) {
+                            $res = Db::table('towerList')->insertAll($batch);
+                            if (!$res) {
                                 Db::rollback();
-                                ajax_return(-1,'添加失败');
+                                ajax_return(-1, '添加失败');
                             }
                         }
+
                         Db::commit();
-                        ajax_return(1,'添加成功');
-                        Log::info("row :" .var_export($row,true));
+                        ajax_return(1, '添加成功');
+                        Log::info("row :" . var_export($row, true));
+                   
+
                         fclose($file);
+                        unlink($tempFile);
                     }else {
                         Log::info("无法打开CSV文件");
                     } 
@@ -2950,11 +3539,30 @@ class Index extends Base
 
         if($permission['permissionGroupID'] == 0){
             Log::info("=== superadmin ==="); 
-            $data=Db::table('UserList')
+            $data=Db::view('user_info')
                 ->where($where)
                 ->order('userID desc')
                 ->select();
-        }else if($permission['permissionGroupID'] == 1){
+        } else if ($permission['permissionGroupID'] == 3){
+            $countyID = Db::view('companyList')
+            ->where("companyID",$companyID)
+            ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+            $data=Db::view('user_info')
+                ->where($where)
+                ->whereIn('companyID',  $companyArray)
+                ->order('userID desc')
+                ->select();
+
+        }
+        else if($permission['permissionGroupID'] == 1){
             Log::info("=== not superadmin ==="); 
 
             $data=Db::view('user_info')
@@ -2964,16 +3572,20 @@ class Index extends Base
             ->select();
           
         } else {
-            $data=Db::table('UserList')
+            // $data=Db::table('user_info')
+            // ->where($where)
+            // ->where('group_list_id', $permission['groupID'])
+            // ->order('userID desc')
+            // ->select();
+
+
+            $data=Db::view('user_info')
             ->where($where)
-            ->where('group_list_id', $permission['groupID'])
+            ->where('companyID',  $companyID)
             ->order('userID desc')
             ->select();
         }
 
-        $permission=Db::view('user_info')
-            ->where('userID', $this->member_id)
-            ->find();
         $groups=Db::table('groupList')
             ->column('groupName','groupID');
         Log::info("groups in user list : " . var_export($groups,true));
@@ -3074,6 +3686,28 @@ class Index extends Base
             $pgs=Db::table('permissionGroup')
             ->order('groupID asc')
             ->select();
+        }else if ($permission['permissionGroupID'] == 3){
+            $countyID = Db::view('companyList')
+            ->where("companyID",$companyID)
+            ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+            $groups=Db::table('groupList')
+            ->whereIn('companyID', $companyArray)
+            ->order('groupID desc')
+            ->select();
+
+            $pgs=Db::table('permissionGroup')
+                ->order('groupID asc')
+                ->whereNotIn('groupID',[0,1])
+                ->select();
+
         }else{
             Log::info("=== not superadmin ==="); 
 
@@ -3196,6 +3830,23 @@ class Index extends Base
                 ->where($where)
                 ->order('companyID desc')
                 ->select();
+        } else if ($permission['permissionGroupID'] == 3){
+            $countyID = Db::view('companyList')
+                ->where("companyID",$companyID)
+                ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+            $data=Db::table('companyList')
+            ->where($where)
+            ->whereIn('companyID',$companyArray)
+            ->select();
+
         }
         // else if($permission['permissionGroupID'] == 1){
         //     $data=Db::table('companyList')
@@ -3219,6 +3870,67 @@ class Index extends Base
         return $this->fetch();
     }
 
+    public function county_company_list(){
+        if($this->my_permission['findUserMgr']<=0){
+            return $this->fetch();
+        }
+        $where='1=1';
+        $keywords=input('keywords','');
+        $type=input('type',1);
+        if($keywords){
+            switch ($type){
+                case 1:
+                    $where.=" and companyName like '%{$keywords}%'";
+                    break;
+                case 2:
+                    $where.=" and address like '%{$keywords}%'";
+                    break;
+                case 3:
+                    $where.=" and supervisor like '%{$keywords}%'";
+                    break;
+            }
+        }
+        $permission=Db::view('user_info')
+            ->where('userID', $this->member_id)
+            ->find();
+        $companyID = $permission['companyID'];
+        
+        Log::info("permission : " . var_export($permission,true));
+        Log::info("companyID : " . var_export( $companyID,true));
+        Log::info("permissionGroupID : " . var_export($permission['permissionGroupID'],true));
+
+        if($permission['permissionGroupID'] == 0){
+            Log::info("=== superadmin ==="); 
+            $data=Db::table('countyCompanyList')
+                ->where($where)
+                ->order('county_company_id desc')
+                ->select();
+        }
+        else{
+            Log::info("=== not super admin ===");
+
+            $countyID = Db::view('companyList')
+                ->where("companyID",$companyID)
+                ->value('countyCompanyID'); 
+                
+            $data=Db::table('countyCompanyList')
+                ->where($where)
+                ->where('county_company_id',$countyID)
+                ->select();
+        }  
+
+        // $data=Db::table('countyCompanyList')
+        //     ->where($where)
+        //     ->order('county_company_id desc')
+        //     ->select();
+        
+        $this->assign(compact('data','keywords','type','permission'));
+        return $this->fetch();
+    }
+
+
+
+
     public function add_company(){
         Log::info("=== add_company ==="); 
         if($this->my_permission['findUserMgr']<=0){
@@ -3226,6 +3938,7 @@ class Index extends Base
         }
         if(IS_AJAX && IS_POST){
             $data=input('post.');
+            Log::info("data in add company: " . var_export( $data,true));
             if(empty($data['companyName'])){
                 ajax_return(-1,'请填写单位名称');
             }
@@ -3275,6 +3988,13 @@ class Index extends Base
         $permission=Db::view('user_info')
             ->where('userID', $this->member_id)
             ->find();
+
+
+        $county_companys=Db::table('countyCompanylist')
+            ->select();
+
+        Log::info("county_companys : " .var_export($county_companys,true));
+       
         $id=input('id',-1);
         $data=[];
         if($id>=0){
@@ -3282,7 +4002,8 @@ class Index extends Base
                 ->where('companyID',$id)
                 ->find();
         }
-        $this->assign(compact('data','permission'));
+        Log::info("====result : " .var_export($data,true));
+        $this->assign(compact('data','permission','county_companys'));
         return $this->fetch();
     }
 
@@ -3293,13 +4014,115 @@ class Index extends Base
         $id=input('id',-1);
         $data=[];
         if($id>=0){
-            $data=Db::table('companyList')
+            // $data=Db::table('companyList')
+            //     ->where('companyID',$id)
+            //     ->find();
+
+            // $county_companys=Db::table('countyCompanylist')
+            //     ->select();
+
+            $data = Db::view('company_county')
                 ->where('companyID',$id)
                 ->find();
+
+            $groups = Db::view('group_company')
+                ->where('companyID',$id)
+                ->select();
+
+            Log::info("====result in check company : " .var_export($data,true));
         }
-        $this->assign(compact('data'));
+        $this->assign(compact('data','groups'));
         return $this->fetch();
     }
+
+    public function add_county_company(){
+        Log::info("=== add_county_company ==="); 
+        if($this->my_permission['findUserMgr']<=0){
+            return $this->fetch();
+        }
+        if(IS_AJAX && IS_POST){
+            $data=input('post.');
+            Log::info("data in add county company : " . var_export( $data,true));
+            if(empty($data['county_company_name'])){
+                ajax_return(-1,'请填写上级单位单位名称');
+            }
+
+            Db::startTrans();
+            $id=$data['countyCompanyID'];
+            unset($data['countyCompanyID']);
+            if($id>=0){
+                if($this->my_permission['modifyUserMgr']<=0){
+                    ajax_return(-1,'无权操作');
+                }
+                $has_data=Db::table('countyCompanyList')
+                    ->where('county_company_id',$id)
+                    ->find();
+                if(empty($has_data)){
+                    ajax_return(-1,'未知单位');
+                }
+
+                $res=Db::table('countyCompanyList')
+                    ->where('county_company_id',$id)
+                    ->update($data);
+                if($res===false){
+                    Db::rollback();
+                    ajax_return(-1,'修改失败');
+                }
+                Db::commit();
+                ajax_return(1,'修改成功');
+            }else{
+                if($this->my_permission['addUserMgr']<=0){
+                    ajax_return(-1,'无权操作');
+                }
+             
+                Log::info("data : " . var_export( $data,true));
+                $res=Db::table('countyCompanyList')
+                    ->insertGetId($data);
+                if($res===false){
+                    Db::rollback();
+                    ajax_return(-1,'添加失败');
+                }
+                Db::commit();
+                ajax_return(1,'添加成功');
+            }
+        }
+        $permission=Db::view('user_info')
+            ->where('userID', $this->member_id)
+            ->find();
+        $id=input('id',-1);
+        $data=[];
+        if($id>=0){
+            $data=Db::table('countyCompanyList')
+                ->where('county_company_id',$id)
+                ->find();
+        }
+        $this->assign(compact('data','permission'));
+        return $this->fetch();
+    }
+
+    public function check_county_company(){
+        if($this->my_permission['findUserMgr']<=0){
+            return $this->fetch();
+        }
+        $id=input('id',-1);
+        $data=[];
+        if($id>=0){
+            $data=Db::table('countyCompanyList')
+                ->where('county_company_id',$id)
+                ->find();
+
+
+            $companys=Db::view('company_county')
+                ->where('county_company_id',$id)
+                ->select();
+
+            Log::info("companys ==== : " . var_export($companys,true));
+        }
+    
+        $this->assign(compact('data','companys'));
+        return $this->fetch();
+    }
+
 
     public function del_company(){
         if(IS_AJAX && IS_POST){
@@ -3365,20 +4188,34 @@ class Index extends Base
                 ->where($where)
                 ->where('companyID', $companyID )
                 ->select();
-        } else {
+        } else if ($permission['permissionGroupID'] == 3){
+            $countyID = Db::view('companyList')
+            ->where("companyID",$companyID)
+            ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+            $data=Db::table('groupList')
+                ->where($where)
+                ->whereIn('companyID', $companyArray)
+                ->select();
+
+
+        }else {
             $data=Db::table('groupList')
                 ->where($where)
                 ->where('groupID',$permission['groupID'])
                 ->select();
         }
-
-
-      
-
-        
         $this->assign(compact('data','keywords','type','permission'));
         return $this->fetch();
     }
+
 
     public function add_group(){
         Log::info("=== add_group ==="); 
@@ -3440,14 +4277,46 @@ class Index extends Base
                 ->find();
         }
 
-        $permission=Db::view('user_info')
-        ->where('userID', $this->member_id)
-        ->find();
+        // $permission=Db::view('user_info')
+        // ->where('userID', $this->member_id)
+        // ->find();
 
-        $companys=Db::table('companyList')
+        
+        $permission=Db::view('user_info')
+            ->where('userID', $this->member_id)
+            ->find();
+        $companyID = $permission['companyID'];
+        
+        Log::info("permission : " . var_export($permission,true));
+        Log::info("companyID : " . var_export( $companyID,true));
+        Log::info("permissionGroupID : " . var_export($permission['permissionGroupID'],true));
+
+        if($permission['permissionGroupID'] == 3){
+           
+            $countyID = Db::view('companyList')
+            ->where("companyID", $permission['companyID'])
+            ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+
+            $companys=Db::table('companyList')
+                ->whereIn('companyID',$companyArray)
+                ->order('companyID asc')
+                ->select();
+
+            Log::info("data : " . var_export( $companys,true));
+
+        }else {
+            $companys=Db::table('companyList')
             ->order('companyID asc')
             ->select();
         
+        }
+        Log::info("data : " . var_export( $companys,true));
 
         $this->assign(compact('data','title','companys','permission'));
 
@@ -3857,6 +4726,36 @@ class Index extends Base
                 ->where($where)
                 ->order('towerShapeNameID desc')
                 ->select();
+        } else if ($permission['permissionGroupID'] == 3){
+            $countyID = Db::view('companyList')
+            ->where("companyID",$companyID)
+            ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+
+            $query = Db::table('towerShapeList')
+            ->join('UserList', 'towerShapeList.createManID = UserList.userID')
+            ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+            ->join('companyList', 'GroupList.companyID = companyList.companyID')
+            ->whereIn('companyList.companyID', $companyArray)
+            ->column('towerShapeNameID');
+            Log::info("query : " .var_export($query,true)); 
+            $shapes1 =  Db::table('towerShapeList')
+                ->where('createManID', 0)
+                ->select();
+            Log::info("shapes1 : " .var_export($shapes1,true)); 
+            $shapes2 =  Db::table('towerShapeList')
+                ->whereIN('towerShapeNameID', $query)
+                ->select();
+            Log::info("shapes2 : " .var_export($shapes2,true));
+            $data = array_merge($shapes1,$shapes2);
+            Log::info("shapes : " .var_export($data,true));
         }else{
             // Log::info("company admin and staff"); 
             // $data = Db::table('towerShapeList')
@@ -3978,6 +4877,8 @@ class Index extends Base
                 $data['createManID']=$this->member_id;
                 $res=Db::table('towerShapeList')
                     ->insertGetId($data);
+
+                Log::info("data ====:" .var_export($data,true));
                 if($res===false){
                     Db::rollback();
                     ajax_return(-1,'添加失败');
@@ -4119,12 +5020,22 @@ class Index extends Base
         $permission=Db::view('user_info')
         ->where('userID', $this->member_id)
         ->find();
+        Log::info(" data in get drone: " . var_export($data,true));
 
         if(IS_AJAX && IS_POST){
             $data=input('post.');
 
             $controller =  "get_drone";
             $len = strLen(json_encode($data));
+
+            if(!isset($data['wetherLive'])){
+                $wetherLiveVal = Db::table('drone')
+                    ->where('snCode',$data['droneSncode'])
+                    ->value('wetherLive');
+
+                $data['wetherLive'] = $wetherLiveVal;
+            }
+
 
             $combinedData = array(
                 "controller" => $controller,
@@ -4154,7 +5065,116 @@ class Index extends Base
     }
 
 
+    public function data_analysis(){
+        Log::info("==== data_analysis ==="); 
 
+
+        $currentTaskID = isset($_GET['submissionID'])?$_GET['submissionID'] : null;
+        Log::info("currentTaskID :". var_export($currentTaskID, true));
+
+
+        if($this->my_permission['findTask']<=0){
+            return $this->fetch();
+        }
+        Log::info("member id: " . $this->member_id); 
+        $task_name=input('task_name','');
+        $task_where='1=1';
+        if($task_name){
+            $task_where.=" and submissionName like '%{$task_name}%'";
+        }
+
+        $permission=Db::view('user_info')
+                    ->where('userID', $this->member_id)
+                    ->find();
+        Log::info("permission : " . var_export($permission,true));
+        Log::info("permissionGroupID : " . var_export($permission['permissionGroupID'],true));
+        $companyID = $permission['companyID'];
+        Log::info("companyID : " . var_export( $companyID,true));
+        if($permission['permissionGroupID'] == 0){
+            Log::info("=== superadmin ==="); 
+            $tasks=Db::view('submission_mission')
+            ->where($task_where)
+            ->order('submissionID desc')
+            ->select();
+        }else if($permission['permissionGroupID'] == 3){
+            Log::info("=== county admin  ==="); 
+
+            $countyID = Db::table('companyList')
+                ->where("companyID",$companyID)
+                ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+            $tasks = Db::view('submission_mission')
+                ->join('UserList', 'submission_mission.createManID = UserList.userID')
+                ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+                ->join('companyList', 'GroupList.companyID = companyList.companyID')
+                ->whereIn('companyList.companyID',$companyArray)
+                ->where($task_where)
+                ->order('submissionID desc')
+                ->select();
+
+            Log::info("tasks : " . var_export( $tasks,true));
+        
+        }else if($permission['permissionGroupID'] == 1){
+            Log::info("=== company admin  ==="); 
+            $tasks = Db::view('submission_mission')
+                ->join('UserList', 'submission_mission.createManID = UserList.userID')
+                ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+                ->join('companyList', 'GroupList.companyID = companyList.companyID')
+                ->where('companyList.companyID', $companyID)
+                ->where($task_where)
+                ->order('submissionID desc')
+                ->select();
+            Log::info("submissions: " . var_export($tasks, true));
+        }
+        else {
+            Log::info("=== staff ===");
+            $tasks=Db::view('submission_mission')
+            ->where($task_where)
+            ->where('createmanID', $this->member_id)
+            ->order('submissionID desc')
+            ->select();
+        }
+        foreach($tasks as &$task){
+            Log::info("task : " . var_export($task,true));    
+            if($task['missionID'] == 5){
+                Log::info("missionID == 5");    
+                $towerNumber=Db::table('uploadRouteSubmissionList')
+                    ->where('submissionID', $task['submissionID'])
+                    ->value('towerNumber');
+                Log::info("towerNumber : " . var_export($towerNumber,true));    
+                $task['tower_num'] = $towerNumber;
+            }
+        }
+       
+    
+        $submissionID=input('submissionID',-1);
+        Log::info("submissionID change : " . var_export($submissionID,true));
+
+        if($submissionID>=0){
+            $tower_ids=Db::table('submissiontowerList')
+                ->where('submissionID',$submissionID)
+                ->column('towerID');
+            if(empty($tower_ids)){
+                $tower_ids=[-1];
+            }
+            $towers=Db::table('towerList')
+                ->where('towerID','in',$tower_ids)
+                ->order('towerNumber asc')
+                ->select();
+        }
+
+        Log::info("task in data analysis : " . var_export($tasks,true));    
+        $this->assign(compact('tasks','task_name','towers','submissionID','permission', 'currentTaskID'));
+
+        return $this->fetch();
+    }
     public function update_version(){
         Log::info("=== update_version === " );
         
@@ -4281,6 +5301,24 @@ class Index extends Base
                 ->where('whetherOnline', 1)
                 ->order('droneID desc')
                 ->select();
+        } else if($permission['permissionGroupID'] == 3){
+            $countyID = Db::view('companyList')
+            ->where("companyID",$permission['companyID'])
+            ->value('countyCompanyID');
+
+            Log::info("countyID : " . var_export( $countyID,true));   
+
+            $companyArray=Db::table('companyList')
+                ->where("countyCompanyID", $countyID)
+                ->column('companyID');
+            Log::info("companyArray : " . var_export( $companyArray,true));
+
+            $all_drones = Db::table('drone')
+                ->whereIn('companyID',$companyArray)
+                ->where('whetherOnline', 1)
+                ->order('droneID desc')
+                ->select();
+
         }else {
             Log::info("=== not superadmin === "); 
             $all_drones = Db::table('drone')
@@ -4349,31 +5387,69 @@ class Index extends Base
 
     public function play_video(){
         Log::info("==== play_video ====" );
+        $snCode = $this->request->param('snCode');
 
-        $permission=Db::view('user_info')
-        ->where('userID', $this->member_id)
-        ->find();
+        Log::info("snCode :" . var_export($snCode, true));
+        
 
-        if($permission['permissionGroupID'] == 0){
-            Log::info("=== superadmin ==="); 
-            $all_drones = Db::table('drone')
-                ->where('whetherOnline', 1)
-                ->order('droneID desc')
-                ->select();
-        } else {
-            Log::info("aaaa"); 
-            $all_drones = Db::table('drone')
-                ->where('companyID',$permission['companyID'])
-                ->where('whetherOnline', 1)
-                ->order('droneID desc')
-                ->select();
+        $currentDrone = Db::view('submission_mission')
+            ->where("snCode", $snCode)
+            ->find();
+
+        
+        Log::info("currentDrone: " .var_export($currentDrone, true));
+        if($currentDrone == null){
+            $currentDrone['snCode'] =  $snCode;
+            $currentDrone['submissionID'] =  '-';
+            $currentDrone['submissionName'] =  '-';
         }
-        $title='实时直播中心';
-        $this->assign(compact('all_drones','title'));
+
+        $liveAddr = Db::table('drone')
+            ->where("snCode", $snCode)
+            ->value('videoAddr');
+
+        $currentDrone['liveAddr'] = $liveAddr;
+
+        Log::info("currentDrone: " .var_export($currentDrone, true));
+        $title='直播中心';
+        
+
+        $this->assign(compact('currentDrone','title'));
+        return $this->fetch();
+    }
+    public function task_analysis(){
         return $this->fetch();
     }
 
 
+
+    // public function send_play_video(){
+    //     Log::info(" === send_play_video ===");
+    //     if(IS_AJAX && IS_POST){
+    //         $data=input('post.');
+    //         $controller =  "send_play_video";
+            
+    //         $len = strLen(json_encode($data));
+    //         $combinedData = array(
+    //             "controller" => $controller,
+    //             "len" => $len,
+    //             "data" =>  $data,
+    //         );
+    //         $combinedData = json_encode($combinedData);
+    //         Log::info(" combinedData : " . var_export($combinedData,true));
+
+    //         $socket = new tcp();
+    //         $socket->socketSend($combinedData);
+    //         // $response = array( 
+    //         //     'status' =>1,
+    //         //     'message' =>'上传成功',
+    //         //     'data' => $data,
+    //         // );
+    //         // Log::info(" response : " . var_export($response,true));
+    //         //ajax_return($response);
+    //     }
+        
+    // }
 
     public function check_router(){
         if(IS_AJAX && IS_POST){
@@ -4386,9 +5462,9 @@ class Index extends Base
             $flightTypeArray = [];
             foreach($uploadSubmissionID as $data) {
                 //$folderPath = 'C:/Users/Administrator/Desktop/console_socket/console_socket/x64/Debug/route'; 
-                // $folderPath = 'C:\Users\123\Desktop\console_socket\console_socket\route'; 
+                $folderPath = 'C:\Users\123\Desktop\console_socket\console_socket\route'; 
 
-                $folderPath = 'C:\Users\Administrator\Desktop\txzf_server\route';
+                //$folderPath = 'C:\Users\Administrator\Desktop\txzf_server\route';
 
                
                 $files = scandir($folderPath);
@@ -4407,18 +5483,19 @@ class Index extends Base
                         if(is_file($fileInfo)){
                             Log::info("=== is file === " );
                             if(strpos($file, '_') == false){
-                                Log::info("not include '_' : " . $leftPart);
+                                Log::info("not include '_' ");
                                 continue;
                             } else {
                                 $parts = explode('_', $file);
                                 $leftPart = $parts[0];
                                 Log::info("leftPart : " . $leftPart);
-                                if($leftPart ===  $submissionID){
+                                if($leftPart === $submissionID){
                                     $lastModifiedTime = (int)$parts[1];
                                     Log::info("lastModifiedTime : " . $lastModifiedTime);
                                     $current_timestamp = time();
                                     Log::info("current_timestamp : " . $current_timestamp);
-                                    if($current_timestamp - $lastModifiedTime <= 600){
+                                    if($current_timestamp - $lastModifiedTime <= 604800){
+                                        Log::info("current_timestamp111 : " . $current_timestamp);
                                         $flight = 2;
                                     }
                                 }

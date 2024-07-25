@@ -32,6 +32,13 @@
         border-radius: 4px;
     }
 
+    .select1 {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
     td {
         padding: 10px;
         vertical-align: middle;
@@ -79,7 +86,7 @@
                                 <label class="form-label col-xs-4 table_title">无人机类型：</label>
                                 <div class="formControls col-xs-8">
                                     <input type="text" class="input-text" autocomplete="off" placeholder=""
-                                        name="droneType" value="{$data.droneType}">
+                                        name="droneType" value="{$data.droneType}" readonly>
                                 </div>
                             </div>
                         </td>
@@ -88,7 +95,7 @@
                                 <label class="form-label col-xs-4 table_title">镜头类型：</label>
                                 <div class="formControls col-xs-8">
                                     <input type="text" class="input-text" autocomplete="off" placeholder=""
-                                        name="lensType" value="{$data.lensType}">
+                                        name="lensType" value="{$data.lensType}" readonly>
                                 </div>
                             </div>
                         </td>
@@ -97,7 +104,7 @@
                                 <label class="form-label col-xs-4 table_title">最大航速：</label>
                                 <div class="formControls col-xs-8">
                                     <input type="text" class="input-text" autocomplete="off" placeholder=""
-                                        name="maxSpeed" value="{$data.maxSpeed}">
+                                        name="maxSpeed" value="{$data.maxSpeed}" readonly>
                                 </div>
                             </div>
                         </td>
@@ -106,7 +113,7 @@
                                 <label class="form-label col-xs-4 table_title">当前版本号：</label>
                                 <div class="formControls col-xs-8">
                                     <input type="text" class="input-text" autocomplete="off" placeholder=""
-                                        name="systemVersion" value="{$data.systemVersion}">
+                                        name="systemVersion" value="{$data.systemVersion}" readonly>
                                 </div>
                             </div>
                         </td>
@@ -114,7 +121,7 @@
                     <tr>
                         <td>
                             <div class="row cl">
-                                <label class="form-label col-xs-4 table_title">RTK服务器: </label>
+                                <label class="form-label col-xs-4 table_title">RTK服务器：</label>
                                 <div class="formControls col-xs-8">
                                     <input type="text" class="input-text" autocomplete="off" placeholder="" name="rtkIP"
                                         value="{$data.rtkIP}">
@@ -132,25 +139,42 @@
                         </td>
                         <td>
                             <div class="row cl">
-                                <label class="form-label col-xs-4 table_title">RTK密码 ：</label>
+                                <label class="form-label col-xs-4 table_title">RTK密码：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="password" class="input-text" autocomplete="off" placeholder=""
+                                    <input type="password" class="input-text" autocomplete="new-password" placeholder=""
                                         name="rtkPassword" value="{$data.rtkPassword}">
                                 </div>
                             </div>
                         </td>
                         <td>
                             <div class="row cl">
-                                <label class="form-label col-xs-4 table_title">RTK挂载点 ：</label>
+                                <label class="form-label col-xs-4 table_title">RTK挂载点：</label>
                                 <div class="formControls col-xs-8">
                                     <input type="text" class="input-text" autocomplete="off" placeholder=""
                                         name="rtkMountPoint" value="{$data.rtkMountPoint}">
                                 </div>
                             </div>
                         </td>
-
-
                     </tr>
+
+                    <?php if($permission['permissionGroupID']==0 || $permission['playLive'] == 1):?>
+                    <tr>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">&nbsp;&nbsp;&nbsp;是否直播：</label>
+                                <div class="formControls col-xs-8">
+                                    <select name="wetherLive" class="select1" >
+                                        <option value="1" <?php if($data['wetherLive'])echo ' selected';?>>直播开启</option>
+                                        <option value="0" <?php if(!$data['wetherLive'])echo ' selected';?> >直播关闭</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endif;?>
+
+
+
                 </table>
                 <!-- <table class="table " style="margin-top:10px;">
                     <tr class="table_title">
@@ -228,111 +252,6 @@
 
 {include file='public/footer' /}
 <script>
-    $(function () {
-        // 动态获取元素高度
-        var h = $('.big-border').height()
-        $('.table-td').css('height', (h - 115) + 'px')
-
-        $(window).resize(function () {
-            var h = $('.big-border').height()
-            $('.table-td').css('height', (h - 115) + 'px')
-        });
-    })
-
-    flight_type();
-
-    function flight_type() {
-        $('select.flight_type').each(function () {
-            var flight_type = generate_rand_num(1, 3);
-            $(this).val(flight_type);
-            show_height($(this));
-        })
-    }
-
-    $('select.flight_type').on('change', function () {
-        show_height($(this));
-    })
-
-    function show_height(obj) {
-        var flight_type = obj.val();
-        if (flight_type == 3) {
-            obj.closest('td').next('td').find('.row').show();
-        } else {
-            obj.closest('td').next('td').find('.row').hide();
-        }
-    }
-
-    //生成min_v到max_v之间的随机数
-    function generate_rand_num(min_v, max_v) {
-        //min_v下限，max_v上限
-        var rand_num = parseInt(Math.random() * (max_v - min_v + 1) + min_v);
-        return rand_num
-    }
-
-    $('.linelist input[type=checkbox]').on('click', function () {
-        var lineID = $(this).attr('value');
-        var count = $('.towerlist').find('tr').length - 1;
-        if ($(this).is(':checked')) {
-            $.ajax({
-                type: "POST",
-                url: "{:url('get_tower')}",
-                data: { lineID: lineID, count: count },
-                dataType: "json",
-                error: function () {
-                    layer.closeAll();
-                    layer.alert("网络错误，请刷新重试!");
-                },
-                success: function (data) {
-                    layer.closeAll();
-                    if (data.status == 1 && data.data.length > 0) {
-                        $('.towerlist').append(data.data.html);
-                    }
-                }
-            });
-        } else {
-            $('.towerlist .line' + lineID).remove();
-            $('.choosed_tower .line' + lineID).remove();
-        }
-    })
-
-    function del_tower(_this) {
-        // layer.confirm('确认取消该杆塔？',function(){
-        //
-        // })
-        if ($(_this).closest('tr').next('tr').find('select').length > 0) {
-            $(_this).closest('tr').next('tr').remove();
-        }
-        var tower_id = $(_this).closest('tr').data('id');
-        $(_this).closest('tr').remove();
-        $('.towerlist .tr' + tower_id).find('a.btn').removeClass('disabled').text('选择 +');
-        layer.closeAll();
-    }
-
-    function choose_tower(_this) {
-        if ($(_this).hasClass('disabled')) {
-            return false;
-        }
-        var tr = $(_this).closest('tr');
-        var lineID = tr.data('line');
-        var tower_id = tr.data('id');
-        var length = $('.choosed_tower').find('tr').length - 1;
-
-        var html = '<tr class="tr' + tower_id + ' line' + lineID + ' tower_con" data-id=' + tower_id + '><td>' + (length + 1) + '</td><td>' + (tr.find('td').eq(1).text()) + '</td><td>' + (tr.find('td').eq(2).text()) + '</td><td><input type="hidden" value="' + tower_id + '" name="towerID[]" /><a href="javascript:void(0);" class="btn" onclick="del_tower(this)">取消 -</a></td></tr>';
-        $('.choosed_tower').append(html);
-        tr.find('a.btn').addClass('disabled').text('已选');
-        add_flight_type();
-    }
-
-    function add_flight_type() {
-        var flight_type_length = $('.choosed_tower').find('.tower_con').length;
-        if (flight_type_length >= 4 && flight_type_length % 2 === 0) {
-            var flight_type = generate_rand_num(1, 3);
-            var html = '<tr> <td></td> <td> <div class="row cl"> <div class="formControls col-xs-8"> <select class="select flight_type" size="1" name="" onchange="show_height($(this))"> <option value="1" ' + (flight_type == 1 ? 'selected' : '') + '>直飞</option> <option value="2" ' + (flight_type == 2 ? 'selected' : '') + '>按线路飞</option> <option value="3" ' + (flight_type == 3 ? 'selected' : '') + '>提升高度</option> </select> </div> </div> </td> <td> <div class="row cl ' + (flight_type != 3 ? 'hide' : '') + '"> <div class="formControls col-xs-8"> <input type="text" class="input-text" autocomplete="off" placeholder="填写高度" name="" value=""> </div> </div> </td> <td></td> </tr>';
-            $('.choosed_tower').append(html);
-
-        }
-    }
-
     function syncInfo(_this) {
         document.getElementById("syncInfo").disabled = true;
         document.getElementById("syncInfo").style.opacity = "0.5";
@@ -356,20 +275,13 @@
             contentType: false,
             error: function (status, error) {
                 console.log(error);
-                // console.log("url: ", url);
-                // console.log("data: ", data);
                 layer.closeAll();
-                //layer.alert("失败");
                 layer.msg("同步信息指令发送失败", { time: 2000 });
                 document.getElementById("syncInfo").disabled = false;
                 document.getElementById("syncInfo").style.opacity = "1";
             },
             success: function (data) {
-                // console.log("成功");
                 layer.closeAll();
-                // console.log("url: ", url);
-                // console.log("data: ", data);
-                // layer.alert("已上传至服务器");
                 layer.msg("同步信息指令已发送", { time: 2000 });
                 document.getElementById("syncInfo").disabled = false;
                 document.getElementById("syncInfo").style.opacity = "1";

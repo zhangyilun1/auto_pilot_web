@@ -27,7 +27,6 @@
             </div>
             <div class="table_con">
                 <table class="table mt-10">
-
                     <tr>
                         <td>
                             <div class="row cl">
@@ -37,44 +36,50 @@
                                 </div>
                             </div>
                         </td>
-                        <!-- <td>
-                            <div class="row cl">
-                                <label class="form-label col-xs-4 table_title">二级名称：</label>
-                                <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="second_name" value="{$data.second_name}">
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="row cl">
-                                <label class="form-label col-xs-4 table_title">地址 *：</label>
-                                <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="address" value="{$data.address}">
-                                </div>
-                            </div>
-                        </td>
-                    </tr> -->
-                    <!-- <tr> -->
-                        <!-- <td>
-                            <div class="row cl">
-                                <label class="form-label col-xs-4 table_title">负责人：</label>
-                                <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="supervisor" value="{$data.supervisor}">
-                                </div>
-                            </div>
-                        </td> -->
-                        <td>
-                            <div class="row cl">
-                                <label class="form-label col-xs-4 table_title">备注：</label>
-                                <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="comment" value="{$data.comment}">
-                                </div>
-                            </div>
-                        </td>
-                        <td>
 
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">所属上级单位：</label>
+                                    <div class="formControls col-xs-8">
+                                        <input type="text" class="input-text" autocomplete="off" placeholder="" name="companyName" value="{$data.county_company_name}">
+                                    </div>
+                            </div>
                         </td>
                     </tr>
+                </table>
+
+                <table class="table table-hover mt-10 text-c" data-url="{:url('index/del_county_company')}">
+                    <thead>
+                        <tr class="text-c">
+                            <th>序号</th>
+                            <th>班组名称</th>
+                            <th>人员数量</th>
+                            <th>&nbsp;&nbsp;操作</th>
+                        </tr>
+                    </thead>
+                    {foreach name='groups' item='v' key='k'}
+                    <tr class="text-c">
+                        <td>{$k+1}</td>
+                        <td>{$v.groupName}</td>
+                        <td>{$v.groupID|group_user_count}</td>
+                        <td>
+                            <?php if($my_permission['findUserMgr']<=0):?>
+                            <?php else:?>
+                            <a class="btn" href="{:url('check_group',['id'=>$v['groupID']])}">查看</a>
+                            <?php endif;?>
+
+                            <?php if($my_permission['modifyUserMgr']<=0):?>
+                            <?php else:?>
+                            <a class="btn" href="{:url('add_group',['id'=>$v['groupID']])}">修改</a>
+                            <?php endif;?>
+
+                            <?php if($my_permission['deleteUserMgr']<=0):?>
+                            <?php else:?>
+                            <a class="btn" onclick="del_tr(this,{$v.groupID})">删除</a>
+                            <?php endif;?>
+                        </td>
+                    </tr>
+                    {/foreach}
                 </table>
             </div>
         </form>
