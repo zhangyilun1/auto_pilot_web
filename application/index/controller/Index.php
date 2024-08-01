@@ -26,20 +26,34 @@ class Index extends Base
     public function getHeightDifference(){
         if(IS_AJAX && IS_POST){
             $datas=input('post.');
-            Log::info("getHeightDifference : " . var_export($datas,true));
+            // Log::info("getHeightDifference : " . var_export($datas,true));
+
+
+            // // $submission_id_associated_drone =  Db::table("submission_mission")
+            // //                             ->whereIn('submissionID',$datas)
+            // //                             ->whereNotNull('sncode')
+            // //                             ->field(['submissionID', 'missionID'])
+            // //                             ->select();
+
 
             $submission_id_associated_drone =  Db::table("submission_mission")
-                                        ->whereIn('submissionID',$datas)
                                         ->whereNotNull('sncode')
                                         ->column('submissionID');
+            
             Log::info("submission_id_associated_drone : " . var_export($submission_id_associated_drone, true));
 
             $items = Db::table("drone_submission_homepoint")
-                    ->whereIn('submissionID',$submission_id_associated_drone)
+                    ->whereIn('submissionID', $submission_id_associated_drone)
                     ->whereNotNull('sncode')
                     ->select();
 
             Log::info("items : " . var_export($items,true));
+
+            if(empty($items)){
+                return json(['success' => false]);
+            }
+
+
             foreach($items as $item){
                 $firstTowerAlt = Db::view("submission_tower_missiontype")
                     ->where('submissionID', $item['submissionID'])
@@ -135,7 +149,7 @@ class Index extends Base
                 Log::info("snCode: " .  $snCode);
                 $combinedData = json_encode($combinedData, JSON_UNESCAPED_SLASHES);
                 Log::info("combinedData: " . var_export($combinedData,true));
-                Log::info("combinedData['data']['snCode'] : " . var_export($combinedData['data']['snCode'],true) );
+                Log::info("combinedData['data']['snCode'] : " . var_export($combinedData['data'],true) );
                 if($snCode!== null){
                     Log::info("send to socket_connect " );
 
@@ -993,66 +1007,49 @@ class Index extends Base
     public function uploadTask(){
 
         if(IS_AJAX && IS_POST){
-            $datas=input('post.');
+
             Log::info("uploadTask controller send task info to drone ");
-            Log::info("data in ajax : " . var_export($datas,true));
+            $datas=input('post.');
+            Log::info("datas in index: " . var_export($datas,true));
+
             $controller =  "index";
-            foreach($datas as $data) {
+            // // unlink('C:\Users\123\Desktop\origin_php\myphp\application\index\config\1.txt');
 
-                $taskInfo = Db::view('submission_mission')
-                ->where('submissionID', $data['submissionID'])
-                ->find();
-
-                $snCode = $taskInfo['snCode'];
-                $submissionType = $taskInfo['missionID'];
-                $policyID = $taskInfo['policyID'];
-
-                // $snCode = Db::view('submission_mission')
-                // ->where('submissionID',$data['submissionID'])
-                // ->value('snCode');
-                // Log::info("++++ data submissionID ： " . var_export($data['submissionID'],true));
-
-                Log::info("====== task Info : " . var_export($taskInfo,true));
-                Log::info("+++++++++++++++++++snCode ： " . var_export($snCode,true));
-
+         
+            if(empty($datas)){
+                return json(['success' => false, 'message' => '暂无可上传任务']);
+            }
+            $socket = new tcp();
+            foreach($datas as $data){
+                $snCode = $data['snCode'];
+                $submissionType = $data['missionID'];
+                $policyID = $data['policyID'];
                 $networkType = Db::table('networkTypes')
-                ->where('isValid',1)
-                ->value('networkType');
-
+                    ->where('isValid',1)
+                    ->value('networkType');
                 $timestamp = time();
-
-
-                // $submissionType = Db::view('submission_mission')
-                // ->where('submissionID',$data['submissionID'])
-                // ->value('missionID');
-                
-                //chinese can't display
-                Log::info("networkType: " . $networkType);
-                Log::info("submissionType: " . $submissionType);
-                Log::info("time: " . $timestamp);
-
                 $rtk = 1;
                 $record = 1;
                 $imgwidth = 1;
                 $imgheight = 1;
-                // $flight = $data['flight'];
-
-                // $policyID = Db::view('submission_mission')
-                // ->where('submissionID',$data['submissionID'])
-                // ->value('policyID');
-                Log::info("policyID : " . $policyID);
+                if($data['reFlight'] == 1){
+                    $flight = 1;
+                }else {
+                    $flight = $data['flight']; 
+                }
+               
                 if($policyID == 0){ 
                     //return from origin line  
                     $return = 255;
                 } else if ($policyID == 1){
                     //return need altitude
-                    $returnAltitude = (double)$taskInfo['returnAltitude'];
+                    $returnAltitude = (double)$data['returnAltitude'];
                 }else if($policyID == 2){
                     //return from other point  
                     $return = 254;
-                    $landingLongtitude = (double)$taskInfo['landingLongtitude'];
-                    $landingLatitude = (double)$taskInfo['landingLatitude'];
-                    $landingAltitude = (double)$taskInfo['landingAltitude'];
+                    $landingLongtitude = (double)$data['landingLongtitude'];
+                    $landingLatitude = (double)$data['landingLatitude'];
+                    $landingAltitude = (double)$data['landingAltitude'];
                 }
                 Log::info("return : " . $return);
 
@@ -1061,7 +1058,7 @@ class Index extends Base
                     "snCode" => $snCode,
                     "rtk" => $rtk,
                     "missionType" => $submissionType,
-                    "flight" => $data['flight'],
+                    "flight" => $flight,
                     "timestamp" => $timestamp,
                     "record" => $record,
                     "imgwidth" => $imgwidth,
@@ -1070,8 +1067,8 @@ class Index extends Base
                     "landingLongtitude" => isset($landingLongtitude)?$landingLongtitude:null,
                     "landingLatitude" =>  isset($landingLatitude)?$landingLatitude:null,
                     "landingAltitude" => isset($landingAltitude)?$landingAltitude:null,
-                    "continueFlightTypeID" => $taskInfo['continueFlightTypeID'],
-                    "continueFlightHeight" => $taskInfo['continueFlightHeight'],
+                    "continueFlightTypeID" => (int)$data['continueFlightTypeID'],
+                    "continueFlightHeight" => (int)$data['continueFlightHeight'],
                 );
 
                 // $all_data = json_encode($all_data,JSON_UNESCAPED_SLASHES);
@@ -1088,45 +1085,165 @@ class Index extends Base
                 Log::info("snCode: " .  $snCode);
                 $combinedData = json_encode($combinedData, JSON_UNESCAPED_SLASHES);
                 Log::info("combinedData: " . var_export($combinedData,true));
-                if($snCode !== null){
-                    Log::info("send to socket_connect " . var_export($submissionType,true));
-                    if($submissionType === '4'){
-                        $droneType = Db::table('drone')
-                        ->where('snCode',$snCode)
-                        ->value('droneType');
 
-                        $towerFixedType = Db::view('submission_tower_missiontype')
-                            ->where('submissionID', $data['submissionID'])
-                            ->column('fixedtype');
-                        Log::info("droneType: " . var_export($droneType,true));
-                        Log::info("towerFixedType: " . var_export($towerFixedType,true));
+                if($submissionType === '4'){
+                    $droneType = Db::table('drone')
+                    ->where('snCode',$snCode)
+                    ->value('droneType');
 
-                        if($droneType === "M3T"){
-                            if(in_array("1",$towerFixedType)){
-                                Log::info("tower'; list not fixed");
-                                return json(['success' => false, 'message' => '根据机型修正杆塔高度后可上传任务']);
-                            }
-                        }else if($droneType === "M30T"){
-                            if(in_array("2",$towerFixedType)){
-                                return json(['success' => false, 'message' => '根据机型修正杆塔高度后可上传任务']);
-                            }
+                    $towerFixedType = Db::view('submission_tower_missiontype')
+                        ->where('submissionID', $data['submissionID'])
+                        ->column('fixedtype');
+
+                    Log::info("droneType: " . var_export($droneType,true));
+                    Log::info("towerFixedType: " . var_export($towerFixedType,true));
+
+                    if($droneType === "M3T"){
+                        if(in_array("1",$towerFixedType)){
+                            Log::info(" list not fixed");
+                            return json(['success' => false, 'message' => '根据机型修正杆塔高度后可上传任务']);
+                        }
+                    }else if($droneType === "M30T"){
+                        if(in_array("2",$towerFixedType)){
+                            return json(['success' => false, 'message' => '根据机型修正杆塔高度后可上传任务']);
                         }
                     }
+                }
+                
+                $socket->socketSend($combinedData);
+            }
+
+
+
+            // foreach($datas as $data) {
+
+            //     $taskInfo = Db::view('submission_mission')
+            //     ->where('submissionID', $data['submissionID'])
+            //     ->find();
+
+            //     $snCode = $taskInfo['snCode'];
+            //     $submissionType = $taskInfo['missionID'];
+            //     $policyID = $taskInfo['policyID'];
+
+            //     // $snCode = Db::view('submission_mission')
+            //     // ->where('submissionID',$data['submissionID'])
+            //     // ->value('snCode');
+            //     // Log::info("++++ data submissionID ： " . var_export($data['submissionID'],true));
+
+            //     Log::info("====== task Info : " . var_export($taskInfo,true));
+            //     Log::info("+++++++++++++++++++snCode ： " . var_export($snCode,true));
+
+            //     $networkType = Db::table('networkTypes')
+            //     ->where('isValid',1)
+            //     ->value('networkType');
+
+            //     $timestamp = time();
+
+
+            //     // $submissionType = Db::view('submission_mission')
+            //     // ->where('submissionID',$data['submissionID'])
+            //     // ->value('missionID');
+                
+            //     //chinese can't display
+            //     Log::info("networkType: " . $networkType);
+            //     Log::info("submissionType: " . $submissionType);
+            //     Log::info("time: " . $timestamp);
+
+            //     $rtk = 1;
+            //     $record = 1;
+            //     $imgwidth = 1;
+            //     $imgheight = 1;
+            //     // $flight = $data['flight'];
+
+            //     // $policyID = Db::view('submission_mission')
+            //     // ->where('submissionID',$data['submissionID'])
+            //     // ->value('policyID');
+            //     Log::info("policyID : " . $policyID);
+            //     if($policyID == 0){ 
+            //         //return from origin line  
+            //         $return = 255;
+            //     } else if ($policyID == 1){
+            //         //return need altitude
+            //         $returnAltitude = (double)$taskInfo['returnAltitude'];
+            //     }else if($policyID == 2){
+            //         //return from other point  
+            //         $return = 254;
+            //         $landingLongtitude = (double)$taskInfo['landingLongtitude'];
+            //         $landingLatitude = (double)$taskInfo['landingLatitude'];
+            //         $landingAltitude = (double)$taskInfo['landingAltitude'];
+            //     }
+            //     Log::info("return : " . $return);
+
+            //     $all_data = array(
+            //         "submissionID" => $data['submissionID'],
+            //         "snCode" => $snCode,
+            //         "rtk" => $rtk,
+            //         "missionType" => $submissionType,
+            //         "flight" => $data['flight'],
+            //         "timestamp" => $timestamp,
+            //         "record" => $record,
+            //         "imgwidth" => $imgwidth,
+            //         "imgheight" => $imgheight,
+            //         "return" => $return,
+            //         "landingLongtitude" => isset($landingLongtitude)?$landingLongtitude:null,
+            //         "landingLatitude" =>  isset($landingLatitude)?$landingLatitude:null,
+            //         "landingAltitude" => isset($landingAltitude)?$landingAltitude:null,
+            //         "continueFlightTypeID" => $taskInfo['continueFlightTypeID'],
+            //         "continueFlightHeight" => $taskInfo['continueFlightHeight'],
+            //     );
+
+            //     // $all_data = json_encode($all_data,JSON_UNESCAPED_SLASHES);
+            //     Log::info("all_data: " . var_export($all_data,true));
+                
+            //     $len = strLen(json_encode($all_data));
+
+            //     $combinedData = array(
+            //         "controller" => $controller,
+            //         "len" => $len,
+            //         "data" =>  $all_data,
+            //     );
+            //     $snCode = $combinedData['data']['snCode'];
+            //     Log::info("snCode: " .  $snCode);
+            //     $combinedData = json_encode($combinedData, JSON_UNESCAPED_SLASHES);
+            //     Log::info("combinedData: " . var_export($combinedData,true));
+            //     if($snCode !== null){
+            //         Log::info("send to socket_connect " . var_export($submissionType,true));
+            //         if($submissionType === '4'){
+            //             $droneType = Db::table('drone')
+            //             ->where('snCode',$snCode)
+            //             ->value('droneType');
+
+            //             $towerFixedType = Db::view('submission_tower_missiontype')
+            //                 ->where('submissionID', $data['submissionID'])
+            //                 ->column('fixedtype');
+            //             Log::info("droneType: " . var_export($droneType,true));
+            //             Log::info("towerFixedType: " . var_export($towerFixedType,true));
+
+            //             if($droneType === "M3T"){
+            //                 if(in_array("1",$towerFixedType)){
+            //                     Log::info(" list not fixed");
+            //                     return json(['success' => false, 'message' => '根据机型修正杆塔高度后可上传任务']);
+            //                 }
+            //             }else if($droneType === "M30T"){
+            //                 if(in_array("2",$towerFixedType)){
+            //                     return json(['success' => false, 'message' => '根据机型修正杆塔高度后可上传任务']);
+            //                 }
+            //             }
+            //         }
                     
 
-                    $socket = new tcp();
-                    // Log::info("combinedData: " . var_export($combinedData,true));
-                    $socket->socketSend($combinedData);
-                    return json(['success' => true]);
-                }else{
-                    Log::info("sncode is null");
-                }
+            //         $socket = new tcp();
+            //         // Log::info("combinedData: " . var_export($combinedData,true));
+            //         $socket->socketSend($combinedData);
+                  
+            //     }else{
+            //         Log::info("sncode is null");
+            //     }
                
                 
                 
-            }
-
-            return "good";
+            // }
+            return json(['success' => true]);
         }
     }
 
@@ -5453,64 +5570,115 @@ class Index extends Base
 
     public function check_router(){
         if(IS_AJAX && IS_POST){
-            $datas = input('post.');
             Log::info(" === check_router === ");
-            $uploadSubmissionID = Db::table('submissionList')
-                    ->whereNotNull('droneID')
-                    ->column('submissionID');     
+        
+            $permission=Db::view('user_info')
+            ->where('userID', $this->member_id)
+            ->find();
+            Log::info("permission : " . var_export($permission,true));
+            Log::info("permissionGroupID : " . var_export($permission['permissionGroupID'],true));
+            $companyID = $permission['companyID'];
+            Log::info("companyID : " . var_export( $companyID,true));
+            if($permission['permissionGroupID'] == 0){
+                Log::info("=== superadmin ==="); 
+                $uploadSubmissionID = Db::view('submission_mission')
+                    ->whereNotNull('sncode')
+                    ->select();
+            }else if($permission['permissionGroupID'] == 3){
+                Log::info("=== county admin  ==="); 
+
+                $countyID = Db::table('companyList')
+                    ->where("companyID",$companyID)
+                    ->value('countyCompanyID');
+
+                Log::info("countyID : " . var_export( $countyID,true));   
+
+                $companyArray=Db::table('companyList')
+                    ->where("countyCompanyID", $countyID)
+                    ->column('companyID');
+                Log::info("companyArray : " . var_export( $companyArray,true));
+
+                $uploadSubmissionID = Db::view('submission_mission')
+                    ->join('UserList', 'submission_mission.createManID = UserList.userID')
+                    ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+                    ->join('companyList', 'GroupList.companyID = companyList.companyID')
+                    ->whereIn('companyList.companyID',$companyArray)
+                    ->whereNotNull('sncode')
+                    ->select();
+
+            }else if($permission['permissionGroupID'] == 1){
+                Log::info("=== company admin  ==="); 
+                $uploadSubmissionID = Db::view('submission_mission')
+                    ->join('UserList', 'submission_mission.createManID = UserList.userID')
+                    ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+                    ->join('companyList', 'GroupList.companyID = companyList.companyID')
+                    ->where('companyList.companyID', $companyID)
+                    ->whereNotNull('sncode')
+                    ->select();
+                    //->column('submissionID');  
+            }
+            else {
+                Log::info("=== staff ===");
+                $uploadSubmissionID=Db::view('submission_mission')
+                ->where('createmanID', $this->member_id)
+                ->whereNotNull('sncode')
+                ->select(); 
+            }
+
             Log::info("uploadSubmissionID : " .var_export($uploadSubmissionID,true));
             $flightTypeArray = [];
             foreach($uploadSubmissionID as $data) {
-                //$folderPath = 'C:/Users/Administrator/Desktop/console_socket/console_socket/x64/Debug/route'; 
                 $folderPath = 'C:\Users\123\Desktop\console_socket\console_socket\route'; 
-
                 //$folderPath = 'C:\Users\Administrator\Desktop\txzf_server\route';
-
-               
-                $files = scandir($folderPath);
-                $flight = 1; // 默认值为1
-                $submissionID = (string) $data;
-                Log::info("submissionID : " . $submissionID);
-                if(is_array($files) && !empty($files))
-                {
-                    foreach ($files as $file) {
-                        Log::info("file : " . $file);
-                        if($file === '.' || $file === '..'){
-                            continue;
-                        }
-                        $fileInfo = $folderPath . '/' . $file;
-                        Log::info("fileInfo : " . $fileInfo);
-                        if(is_file($fileInfo)){
-                            Log::info("=== is file === " );
-                            if(strpos($file, '_') == false){
-                                Log::info("not include '_' ");
-                                continue;
-                            } else {
-                                $parts = explode('_', $file);
-                                $leftPart = $parts[0];
-                                Log::info("leftPart : " . $leftPart);
-                                if($leftPart === $submissionID){
-                                    $lastModifiedTime = (int)$parts[1];
-                                    Log::info("lastModifiedTime : " . $lastModifiedTime);
-                                    $current_timestamp = time();
-                                    Log::info("current_timestamp : " . $current_timestamp);
-                                    if($current_timestamp - $lastModifiedTime <= 604800){
-                                        Log::info("current_timestamp111 : " . $current_timestamp);
-                                        $flight = 2;
-                                    }
-                                }
-
+                $submissionID = (string) $data['submissionID'];
+                $flight = 1;
+                $existFile = glob($folderPath . DIRECTORY_SEPARATOR . $submissionID .'_*');
+                //glob()函数可以在不指定完整路径的情况下，‌搜索特定模式的文件或目录
+                Log::info("existFile : " . var_export($existFile, true));
+                if(is_array($existFile) && !empty($existFile)){
+                    foreach($existFile as $file){
+                        $fileName = basename($file);
+                        Log::info("fileName : " . var_export($fileName, true));
+                        if(is_file($file)){
+                            $parts = explode('_', $fileName);
+                            Log::info("parts : " . var_export($parts,true));
+                            $leftPart = $parts[0];
+                            Log::info("leftPart : " . $leftPart);
+                            $lastModifiedTime = (int)$parts[1];
+                            Log::info("lastModifiedTime : " . $lastModifiedTime);
+                            $current_timestamp = time();
+                            Log::info("current_timestamp : " . $current_timestamp);
+                            if($current_timestamp - $lastModifiedTime <= 604800){
+                                Log::info("current_timestamp111 : " . $current_timestamp);
+                                $flight = 2;
                             }
                         }
                     }
                 }
+
+
                 Log::info("flight : " . $flight);
-                //$flightTypeArray[] = $flight;
+
 
                 $flightTypeArray[] = array(
                     "flight" => $flight,
                     "submissionID" => $submissionID,
+                    'snCode' => $data['snCode'],
+                    'missionID' => $data['missionID'],
+                    'policyID' => $data['policyID'],
+                    'returnAltitude' => (double)$data['returnAltitude'],
+                    'landingLongtitude' => (double)$data['landingLongtitude'],
+                    'landingLatitude' => (double)$data['landingLatitude'],
+                    'landingAltitude' => (double)$data['landingAltitude']
                 );
+               
+
+
+                // $flightTypeArray[] = array(
+                //     "flight" => $flight,
+                //     "submissionID" => $submissionID,
+                // );
+
                 Log::info("++ flightTypeArray : " .var_export($flightTypeArray,true));
             }
 

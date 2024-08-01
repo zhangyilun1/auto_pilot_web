@@ -30,7 +30,7 @@ class tcp {
         // {
         //     socket_close();
         // }
-        sleep(2);
+        // sleep(1);
         socket_close($socket);
     }
 

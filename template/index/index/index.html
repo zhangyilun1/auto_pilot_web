@@ -250,7 +250,7 @@
     </div>
 </div>
 {include file='public/footer' /}
-<script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=jZco57iywrAVkMm7DfjOcwDXhOZDLE7M"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=nuBM1PP9G6XCpv7dZ96Gfmkv3H1BKSlM"></script>
 <script type="text/javascript">
     var map;
     var convertor;
@@ -612,21 +612,21 @@
     document.getElementById("uploadLink").addEventListener('click',function(){
         document.getElementById("uploadLink").disabled = true;
         document.getElementById("uploadLink").style.opacity = "0.5";
-        var submissionInfo = document.getElementsByClassName("submissionID");
-        console.log('submissionInfo : ',submissionInfo);
-        var allData = [];
-        for(var i = 0; i < submissionInfo.length; i++)
-        {
-            var submissionID = submissionInfo[i].value;
-            console.log('submissionID : ',submissionID);
-            allData.push(submissionID);
-        }
+        // var submissionInfo = document.getElementsByClassName("submissionID");
+        // console.log('submissionInfo : ',submissionInfo);
+        // var allData = [];
+        // for(var i = 0; i < submissionInfo.length; i++)
+        // {
+        //     var submissionID = submissionInfo[i].value;
+        //     console.log('submissionID : ',submissionID);
+        //     allData.push(submissionID);
+        // }
 
         $.ajax({
             type: "POST",
             url: "{:url('check_router')}",
-            data: JSON.stringify(allData),
-            dataType: "json",
+            // data: JSON.stringify(allData),
+            //dataType: "json",
             contentType: "application/json",
             success: function (response) {
                 console.log('flightTypeArray : ', response.flightTypeArray); 
@@ -642,14 +642,7 @@
                     // var confirmRenew = confirm("已存在相关文件，是否续飞？");
                     showCustomConfirm("已存在相关文件，是否续飞？", function (confirmRenew) {
                         if (confirmRenew) {
-                            var alldata = flightTypeArray;
-                            // for (var i = 0; i < response.flightTypeArray.length; i++) {
-                            //     console.log(' alldata choose continue  ',allData[i]);  
-                            //     console.log(' alldata choose continue  ',flightTypeArray[i].flight);  
-                            //     // var data = { submissionID: allData[i], flight: flightTypeArray[i] };
-                            //    // alldata.push(data);
-                            // }
-                            // console.log(' alldata choose continue  ',alldata);  
+                            var alldata = flightTypeArray; 
                             $.ajax({
                                 type: "POST",
                                 url: "{:url('uploadTask')}",
@@ -658,9 +651,9 @@
                                 contentType: "application/json",
                                 success: function(response) {
                                     if(!response.success){
-                                        layer.msg("上传续飞任务失败: " + response.message);
+                                        layer.msg("上传任务失败: " + response.message);
                                     }else{
-                                        layer.msg("续飞任务上传中",{time:2000});
+                                        layer.msg("任务上传中",{time:2000});
                                     }
 
                             
@@ -672,20 +665,21 @@
                                 error: function(error) {
                                     console.log("上传失败", error);
                                     //alert("上传失败");
-                                    layer.msg("上传续飞任务失败",{time:2000});
+                                    layer.msg("上传任务失败",{time:2000});
                                     document.getElementById("uploadLink").disabled = false;
                                     document.getElementById("uploadLink").style.opacity = "1";
                                 }
                             });
                         } else {
                             console.log(' == 未选择续飞=='); 
-                            // var flight = 2;
-                            // var alldata = [];
-                            // for (var i = 0; i < response.flightTypeArray.length; i++) {
-                            //     var data = { submissionID: allData[i], flight: 1};
-                            //     alldata.push(data);
-                            // }
-                            var alldata = flightTypeArray;
+                     
+                            //var alldata = flightTypeArray;
+
+                            var alldata = flightTypeArray.map(function(item){
+                                item.reFlight = 1;
+                                return item;
+                            });
+
                             console.log(' alldata in not choose continue  ',alldata);  
                             $.ajax({
                                 type: "POST",
@@ -716,11 +710,12 @@
                 } else {
                     console.log(' == not includes 2 =='); 
                     var flight = 1;
-                    var alldata = flightTypeArray;
-                    // for (var i = 0; i < response.flightTypeArray.length; i++) {
-                    //     var data = { submissionID: allData[i], flight: 1 };
-                    //     alldata.push(data);
-                    // }
+
+                    var alldata = flightTypeArray.map(function(item){
+                        item.reFlight = 2;
+                        return item;
+                    });
+       
                     console.log(' alldata in not include 2  ',alldata); 
                     $.ajax({
                         type: "POST",
@@ -754,24 +749,29 @@
 
     document.getElementById("takeoffLink").addEventListener('click',function(){
 
-        var submissionInfo = document.getElementsByClassName("submissionID");
-        console.log('submissionInfo : ',submissionInfo);
-        var allData = [];
-        for(var i = 0; i < submissionInfo.length; i++)
-        {
-            var submissionID = submissionInfo[i].value;
-            console.log('submissionID : ',submissionID);
-            allData.push(submissionID);
-        }
+        // var submissionInfo = document.getElementsByClassName("submissionID");
+        // console.log('submissionInfo : ',submissionInfo);
+        // var allData = [];
+        // for(var i = 0; i < submissionInfo.length; i++)
+        // {
+        //     var submissionID = submissionInfo[i].value;
+        //     console.log('submissionID : ',submissionID);
+        //     allData.push(submissionID);
+        // }
 
         
         $.ajax({
             type: "POST",
             url: "{:url('getHeightDifference')}", // 假设这是获取高度差的接口
-            data: JSON.stringify(allData),
-            dataType: "json",
+            // data: JSON.stringify(allData),
+            // dataType: "json",
             contentType: "application/json",
             success: function(response) {
+                if(!response.success){
+                    layer.msg("任务有误请检查" );
+                    return;
+                }
+
                 console.log("response.result.length : " ,response.result.length);
                 if (response.result.length > 0) {
                     var content = '';
