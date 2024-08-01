@@ -5628,8 +5628,8 @@ class Index extends Base
             Log::info("uploadSubmissionID : " .var_export($uploadSubmissionID,true));
             $flightTypeArray = [];
             foreach($uploadSubmissionID as $data) {
-                $folderPath = 'C:\Users\123\Desktop\console_socket\console_socket\route'; 
-                //$folderPath = 'C:\Users\Administrator\Desktop\txzf_server\route';
+                // $folderPath = 'C:\Users\123\Desktop\console_socket\console_socket\route'; 
+                $folderPath = 'C:\Users\Administrator\Desktop\txzf_server\route';
                 $submissionID = (string) $data['submissionID'];
                 $flight = 1;
                 $existFile = glob($folderPath . DIRECTORY_SEPARATOR . $submissionID .'_*');
