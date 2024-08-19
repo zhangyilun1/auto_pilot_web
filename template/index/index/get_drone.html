@@ -119,12 +119,20 @@
                         </td>
                     </tr>
                     <tr>
+                      
+
                         <td>
                             <div class="row cl">
-                                <label class="form-label col-xs-4 table_title">RTK服务器：</label>
+                                <label class="form-label col-xs-4 table_title">&nbsp;&nbsp;&nbsp;&nbsp;RTK公司：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="rtkIP"
-                                        value="{$data.rtkIP}">
+                                    <select class="select1"  name="crosCompanyID">
+                                        <?php if (is_null($data['rtkAccountType'])): ?>
+                                            <option value="" selected>暂无公司设置</option>
+                                        <?php endif; ?>
+                                        {foreach name='cros_company_types' item='v'}
+                                            <option value="{$v.cros_company_id}" <?php if($data['rtkAccountType']==$v['cros_company_id'])echo ' selected';?>>{$v.cros_company_name}</option>
+                                        {/foreach}
+                                    </select>
                                 </div>
                             </div>
                         </td>
@@ -146,6 +154,17 @@
                                 </div>
                             </div>
                         </td>
+                        <td>
+                            <div class="row cl">
+                                <label class="form-label col-xs-4 table_title">RTK服务器：</label>
+                                <div class="formControls col-xs-8">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder="" name="rtkIP"
+                                        value="{$data.rtkIP}">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
                         <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">RTK挂载点：</label>

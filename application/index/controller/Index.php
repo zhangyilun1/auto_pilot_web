@@ -4,6 +4,7 @@ namespace app\index\controller;
 
 use app\common\model\Message;
 use Mpdf\Tag\Select;
+use Symfony\Component\EventDispatcher\DependencyInjection\AddEventAliasesPass;
 use think\Db;
 use think\facade\Cookie;
 use think\facade\Log;
@@ -68,7 +69,7 @@ class Index extends Base
                         ->value('submissionName');
                 } else {
                     $submissionName = $firstTowerAlt['submissionName'];
-                    $heightDifference = $item['homePoint'] - $firstTowerAlt['altitude'];
+                    $heightDifference = $firstTowerAlt['altitude'] - $item['homePoint'] ;
                     $heightDifference = number_format($heightDifference, 1);
                 }
 
@@ -95,11 +96,17 @@ class Index extends Base
 
         if(IS_AJAX && IS_POST){
             $datas=input('post.');
-            Log::info("takeoff ");
-            Log::info("data in takeoffLink : " . var_export($datas,true));
+            // Log::info("takeoff ");
+            // Log::info("data in takeoffLink : " . var_export($datas,true));
             $controller =  "takeoffLink";
 
-            foreach($datas as $data) {
+
+            $submission_id_associated_drone =  Db::view("submission_mission")
+            ->whereNotNull('sncode')
+            ->column('submissionID');
+
+
+            foreach($submission_id_associated_drone as $data) {
                 $snCode = Db::view('submission_mission')
                 ->where('submissionID',$data)
                 ->value('snCode');
@@ -1034,6 +1041,23 @@ class Index extends Base
                 $imgheight = 1;
                 if($data['reFlight'] == 1){
                     $flight = 1;
+                    //$folderPath = 'C:\Users\123\Desktop\console_socket\console_socket\route'; 
+                    $folderPath = 'C:\Users\Administrator\Desktop\txzf_server\route';
+                    $submissionID = (string) $data['submissionID'];
+                    $existFile = glob($folderPath . DIRECTORY_SEPARATOR . $submissionID .'_*');
+                    //glob()函数可以在不指定完整路径的情况下，‌搜索特定模式的文件或目录
+                    Log::info("existFile : " . var_export($existFile, true));
+                    if(is_array($existFile) && !empty($existFile)){
+                        foreach($existFile as $file){
+                            $fileName = basename($file);
+                            Log::info("fileName : " . var_export($fileName, true));
+                            Log::info("file in reFlight : " . var_export($file, true));
+                            if(is_file($file)){
+                                unlink($file);
+                            }
+                        }
+                    }
+
                 }else {
                     $flight = $data['flight']; 
                 }
@@ -1043,9 +1067,9 @@ class Index extends Base
                     $return = 255;
                 } else if ($policyID == 1){
                     //return need altitude
-                    $returnAltitude = (double)$data['returnAltitude'];
+                    $return = (double)$data['returnAltitude'];
+                    // $returnAltitude
                 }else if($policyID == 2){
-                    //return from other point  
                     $return = 254;
                     $landingLongtitude = (double)$data['landingLongtitude'];
                     $landingLatitude = (double)$data['landingLatitude'];
@@ -1053,6 +1077,13 @@ class Index extends Base
                 }
                 Log::info("return : " . $return);
 
+                $continueFlightTypeID = Db::table('submissionList')
+                    ->where('submissionID',$data['submissionID'])
+                    ->value('continueFlightTypeID');
+
+                $continueFlightHeight = Db::table('submissionList')
+                    ->where('submissionID',$data['submissionID'])
+                    ->value('continueFlightHeight');
                 $all_data = array(
                     "submissionID" => $data['submissionID'],
                     "snCode" => $snCode,
@@ -1067,8 +1098,8 @@ class Index extends Base
                     "landingLongtitude" => isset($landingLongtitude)?$landingLongtitude:null,
                     "landingLatitude" =>  isset($landingLatitude)?$landingLatitude:null,
                     "landingAltitude" => isset($landingAltitude)?$landingAltitude:null,
-                    "continueFlightTypeID" => (int)$data['continueFlightTypeID'],
-                    "continueFlightHeight" => (int)$data['continueFlightHeight'],
+                    "continueFlightTypeID" => (int)$continueFlightTypeID,
+                    "continueFlightHeight" => (int)$continueFlightHeight,
                 );
 
                 // $all_data = json_encode($all_data,JSON_UNESCAPED_SLASHES);
@@ -4761,49 +4792,412 @@ class Index extends Base
         if($keywords){
             $where.=" and submissionName like '%{$keywords}%'";
         }
+
+        // $data=Db::table('FlightRecords')
+        //     ->where($where)
+        //     ->order('FlightRecordsID desc')
+        //     ->select();
         $permission=Db::view('user_info')
         ->where('userID', $this->member_id)
         ->find();
-        $data=Db::table('FlightRecords')
+        Log::info("permission : " . var_export($permission,true));
+        Log::info("permissionGroupID : " . var_export($permission['permissionGroupID'],true));
+        $companyID = $permission['companyID'];
+        Log::info("companyID : " . var_export( $companyID,true));
+        if($permission['permissionGroupID'] == 0){
+        Log::info("=== superadmin ==="); 
+        $tasks=Db::view('submission_mission')
+            ->order('submissionID desc')
+            ->column("submissionID");
+        }else if($permission['permissionGroupID'] == 3){
+        Log::info("=== county admin  ==="); 
+
+        $countyID = Db::table('companyList')
+            ->where("companyID",$companyID)
+            ->value('countyCompanyID');
+
+        Log::info("countyID : " . var_export( $countyID,true));   
+
+        $companyArray=Db::table('companyList')
+            ->where("countyCompanyID", $countyID)
+            ->column('companyID');
+        Log::info("companyArray : " . var_export( $companyArray,true));
+
+        $tasks = Db::view('submission_mission')
+            ->join('UserList', 'submission_mission.createManID = UserList.userID')
+            ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+            ->join('companyList', 'GroupList.companyID = companyList.companyID')
+            ->whereIn('companyList.companyID',$companyArray)
+            ->order('submissionID desc')
+            ->column("submissionID");
+
+        Log::info("tasks : " . var_export( $tasks,true));
+
+        }else if($permission['permissionGroupID'] == 1){
+        Log::info("=== company admin  ==="); 
+        $tasks = Db::view('submission_mission')
+            ->join('UserList', 'submission_mission.createManID = UserList.userID')
+            ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+            ->join('companyList', 'GroupList.companyID = companyList.companyID')
+            ->where('companyList.companyID', $companyID)
+            ->order('submissionID desc')
+            ->column("submissionID");
+        Log::info("submissions: " . var_export($tasks, true));
+        }
+        else {
+            Log::info("=== staff ===");
+            $tasks=Db::view('submission_mission')
+            ->where('createmanID', $this->member_id)
+            ->order('submissionID desc')
+            ->column("submissionID");
+        }
+
+        Log::info("submissions ==== : " . var_export($tasks, true));
+        $datas=Db::view('flight_record_image_transfer')
+            ->whereIn('submissionID',$tasks)
             ->where($where)
             ->order('FlightRecordsID desc')
             ->select();
-        $this->assign(compact('data','keywords','permission'));
+        
+        foreach($datas as &$data){
+            $data['precentage'] = number_format($data['fileCurrentSize'] / $data['fileTotalSize'], 1) * 100 . " %";
+            if($data['transferStatus'] == 0){
+                $data['precentage'] = '未上传';
+            }else if ($data['transferStatus'] == 1){
+                $data['precentage'] = '已暂停 - ' . $data['precentage'];
+            }else if ($data['transferStatus'] == 2){
+                $data['precentage'] = '等待上传';
+            }else if ($data['transferStatus'] == 3){
+                $data['precentage'] = '上传中 - '. $data['precentage'];
+            }else if ($data['transferStatus'] == 4){
+                $data['precentage'] = '已完成 - ' . '100 %';
+            }
+        }
+        unset($data);
+        Log::info("data in historyList: " . var_export($datas,true));
+        $this->assign(compact('datas','keywords','permission'));
         return $this->fetch();
     }
+    public function updateRecord(){
+        if(IS_AJAX && IS_POST){
+            Log::info("=== updateRecord ===" );
+            $data=input('post.');
+            Log::info("data :" .var_export($data,true));
 
+            $record = Db::view('flight_record_image_transfer')
+                ->where('FlightRecordsID',$data['id'])
+                ->find();
+            Log::info("record :" .var_export($record,true));
+            if($record['transferStatus'] === '0'){
+                $status = "未上传";
+            }else if($record['transferStatus'] === '1'){
+                $status = "已暂停 - " . number_format($record["fileCurrentSize"] / $record["fileTotalSize"], 1) * 100 .' %';;
+            }else if($record['transferStatus'] === '2'){
+                $status = "等待上传";
+            }else if($record['transferStatus'] === '3'){
+                $status = "上传中 - " . number_format($record["fileCurrentSize"] / $record["fileTotalSize"], 1) * 100 .' %';
+            }else if($record['transferStatus'] === '4'){
+                $status = '已完成 - ' . '100 %';
+            }
+            Log::info("status :" .var_export($status,true));
+            return json(['status' => $status, 'transferStatus' => $record['transferStatus']]);
+            // $record = Db::table('FlightRecords')
+            //     ->where('FlightRecordsID',$data['id'])
+            //     ->find();
+
+            // $timeStamp = strtotime($record['DepartureTime']);
+            // // Path to your JSON file
+            // $jsonFilePath = './json_file/'.$record['droneSncode']. '_' . $record['submissionID'] .'_' .$timeStamp.'.json';
+            // Log::info("jsonFilePath :" .var_export($jsonFilePath,true));
+            // // Read the JSON file
+            // $jsonData = file_get_contents($jsonFilePath);
+            // if ($jsonData === false) {
+            //     Log::info("status :" .var_export("jsonFile unexist" ,true));
+            //     return json(['status' => 'error', 'message' => 'Unable to read JSON file']);
+            // }
+                
+            //     // Decode the JSON data into an associative array
+            // $dataArray = json_decode($jsonData, true);
+            // if (json_last_error() !== JSON_ERROR_NONE) {
+            //     return json(['status' => 'error', 'message' => 'JSON decoding error: ' . json_last_error_msg()]);
+            // }else {
+            //     $status = $dataArray["status"] . '-' . $dataArray["current_size"] / $dataArray["total_size"] * 100 .'%'  ;
+            //     Log::info("status :" .var_export( $dataArray["status"] ,true));
+            //     Log::info("status :" .var_export( $status ,true));
+            //     Log::info("total_size :" .var_export( $dataArray["total_size"] ,true));
+            //     Log::info("current_size :" .var_export( $dataArray["current_size"] ,true));
+            //     return json(['status' => $status]);
+            // }
+                
+        }
+    }
+
+
+    public function update_record_detail(){
+        if(IS_AJAX && IS_POST){
+            Log::info("=== updateRecord ===" );
+            $data=input('post.');
+            Log::info("data :" .var_export($data,true));
+
+            $record = Db::view('flight_record_image_transfer')
+                ->where('FlightRecordsID',$data['id'])
+                ->find();
+            Log::info("record :" .var_export($record,true));
+            if($record['transferStatus'] === '0'){
+                $status = "未上传";
+            }else if($record['transferStatus'] === '1'){
+                $status = "已暂停 - " . number_format($record["fileCurrentSize"] / $record["fileTotalSize"], 1) * 100 .' %';;
+            }else if($record['transferStatus'] === '2'){
+                $status = "等待上传";
+            }else if($record['transferStatus'] === '3'){
+                $status = "上传中 - " . number_format($record["fileCurrentSize"] / $record["fileTotalSize"], 1) * 100 .' %';
+            }else if($record['transferStatus'] === '4'){
+                $status = '已完成 - ' . '100 %';
+            }
+            Log::info("status :" .var_export($status,true));
+            return json(['success' => 1,'status' => $status, 'fileCurrentSize' => $record["fileCurrentSize"], 'fileTotalSize' => $record["fileTotalSize"],'transferStatus' => $record['transferStatus']]);
+        }
+    }
+    public function upload_all_image(){
+        $socket = new tcp();
+        if(IS_AJAX && IS_POST){
+            Log::info("==== upload_all_image ====" );
+            $controller = "upload_image";
+            $permission=Db::view('user_info')
+                ->where('userID', $this->member_id)
+                ->find();
+            if($permission['permissionGroupID'] == 0){
+                Log::info("=== superadmin ==="); 
+                $all_drones = Db::table('drone')
+                    ->where('whetherOnline', 1)
+                    ->order('droneID desc')
+                    ->column('snCode');
+            }else if ($permission['permissionGroupID'] == 3){
+                $countyID = Db::table('companyList')
+                ->where("companyID",$permission['companyID'])
+                ->value('countyCompanyID');
+
+                Log::info("countyID : " . var_export( $countyID,true));   
+
+                $companyArray=Db::table('companyList')
+                    ->where("countyCompanyID", $countyID)
+                    ->column('companyID');
+                Log::info("companyArray : " . var_export( $companyArray,true));
+
+                $all_drones = Db::table('drone')
+                    ->whereIn('companyID', $companyArray)
+                    ->where('whetherOnline', 1)
+                    ->order('droneID desc')
+                    ->column('snCode');
+                Log::info("all_drones : " . var_export( $all_drones,true));
+            }else {
+                Log::info("aaaa"); 
+                $all_drones = Db::table('drone')
+                    ->where('companyID',$permission['companyID'])
+                    ->where('whetherOnline', 1)
+                    ->order('droneID desc')
+                    ->column('snCode');  
+            }
+
+            $all_sn = array(
+                "snCode" => $all_drones,
+            );
+            Log::info("all_sn : " . var_export($all_sn,true));
+            $len = strLen(json_encode($all_sn));
+
+            $combinedData = array(
+                "controller" => $controller,
+                "len" => $len,
+                "data" =>  $all_sn,
+            );
+            $combinedData = json_encode($combinedData, JSON_UNESCAPED_SLASHES);
+            $socket->socketSend($combinedData);
+        }
+    }
+
+    public function cancel_all_image(){
+        $socket = new tcp();
+        if(IS_AJAX && IS_POST){
+            Log::info("==== upload_all_image ====" );
+            $controller = "cancel_image";
+            $permission=Db::view('user_info')
+                ->where('userID', $this->member_id)
+                ->find();
+            if($permission['permissionGroupID'] == 0){
+                Log::info("=== superadmin ==="); 
+                $all_drones = Db::table('drone')
+                    ->where('whetherOnline', 1)
+                    ->order('droneID desc')
+                    ->column('snCode');
+            }else if ($permission['permissionGroupID'] == 3){
+                $countyID = Db::table('companyList')
+                ->where("companyID",$permission['companyID'])
+                ->value('countyCompanyID');
+
+                Log::info("countyID : " . var_export( $countyID,true));   
+
+                $companyArray=Db::table('companyList')
+                    ->where("countyCompanyID", $countyID)
+                    ->column('companyID');
+                Log::info("companyArray : " . var_export( $companyArray,true));
+
+                $all_drones = Db::table('drone')
+                    ->whereIn('companyID', $companyArray)
+                    ->where('whetherOnline', 1)
+                    ->order('droneID desc')
+                    ->column('snCode');
+                Log::info("all_drones : " . var_export( $all_drones,true));
+            }else {
+                Log::info("aaaa"); 
+                $all_drones = Db::table('drone')
+                    ->where('companyID',$permission['companyID'])
+                    ->where('whetherOnline', 1)
+                    ->order('droneID desc')
+                    ->column('snCode');  
+            }
+
+            $all_sn = array(
+                "snCode" => $all_drones,
+            );
+            Log::info("all_sn : " . var_export($all_sn,true));
+            $len = strLen(json_encode($all_sn));
+
+            $combinedData = array(
+                "controller" => $controller,
+                "len" => $len,
+                "data" =>  $all_sn,
+            );
+            $combinedData = json_encode($combinedData, JSON_UNESCAPED_SLASHES);
+            $socket->socketSend($combinedData);
+        }
+    }
+
+    public function cancel_image(){
+        $socket = new tcp();
+        if(IS_AJAX && IS_POST){
+
+            Log::info("uploadImage controller send task info to drone ");
+            $data=input('post.');
+            Log::info("datas in index: " . var_export($data,true));
+
+            $controller = "cancel_image";
+
+            $record_sncode = Db::view('flight_record_image_transfer')
+                ->where('FlightRecordsID',$data['id'])
+                ->value("droneSncode");
+
+            Log::info("record_sncode in index all_data = : " . var_export($record_sncode,true));
+
+            $all_data = array(
+                "snCode" => $record_sncode,
+            );
+
+            $len = strLen(json_encode($all_data));
+
+            $combinedData = array(
+                "controller" => $controller,
+                "len" => $len,
+                "data" =>  $all_data,
+            );
+            
+            $combinedData = json_encode($combinedData, JSON_UNESCAPED_SLASHES);
+            $socket->socketSend($combinedData);
+        }
+    }
+
+    public function upload_image(){
+        Log::info("==== upload_image ====" );
+        $socket = new tcp();
+        if(IS_AJAX && IS_POST){
+
+            Log::info("uploadImage controller send task info to drone ");
+            $data=input('post.');
+            Log::info("datas in index: " . var_export($data,true));
+
+            $controller = "upload_image";
+
+            $record_sncode = Db::view('flight_record_image_transfer')
+                ->where('FlightRecordsID',$data['id'])
+                ->value("droneSncode");
+
+            Log::info("record_sncode in index all_data = : " . var_export($record_sncode,true));
+
+            $all_data = array(
+                "snCode" => $record_sncode,
+            );
+
+            $len = strLen(json_encode($all_data));
+
+            $combinedData = array(
+                "controller" => $controller,
+                "len" => $len,
+                "data" =>  $all_data,
+            );
+            
+            $combinedData = json_encode($combinedData, JSON_UNESCAPED_SLASHES);
+            $socket->socketSend($combinedData);
+        }
+    }
     public function history_detail(){
         Log::info("==== history_detail ====" );
         if($this->my_permission['findData']<=0){
             return $this->fetch();
         }
         $id = input('id',-1);
-        $data = Db::table('FlightRecords')
+        Log::info("history_detail id : ". $id);
+        //Db::table('FlightRecords')
+        $data = Db::view('flight_record_image_transfer')
             ->where('FlightRecordsID',$id)
             ->find();
+        $data['precentage'] = number_format($data['fileCurrentSize'] / $data['fileTotalSize'], 1) * 100 . "%";
+        if($data['transferStatus'] == 0){
+            $data['precentage'] = '未上传';
+        }else if ($data['transferStatus'] == 1){
+            $data['precentage'] = '暂停中 - ' . $data['precentage'];
+        }else if ($data['transferStatus'] == 2){
+            $data['precentage'] = '等待上传';
+        }else if ($data['transferStatus'] == 3){
+            $data['precentage'] = '上传中 - '. $data['precentage'];
+        }else if ($data['transferStatus'] == 4){
+            $data['precentage'] = '已完成 - ' . '100 %';
+        }
+      
+        // |round(2)
         Log::info("data : " . var_export($data,true));
         
         $missions = Db::table('missionList')
             ->column('missionType','missionID');
-    
-        $towerNum = Db::view('submission_mission')
+        if($data['towerSize'] == -1){
+            $towerNum = Db::view('submission_mission')
             ->where('submissionID',$data['submissionID'])
             ->value('tower_num');
+        }else {
+            $towerNum = $data['towerSize'];
+        }
+
         
         Log::info("towerNum : " . var_export($towerNum,true));
         $data['TowerNum'] = $towerNum;
         
+        if($data['towerList'] === 'all'){
+            $towersInfor=Db::view('submission_tower_missiontype')
+                ->where('submissionID',$data['submissionID'])
+                ->column('towerID');
+            Log::info("towersInfor : " . var_export($towersInfor,true));
 
-        $towersInfor=Db::view('submission_tower_missiontype')
-            ->where('submissionID',$data['submissionID'])
-            ->column('towerID');
-        Log::info("towersInfor : " . var_export($towersInfor,true));
-
-        $towers = Db::view('tower_line_towershape')
-            ->whereIn('towerID',$towersInfor)
-            ->select();
-        Log::info("towers : " . var_export($towers,true));
-
+            $towers = Db::view('tower_line_towershape')
+                ->whereIn('towerID',$towersInfor)
+                ->select();
+            Log::info("towers : " . var_export($towers,true));
+        }else {
+            $towerList = $data['towerList'];
+            Log::info("towerList : " . var_export($towerList,true));
+            $arr_towerList = explode(',', $towerList);
+            Log::info("arr_towerList : " . var_export($arr_towerList,true));
+            $towers = Db::view('tower_line_towershape')
+                ->whereIn('towerID',$arr_towerList)
+                ->select();
+        }
         // $towers=Db::table('FlightRecordsTowerList')
         //     ->where(['FlightRecordsID'=>$id])
         //     ->select();
@@ -5139,6 +5533,11 @@ class Index extends Base
         ->find();
         Log::info(" data in get drone: " . var_export($data,true));
 
+        $cros_company_types = Db::table('cros_company_types')
+                            ->select();
+
+
+
         if(IS_AJAX && IS_POST){
             $data=input('post.');
 
@@ -5176,7 +5575,7 @@ class Index extends Base
 
 
 
-        $this->assign(compact('data','title','permission'));
+        $this->assign(compact('data','title','permission','cros_company_types'));
 
         return $this->fetch();
     }
@@ -5186,78 +5585,73 @@ class Index extends Base
         Log::info("==== data_analysis ==="); 
 
 
-        $currentTaskID = isset($_GET['submissionID'])?$_GET['submissionID'] : null;
+        $currentTaskID = isset($_GET['flightRecordsID'])?$_GET['flightRecordsID'] : null;
         Log::info("currentTaskID :". var_export($currentTaskID, true));
 
-
-        if($this->my_permission['findTask']<=0){
-            return $this->fetch();
-        }
-        Log::info("member id: " . $this->member_id); 
-        $task_name=input('task_name','');
-        $task_where='1=1';
-        if($task_name){
-            $task_where.=" and submissionName like '%{$task_name}%'";
-        }
-
         $permission=Db::view('user_info')
-                    ->where('userID', $this->member_id)
-                    ->find();
+        ->where('userID', $this->member_id)
+        ->find();
         Log::info("permission : " . var_export($permission,true));
         Log::info("permissionGroupID : " . var_export($permission['permissionGroupID'],true));
         $companyID = $permission['companyID'];
         Log::info("companyID : " . var_export( $companyID,true));
         if($permission['permissionGroupID'] == 0){
-            Log::info("=== superadmin ==="); 
-            $tasks=Db::view('submission_mission')
-            ->where($task_where)
+        Log::info("=== superadmin ==="); 
+        $tasks=Db::view('submission_mission')
             ->order('submissionID desc')
-            ->select();
+            ->column("submissionID");
         }else if($permission['permissionGroupID'] == 3){
-            Log::info("=== county admin  ==="); 
+        Log::info("=== county admin  ==="); 
 
-            $countyID = Db::table('companyList')
-                ->where("companyID",$companyID)
-                ->value('countyCompanyID');
+        $countyID = Db::table('companyList')
+            ->where("companyID",$companyID)
+            ->value('countyCompanyID');
 
-            Log::info("countyID : " . var_export( $countyID,true));   
+        Log::info("countyID : " . var_export( $countyID,true));   
 
-            $companyArray=Db::table('companyList')
-                ->where("countyCompanyID", $countyID)
-                ->column('companyID');
-            Log::info("companyArray : " . var_export( $companyArray,true));
+        $companyArray=Db::table('companyList')
+            ->where("countyCompanyID", $countyID)
+            ->column('companyID');
+        Log::info("companyArray : " . var_export( $companyArray,true));
 
-            $tasks = Db::view('submission_mission')
-                ->join('UserList', 'submission_mission.createManID = UserList.userID')
-                ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
-                ->join('companyList', 'GroupList.companyID = companyList.companyID')
-                ->whereIn('companyList.companyID',$companyArray)
-                ->where($task_where)
-                ->order('submissionID desc')
-                ->select();
+        $tasks = Db::view('submission_mission')
+            ->join('UserList', 'submission_mission.createManID = UserList.userID')
+            ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+            ->join('companyList', 'GroupList.companyID = companyList.companyID')
+            ->whereIn('companyList.companyID',$companyArray)
+            ->order('submissionID desc')
+            ->column("submissionID");
 
-            Log::info("tasks : " . var_export( $tasks,true));
-        
+        Log::info("tasks : " . var_export( $tasks,true));
+
         }else if($permission['permissionGroupID'] == 1){
-            Log::info("=== company admin  ==="); 
-            $tasks = Db::view('submission_mission')
-                ->join('UserList', 'submission_mission.createManID = UserList.userID')
-                ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
-                ->join('companyList', 'GroupList.companyID = companyList.companyID')
-                ->where('companyList.companyID', $companyID)
-                ->where($task_where)
-                ->order('submissionID desc')
-                ->select();
-            Log::info("submissions: " . var_export($tasks, true));
+        Log::info("=== company admin  ==="); 
+        $tasks = Db::view('submission_mission')
+            ->join('UserList', 'submission_mission.createManID = UserList.userID')
+            ->join('GroupList', 'UserList.group_list_id = GroupList.groupID')
+            ->join('companyList', 'GroupList.companyID = companyList.companyID')
+            ->where('companyList.companyID', $companyID)
+            ->order('submissionID desc')
+            ->column("submissionID");
+        Log::info("submissions: " . var_export($tasks, true));
         }
         else {
             Log::info("=== staff ===");
             $tasks=Db::view('submission_mission')
-            ->where($task_where)
             ->where('createmanID', $this->member_id)
             ->order('submissionID desc')
-            ->select();
+            ->column("submissionID");
         }
+
+        Log::info("submissions ==== : " . var_export($tasks, true));
+        $tasks=Db::view('flight_record_image_transfer')
+            ->whereIn('submissionID',$tasks)
+            // ->where($where)
+            ->order('FlightRecordsID desc')
+            ->select();
+
+
+
         foreach($tasks as &$task){
             Log::info("task : " . var_export($task,true));    
             if($task['missionID'] == 5){
@@ -5628,8 +6022,8 @@ class Index extends Base
             Log::info("uploadSubmissionID : " .var_export($uploadSubmissionID,true));
             $flightTypeArray = [];
             foreach($uploadSubmissionID as $data) {
-                // $folderPath = 'C:\Users\123\Desktop\console_socket\console_socket\route'; 
-                $folderPath = 'C:\Users\Administrator\Desktop\txzf_server\route';
+                $folderPath = 'C:\Users\123\Desktop\console_socket\console_socket\route'; 
+                //$folderPath = 'C:\Users\Administrator\Desktop\txzf_server\route';
                 $submissionID = (string) $data['submissionID'];
                 $flight = 1;
                 $existFile = glob($folderPath . DIRECTORY_SEPARATOR . $submissionID .'_*');

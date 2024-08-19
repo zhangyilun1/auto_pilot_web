@@ -1,7 +1,7 @@
 <ul class="left_nav_con" id="task-list">
     {foreach name='tasks' item='v' key='k'}
-    <li id="task-{$v.submissionID}" class="<?php if ($currentTaskID == $v['submissionID']) echo 'active'; ?>">
-        <a href="javascript:void(0);" onclick="selectTask('<?php echo urlencode($v['submissionID']); ?>')">{$v.submissionName}</a>
+    <li id="task-{$v.FlightRecordsID}" class="<?php if ($currentTaskID == $v['FlightRecordsID']) echo 'active'; ?>">
+        <a href="javascript:void(0);" onclick="selectTask('<?php echo urlencode($v['FlightRecordsID']); ?>')">{$v.submissionName}</a>
     </li>
     {/foreach}
 </ul>
@@ -9,7 +9,7 @@
 
 <script>
     function selectTask(taskID) {
-        
+        console.log("111");
         const taskItems = document.querySelectorAll('.left_nav_con li');
         taskItems.forEach(item => {
             item.classList.remove('active');
@@ -17,10 +17,10 @@
 
         const selectedTask = document.getElementById('task-' + taskID);
         selectedTask.classList.add('active');
-
+        console.log("taskID:" ,taskID);
         // var scrollPosition = selectedTaskElement.offset().top - $(".list").offset().top;
         //     $(".list").scrollTop(scrollPosition);
 
-        window.location.href = 'data_analysis?submissionID=' + taskID;
+        window.location.href = 'data_analysis?flightRecordsID=' + taskID;
     }
 </script>

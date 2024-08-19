@@ -1,15 +1,57 @@
 {include file='public/header' /}
 {include file='public/top_nav' /}
 <style>
-    .rule-table span{display:inline-block;padding:10px 0;}
-    .rule-table td,.rule-table th,.rule-table{border-color:#4D8CCF}
+    .rule-table span {
+        display: inline-block;
+        padding: 10px 0;
+    }
+
+    .rule-table td,
+    .rule-table th,
+    .rule-table {
+        border-color: #4D8CCF
+    }
+
+    .add_btn {
+        display: inline-block !important;
+    }
+
+    .mt-20 {
+        display: flex !important;
+    }
+
+    .progress-container {
+        position: relative;
+        width: 70%;
+        display: inline-block;
+        vertical-align: middle;
+        text-align: center;
+        margin: 0 auto;
+    }
+
+    #fileUploadProgress {
+        width: 90%;
+        height: 40px;
+        /* 调整进度条的高度 */
+    }
+
+    .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #000;
+        font-weight: bold;
+        z-index: 1;
+        pointer-events: none;
+    }
 </style>
 <!-- 内容 -->
 <div class="a-15" style="overflow: visible;">
     <div class="user_con">
         <div class="left_nav">
-                 <?php if($permission['permissionGroupID']==0):?>
-        {include file='public/setting_nav' /}
+            <?php if($permission['permissionGroupID']==0):?>
+            {include file='public/setting_nav' /}
             <?php else:?>
             {include file='public/setting_not_admin' /}
             <?php endif;?>
@@ -18,21 +60,42 @@
             <div class="top_con mt-20">
                 <span class="l">
                     <a class="add_btn" href="{:url('history_list')}">返回</a>
+                    <?php if($data['transferStatus'] == 3):?>
+                    <a class="add_btn stop">暂停上传</a>
+                    <?php endif;?>
+                </span>
+                <span class="progress-container" data-recordID="{$data.FlightRecordsID}">
+                    <progress id="fileUploadProgress" value="{$data.fileCurrentSize}"
+                        max="{$data.fileTotalSize}"></progress>
+                    <span class="progress-text">
+                        {$data.precentage}
+                    </span>
                 </span>
                 <span class="r">
-
+                    <?php if($data['transferStatus'] == 1 || $data['transferStatus'] == 0 || $data['transferStatus'] == 2):?>
+                    <a class="add_btn upload">上传图片</a>
+                    <?php elseif($data['transferStatus']==4):?>
+                    <a class="add_btn review"
+                        href=" {:url('data_analysis')}?flightRecordsID={$data['FlightRecordsID']}">查看图片</a>
+                    <a class="add_btn download">下载图片</a>
+                    <?php elseif($data['transferStatus'] == 3):?>
+                    <a class="add_btn cancel">取消上传</a>
+                    <?php endif;?>
                 </span>
                 <div style="clear:both;"></div>
             </div>
             <div class="table_con">
                 <table class="table mt-10">
-
+                    <input type="hidden" class="FlightRecordsID" name="FlightRecordsID"
+                        value="{$data.FlightRecordsID}" />
+                    <input type="hidden" class="DownloadAddr" name="DownloadAddr" value="{$data.imageStorePath}" />
                     <tr>
                         <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">任务名称：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.submissionName}">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        value="{$data.submissionName}">
                                 </div>
                             </div>
                         </td>
@@ -40,7 +103,8 @@
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">任务类型：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$missions[$data[missionID]]}">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        value="{$missions[$data[missionID]]}">
                                 </div>
                             </div>
                         </td>
@@ -48,7 +112,8 @@
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">无人机SN码：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.droneSncode}">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        value="{$data.droneSncode}">
                                 </div>
                             </div>
                         </td>
@@ -58,7 +123,8 @@
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">执行时间：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.DepartureTime}">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        value="{$data.DepartureTime}">
                                 </div>
                             </div>
                         </td>
@@ -66,7 +132,8 @@
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">完成时间：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.LandingTime}">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        value="{$data.LandingTime}">
                                 </div>
                             </div>
                         </td>
@@ -76,7 +143,8 @@
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">杆塔数量：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.TowerNum}">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        value="{$data.TowerNum}">
                                 </div>
                             </div>
                         </td>
@@ -90,7 +158,7 @@
                         </td> -->
                     </tr>
                     <!-- <tr> -->
-                        <!-- <td>
+                    <!-- <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">降落点经度：</label>
                                 <div class="formControls col-xs-8">
@@ -106,7 +174,7 @@
                                 </div>
                             </div>
                         </td> -->
-                        <!-- <td>
+                    <!-- <td>
                             <div class="row cl">
                                 <label class="form-label col-xs-4 table_title">杆塔数量：</label>
                                 <div class="formControls col-xs-8">
@@ -128,7 +196,8 @@
                             <div class="row cl" style="display:none;">
                                 <label class="form-label col-xs-4 table_title">备注：</label>
                                 <div class="formControls col-xs-8">
-                                    <input type="text" class="input-text" autocomplete="off" placeholder="" value="{$data.comment}">
+                                    <input type="text" class="input-text" autocomplete="off" placeholder=""
+                                        value="{$data.comment}">
                                 </div>
                             </div>
                         </td>
@@ -136,24 +205,24 @@
                     </tr>
                     <tr>
                         <td colspan="3">
-                           <table class="table table-bg text-c table-hover">
-                               <tr>
-                                   <th>序号</th>
-                                   <th>杆塔名称</th>
-                                   <th>所属路线</th>
-                                   <th>航线类型</th>
-                                   <!-- <th>电压等级</th> -->
-                               </tr>
-                               {foreach name='towers' item='v' key='k'}
-                               <tr>
-                                   <td>{$k+1}</td>
-                                   <td>{$v.towerName}</td>
-                                   <td>{$v.lineName}</td>
-                                   <td>{$v.towerShapeName}</td>
-                                   <!-- <td>{$v.towerVoltageLevel}</td> -->
-                               </tr>
-                               {/foreach}
-                           </table>
+                            <table class="table table-bg text-c table-hover">
+                                <tr>
+                                    <th>序号</th>
+                                    <th>杆塔名称</th>
+                                    <th>所属路线</th>
+                                    <th>航线类型</th>
+                                    <!-- <th>电压等级</th> -->
+                                </tr>
+                                {foreach name='towers' item='v' key='k'}
+                                <tr>
+                                    <td>{$k+1}</td>
+                                    <td>{$v.towerName}</td>
+                                    <td>{$v.lineName}</td>
+                                    <td>{$v.towerShapeName}</td>
+                                    <!-- <td>{$v.towerVoltageLevel}</td> -->
+                                </tr>
+                                {/foreach}
+                            </table>
                         </td>
                     </tr>
                 </table>
@@ -163,7 +232,141 @@
 </div>
 {include file='public/footer' /}
 <script>
-    $(function(){
-        $('input').prop('readonly',true);
+
+
+    $(document).ready(function () {
+
+        $('.upload').on('click', function (event) {
+            console.log("=== upload === ")
+            var flightRecordsID = $('input[name="FlightRecordsID"]').val();
+            console.log("flightRecordsID : ", flightRecordsID);
+            $.ajax({
+                url: "{:url('upload_image')}",
+                type: 'POST',
+                data: { id: flightRecordsID },
+                success: function (response) {
+                    console.log('上传成功', response);
+                },
+                error: function (xhr, status, error) {
+                    console.error('上传失败', error);
+                }
+            });
+        });
+
+        $('.cancel').on('click', function (event) {
+            console.log("=== cancel === ")
+            var flightRecordsID = $('input[name="FlightRecordsID"]').val();
+            $.ajax({
+                url: "{:url('cancel_image')}",
+                type: 'POST',
+                data: { id: flightRecordsID },
+                success: function (response) {
+                    console.log('上传成功', response);
+                },
+                error: function (xhr, status, error) {
+                    console.error('上传失败', error);
+                }
+            });
+        });
+
+        $('.download').on('click', function (event) {
+            console.log("=== download === ")
+            var downloadAddr = $('input[name="DownloadAddr"]').val();
+            console.log("downloadAddr: ", downloadAddr)
+            $.ajax({
+                url: "{:url('download_image')}",
+                type: 'POST',
+                data: { addr: downloadAddr },
+                success: function (response) {
+                    console.log('上传成功', response);
+                },
+                error: function (xhr, status, error) {
+                    console.error('上传失败', error);
+                }
+            });
+        });
+
+        $('.stop').on('click', function (event) {
+            console.log("=== stop === ")
+            var flightRecordsID = $('input[name="FlightRecordsID"]').val();
+            $.ajax({
+                url: "{:url('stop_upload_image')}",
+                type: 'POST',
+                data: { id: flightRecordsID },
+                success: function (response) {
+                    console.log('上传成功', response);
+                },
+                error: function (xhr, status, error) {
+                    console.error('上传失败', error);
+                }
+            });
+        });
+
+
+
+    });
+
+
+
+    $(function () {
+        $('input').prop('readonly', true);
     })
+
+
+
+
+    function updateStatus() {
+
+        var leftContainer = $('.l');
+        var rightContainer = $('.r');
+
+        $('.progress-container').each(function () {
+            var recordID = $(this).data('recordid');
+            console.log("recordID: ", recordID);
+            var progressElement = $(this).find('#fileUploadProgress');
+            var progressTextElement = $(this).find('.progress-text');
+            $.ajax({
+                url: "{:url('update_record_detail')}",
+                type: 'POST',
+                dataType: 'json',
+                data: { id: recordID },
+                success: function (response) {
+                    console.log("response: ", response);
+                    if (response.success) {
+                        var currentSize = response.fileCurrentSize;
+                        console.log("currentSize: ", currentSize);
+                        var totalSize = response.fileTotalSize;
+                        console.log("totalSize: ", totalSize);
+                        var percentage = response.status;
+                        var transferStatus = response.transferStatus;
+                        // 更新进度条的值
+                        progressElement.val(currentSize);
+                        progressElement.attr('max', totalSize);
+                        
+                        progressTextElement.text(percentage);
+                        leftContainer.find('.stop').remove();
+                        rightContainer.find('.upload, .download, .cancel, .review').remove();
+                        if (transferStatus == 3) {
+                            leftContainer.append('<a class="add_btn stop">暂停上传</a>');
+                            rightContainer.append('<a class="add_btn cancel">取消上传</a>');
+                        } else if (transferStatus == 1 || transferStatus == 0 || transferStatus == 2) {
+                            rightContainer.append('<a class="add_btn upload">上传图片</a>');
+                        } else if (transferStatus == 4) {
+                            rightContainer.append('<a class="add_btn review" href="{:url(\'data_analysis\')}?flightRecordsID={$data[\'FlightRecordsID\']}">查看图片</a>');
+                            rightContainer.append(document.createTextNode(' '));
+                            rightContainer.append('<a class="add_btn download">下载图片</a>');
+                        }
+
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error fetching progress for record " + recordID, error);
+                }
+            });
+        });
+    }
+
+    setInterval(updateStatus, 1000);
+
+
 </script>

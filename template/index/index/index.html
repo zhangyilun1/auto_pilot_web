@@ -250,7 +250,7 @@
     </div>
 </div>
 {include file='public/footer' /}
-<script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=nuBM1PP9G6XCpv7dZ96Gfmkv3H1BKSlM"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=gE4HJyZpoRcl5er07oVMMQzzYkfti8kd"></script>
 <script type="text/javascript">
     var map;
     var convertor;
@@ -626,7 +626,7 @@
             type: "POST",
             url: "{:url('check_router')}",
             // data: JSON.stringify(allData),
-            //dataType: "json",
+            // dataType: "json",
             contentType: "application/json",
             success: function (response) {
                 console.log('flightTypeArray : ', response.flightTypeArray); 
@@ -634,8 +634,8 @@
                 var flightValues = flightTypeArray.map(function(item) {
                     return item.flight;
                 });
-
                 console.log('flightValues: ', flightValues);
+        
 
                 if (flightValues.includes(2)) {
                     console.log('是否续飞确认'); 
@@ -744,7 +744,7 @@
             console.log("请求失败", error);
         },
         });
-        console.log('submissionInfo2 : ',submissionInfo); 
+        // console.log('submissionInfo2 : ',submissionInfo); 
     });
 
     document.getElementById("takeoffLink").addEventListener('click',function(){
@@ -794,13 +794,12 @@
                     yes: function(index, layero){
                         document.getElementById("takeoffLink").disabled = true;
                         document.getElementById("takeoffLink").style.opacity = "0.5";
-                
                         // 发送数据到服务器
                         $.ajax({
                                 type: "POST",
                                 url: "{:url('takeoffLink')}",
-                                data: JSON.stringify(allData),
-                                dataType: "json",
+                                // data: JSON.stringify(allData),
+                                // dataType: "json",
                                 contentType: "application/json",
                                 // success: function(response) {
                                 // console.log("起飞发送成功", response);
@@ -812,20 +811,17 @@
                                     document.getElementById("takeoffLink").disabled = false;
                                     document.getElementById("takeoffLink").style.opacity = "1";
                                 },
-                            error: function(error) {
-                                console.log("起飞命令失败", error);
-                                layer.msg("起飞指令发送失败",{time:2000});
-                                document.getElementById("takeoffLink").disabled = false;
-                                document.getElementById("takeoffLink").style.opacity = "1";
-                            }
-                        });
+                                error: function(error) {
+                                    console.log("起飞命令失败", error);
+                                    layer.msg("起飞指令发送失败",{time:2000});
+                                    document.getElementById("takeoffLink").disabled = false;
+                                    document.getElementById("takeoffLink").style.opacity = "1";
+                                }
+                            });
                     }
                 })
             }
         });
-
-
-  
     });
 
 
